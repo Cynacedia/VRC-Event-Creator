@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   uploadGalleryImage: () => ipcRenderer.invoke("files:uploadGallery"),
   getAppInfo: () => ipcRenderer.invoke("app:info"),
   checkForUpdate: () => ipcRenderer.invoke("app:checkUpdate"),
+  downloadUpdate: () => ipcRenderer.invoke("app:downloadUpdate"),
+  installUpdate: () => ipcRenderer.invoke("app:installUpdate"),
   getSettings: () => ipcRenderer.invoke("settings:get"),
   updateSettings: payload => ipcRenderer.invoke("settings:set", payload),
   getThemeStore: () => ipcRenderer.invoke("theme:get"),

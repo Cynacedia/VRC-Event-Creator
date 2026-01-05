@@ -1,10 +1,10 @@
 {
   "name": "VRCEventCreator",
-  "version": "0.9.8",
+  "version": "0.9.14",
   "main": "electron/main.js",
   "scripts": {
     "start:gui": "electron .",
-    "dist:gui": "electron-builder --win portable",
+    "dist:gui": "electron-builder --win",
     "dist:gui:all": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -13,6 +13,7 @@
   "license": "MIT",
   "description": "VRChat Event Creator",
   "dependencies": {
+    "electron-updater": "^6.3.9",
     "keyv-file": "^5.3.3",
     "luxon": "^3.7.2",
     "vrchat": "^2.20.5"
@@ -29,17 +30,25 @@
       "electron/**/*",
       "package.json"
     ],
-    "win": {
-      "target": "portable",
-      "icon": "electron/app.ico"
+    "publish": {
+      "provider": "github",
+      "owner": "Cynacedia",
+      "repo": "VRC-Event-Creator"
     },
-    "mac": {
-      "target": "dmg",
-      "icon": "electron/app.ico"
+    "win": {
+      "target": "nsis",
+      "icon": "electron/app.ico",
+      "artifactName": "VRChat-Event-Creator-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     },
     "linux": {
       "target": "AppImage",
-      "icon": "electron/app.ico"
+      "icon": "electron/app.png"
     }
   }
 }
