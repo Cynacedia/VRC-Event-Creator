@@ -62,7 +62,7 @@ __**Teile keine Cache-Dateien oder App-Datenordner.**__
 - VRChat erlaubt derzeit nur bis zu 10 kommende Events gleichzeitig.
 
 ## Fehlerbehebung
-- Login-Probleme: `cache.json` löschen und erneut anmelden (verwende den Datenordner aus Anwendungsinfo).
+- Login-Probleme: `cache.json` löschen und erneut anmelden (verwende den Datenordner aus Einstellungen > Anwendungsinfo).
 - Fehlende Gruppen: Dein Konto benötigt Kalenderzugriff in der Zielgruppe.
 - Rate-Limiting: VRChat kann die Event-Erstellung begrenzen. Warte und versuche es erneut. Stoppe, wenn mehrere Versuche fehlschlagen. Buttons für Refresh oder Event-Erstellung nicht spammen.
 - Updates: Einige Funktionen sind blockiert, wenn ein Update aussteht. Lade die neueste Version herunter und starte sie.
@@ -75,7 +75,6 @@ __**Teile keine Cache-Dateien oder App-Datenordner.**__
 - Node.js 20+ (22.21.1 empfohlen)
 - npm
 - Ein VRChat-Konto mit Berechtigung, Events für mindestens eine Gruppe zu erstellen
-
 
 
 

@@ -62,7 +62,7 @@ __**Ne partagez pas les fichiers de cache ni les dossiers de données de l'appli
 - VRChat n'autorise actuellement que 10 événements à venir à la fois.
 
 ## Dépannage
-- Problèmes de connexion : supprimez `cache.json` et reconnectez-vous (utilisez le dossier de données indiqué dans Informations sur l'application).
+- Problèmes de connexion : supprimez `cache.json` et reconnectez-vous (utilisez le dossier de données indiqué dans Paramètres > Informations sur l'application).
 - Groupes manquants : votre compte doit avoir accès au calendrier dans le groupe cible.
 - Limitation de débit : VRChat peut limiter la création d'événements. Attendez et réessayez, et arrêtez si plusieurs tentatives échouent. Ne spammez pas les boutons d'actualisation ou de création d'événements.
 - Mises à jour : Certaines fonctionnalités sont bloquées lorsqu'une mise à jour est en attente. Téléchargez et lancez la dernière version.
@@ -75,6 +75,5 @@ __**Ne partagez pas les fichiers de cache ni les dossiers de données de l'appli
 - Node.js 20+ (22.21.1 recommandé)
 - npm
 - Un compte VRChat avec l'autorisation de créer des événements pour au moins un groupe
-
 
 

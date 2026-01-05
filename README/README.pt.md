@@ -63,7 +63,7 @@ __**Não compartilhe arquivos de cache nem pastas de dados do aplicativo.**__
 - O VRChat atualmente permite no máximo 10 eventos futuros por vez.
 
 ## Solução de problemas
-- Problemas de login: exclua `cache.json` e faça login novamente (use a pasta de dados mostrada em Sobre).
+- Problemas de login: exclua `cache.json` e faça login novamente (use a pasta de dados mostrada em Configurações > Informações do aplicativo).
 - Grupos ausentes: sua conta precisa de acesso ao calendário no grupo alvo.
 - Limite de taxa: o VRChat pode limitar a criação de eventos. Aguarde e tente novamente, e pare se várias tentativas falharem. Não fique spamando os botões de atualizar ou criar eventos.
 - Atualizações: Alguns recursos ficam bloqueados quando há atualizações pendentes. Baixe e execute a versão mais recente.
@@ -76,7 +76,6 @@ __**Não compartilhe arquivos de cache nem pastas de dados do aplicativo.**__
 - Node.js 20+ (22.21.1 recomendado)
 - npm
 - Uma conta VRChat com permissão para criar eventos para pelo menos um grupo
-
 
 
 

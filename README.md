@@ -63,7 +63,7 @@ __**Do not share cache files or application data folders.**__
 - VRChat currently only allows up to 10 upcoming events at a time.
 
 ## Troubleshooting
-- Login issues: delete `cache.json` and sign in again (use the data folder from About).
+- Login issues: delete `cache.json` and sign in again (use the data folder shown in Settings > Application Info).
 - Missing groups: your account must have calendar access in the target group.
 - Rate limiting: VRChat may rate limit event creation. Wait and retry, and stop if several attempts fail. Do not spam refresh or event creation buttons.
 - Updates: Some features are blocked when updates are pending. Download and run the latest release.
