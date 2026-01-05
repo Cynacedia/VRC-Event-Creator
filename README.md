@@ -38,7 +38,7 @@ Create and save per-group event templates, generate upcoming event dates from si
 
 ## Download
 - Releases: https://github.com/Cynacedia/VRC-Event-Creator/releases
-- The Windows portable `.exe` runs standalone (no Node.js required to run it).
+- The Windows portable `.exe` runs standalone.
 
 ## Privacy & Data storage
 Your password is not stored. Only session tokens are cached.
