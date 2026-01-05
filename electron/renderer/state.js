@@ -1,0 +1,244 @@
+// State management and DOM element references
+
+export const dom = {
+  app: document.querySelector(".app"),
+  titlebar: document.getElementById("titlebar"),
+  windowMinimize: document.getElementById("window-minimize"),
+  windowMaximize: document.getElementById("window-maximize"),
+  windowClose: document.getElementById("window-close"),
+  navButtons: document.querySelectorAll(".nav-btn"),
+  viewCreate: document.getElementById("view-create"),
+  viewModify: document.getElementById("view-modify"),
+  viewProfiles: document.getElementById("view-profiles"),
+  viewAbout: document.getElementById("view-about"),
+  statusLine: document.getElementById("status-line"),
+  footMeta: document.getElementById("foot-meta"),
+  statusPill: document.getElementById("status-pill"),
+  logoutBtn: document.getElementById("logout-btn"),
+  toast: document.getElementById("toast"),
+  loginOverlay: document.getElementById("login-overlay"),
+  loginClose: document.getElementById("login-close"),
+  languageOverlay: document.getElementById("language-overlay"),
+  languageSetupList: document.getElementById("language-setup-list"),
+  languageSetupContinue: document.getElementById("language-setup-continue"),
+  loginForm: document.getElementById("login-form"),
+  loginUsername: document.getElementById("login-username"),
+  loginPassword: document.getElementById("login-password"),
+  twoFactorOverlay: document.getElementById("twofactor-overlay"),
+  twoFactorForm: document.getElementById("twofactor-form"),
+  twoFactorCode: document.getElementById("twofactor-code"),
+  aboutVersion: document.getElementById("about-version"),
+  aboutDataDir: document.getElementById("about-data-dir"),
+  aboutSession: document.getElementById("about-session"),
+  githubLink: document.getElementById("github-link"),
+  settingsTheme: document.getElementById("settings-theme"),
+  themeGrid: document.getElementById("theme-color-grid"),
+  themePresetName: document.getElementById("theme-preset-name"),
+  themePresetSave: document.getElementById("theme-preset-save"),
+  themePresetDelete: document.getElementById("theme-preset-delete"),
+  themePresetImport: document.getElementById("theme-preset-import"),
+  themePresetExport: document.getElementById("theme-preset-export"),
+  themeReset: document.getElementById("theme-reset"),
+  themeOpen: document.getElementById("theme-open"),
+  themeOverlay: document.getElementById("theme-overlay"),
+  themeOverlayClose: document.getElementById("theme-overlay-close"),
+  galleryOverlay: document.getElementById("gallery-overlay"),
+  galleryClose: document.getElementById("gallery-close"),
+  galleryRefresh: document.getElementById("gallery-refresh"),
+  galleryUpload: document.getElementById("gallery-upload"),
+  galleryList: document.getElementById("gallery-list"),
+  galleryLoadMore: document.getElementById("gallery-load-more"),
+  galleryCancel: document.getElementById("gallery-cancel"),
+  galleryUse: document.getElementById("gallery-use"),
+  settingsChangeDir: document.getElementById("settings-change-dir"),
+  settingsOpenDir: document.getElementById("settings-open-dir"),
+  settingsLanguage: document.getElementById("settings-language"),
+  languageSelect: document.getElementById("language-select"),
+  languageTrigger: document.getElementById("language-trigger"),
+  languageMenu: document.getElementById("language-menu"),
+  languageLabel: document.getElementById("language-label"),
+  languageFlag: document.getElementById("language-flag"),
+  eventGroup: document.getElementById("event-group"),
+  eventProfile: document.getElementById("event-profile"),
+  eventProfileClear: document.getElementById("event-profile-clear"),
+  eventTimezone: document.getElementById("event-timezone"),
+  eventDuration: document.getElementById("event-duration"),
+  eventDurationPreview: document.getElementById("event-duration-preview"),
+  eventDateSource: document.getElementById("event-date-source"),
+  eventDateOption: document.getElementById("event-date-option"),
+  eventPatternDates: document.getElementById("event-pattern-dates"),
+  eventManualFields: document.getElementById("event-manual-fields"),
+  eventManualDate: document.getElementById("event-manual-date"),
+  eventManualTime: document.getElementById("event-manual-time"),
+  eventDateHint: document.getElementById("event-date-hint"),
+  eventName: document.getElementById("event-name"),
+  eventDescription: document.getElementById("event-description"),
+  eventCategory: document.getElementById("event-category"),
+  eventTagsInput: document.getElementById("event-tags-input"),
+  eventTagsChips: document.getElementById("event-tags-chips"),
+  eventTags: document.getElementById("event-tags"),
+  eventAccess: document.getElementById("event-access"),
+  eventRoleRestrictions: document.getElementById("event-role-restrictions"),
+  eventRoleList: document.getElementById("event-role-list"),
+  eventImageId: document.getElementById("event-image-id"),
+  eventImagePicker: document.getElementById("event-image-picker"),
+  eventSendNotification: document.getElementById("event-send-notification"),
+  eventLanguageFilter: document.getElementById("event-language-filter"),
+  eventLanguageList: document.getElementById("event-language-list"),
+  eventLanguageHint: document.getElementById("event-language-hint"),
+  eventPlatformList: document.getElementById("event-platform-list"),
+  eventCreate: document.getElementById("event-create"),
+  eventBack: document.getElementById("event-back"),
+  eventNext: document.getElementById("event-next"),
+  eventLimitNotice: document.getElementById("event-limit-notice"),
+  eventUpcomingCount: document.getElementById("event-upcoming-count"),
+  eventCountRefresh: document.getElementById("event-count-refresh"),
+  modifyGroup: document.getElementById("modify-group"),
+  modifyRefresh: document.getElementById("modify-refresh"),
+  modifyEventGrid: document.getElementById("modify-event-grid"),
+  modifyCount: document.getElementById("modify-count"),
+  modifyOverlay: document.getElementById("modify-overlay"),
+  modifyClose: document.getElementById("modify-close"),
+  modifyCancel: document.getElementById("modify-cancel"),
+  modifySave: document.getElementById("modify-save"),
+  modifyProfile: document.getElementById("modify-profile"),
+  modifyProfileLoad: document.getElementById("modify-profile-load"),
+  modifyEventName: document.getElementById("modify-event-name"),
+  modifyEventDescription: document.getElementById("modify-event-description"),
+  modifyEventCategory: document.getElementById("modify-event-category"),
+  modifyTagsInput: document.getElementById("modify-tags-input"),
+  modifyTagsChips: document.getElementById("modify-tags-chips"),
+  modifyEventTags: document.getElementById("modify-event-tags"),
+  modifyEventAccess: document.getElementById("modify-event-access"),
+  modifyRoleRestrictions: document.getElementById("modify-role-restrictions"),
+  modifyRoleList: document.getElementById("modify-role-list"),
+  modifyEventImageId: document.getElementById("modify-event-image-id"),
+  modifyEventImagePicker: document.getElementById("modify-event-image-picker"),
+  modifyEventDate: document.getElementById("modify-event-date"),
+  modifyEventTime: document.getElementById("modify-event-time"),
+  modifyEventTimezone: document.getElementById("modify-event-timezone"),
+  modifyEventDuration: document.getElementById("modify-event-duration"),
+  modifyEventDurationPreview: document.getElementById("modify-event-duration-preview"),
+  modifyLanguageFilter: document.getElementById("modify-language-filter"),
+  modifyLanguageList: document.getElementById("modify-language-list"),
+  modifyLanguageHint: document.getElementById("modify-language-hint"),
+  modifyPlatformList: document.getElementById("modify-platform-list"),
+  profileExisting: document.getElementById("profile-existing"),
+  profileNew: document.getElementById("profile-new"),
+  profileEdit: document.getElementById("profile-edit"),
+  profileDelete: document.getElementById("profile-delete"),
+  profileGroup: document.getElementById("profile-group"),
+  profileDisplayName: document.getElementById("profile-display-name"),
+  profileName: document.getElementById("profile-name"),
+  profileDescription: document.getElementById("profile-description"),
+  profileCategory: document.getElementById("profile-category"),
+  profileTagsInput: document.getElementById("profile-tags-input"),
+  profileTagsChips: document.getElementById("profile-tags-chips"),
+  profileTags: document.getElementById("profile-tags"),
+  profileAccess: document.getElementById("profile-access"),
+  profileRoleRestrictions: document.getElementById("profile-role-restrictions"),
+  profileRoleList: document.getElementById("profile-role-list"),
+  profileImageId: document.getElementById("profile-image-id"),
+  profileImagePicker: document.getElementById("profile-image-picker"),
+  profileDuration: document.getElementById("profile-duration"),
+  profileDurationPreview: document.getElementById("profile-duration-preview"),
+  profileTimezone: document.getElementById("profile-timezone"),
+  profileDateMode: document.getElementById("profile-date-mode"),
+  profileSendNotification: document.getElementById("profile-send-notification"),
+  settingsSave: document.getElementById("settings-save"),
+  profileLanguageFilter: document.getElementById("profile-language-filter"),
+  profileLanguageList: document.getElementById("profile-language-list"),
+  profileLanguageHint: document.getElementById("profile-language-hint"),
+  profilePlatformList: document.getElementById("profile-platform-list"),
+  patternList: document.getElementById("pattern-list"),
+  patternType: document.getElementById("pattern-type"),
+  patternWeekday: document.getElementById("pattern-weekday"),
+  patternTime: document.getElementById("pattern-time"),
+  patternAdd: document.getElementById("pattern-add"),
+  patternClear: document.getElementById("pattern-clear"),
+  profileSave: document.getElementById("profile-save"),
+  profileBack: document.getElementById("profile-back"),
+  profileNext: document.getElementById("profile-next")
+};
+
+export const state = {
+  app: {
+    updateAvailable: false
+  },
+  user: null,
+  groups: [],
+  groupRoles: {},
+  profiles: {},
+  event: {
+    languages: [],
+    platforms: [],
+    profile: null,
+    selectedGroupId: null,
+    selectedProfileKey: null,
+    dateOptions: [],
+    dateSource: "manual",
+    upcomingCount: null,
+    upcomingLimit: 10,
+    createBlocked: false,
+    createInProgress: false,
+    tagInput: null,
+    roleIds: []
+  },
+  modify: {
+    events: [],
+    selectedGroupId: null,
+    selectedEvent: null,
+    languages: [],
+    platforms: [],
+    roleIds: [],
+    tagInput: null,
+    loading: false,
+    saving: false
+  },
+  profile: {
+    mode: "create",
+    currentKey: null,
+    languages: ["eng"],
+    platforms: ["standalonewindows", "android"],
+    roleIds: [],
+    patterns: [],
+    tagInput: null
+  },
+  gallery: {
+    files: [],
+    selectedId: null,
+    targetInput: null,
+    offset: 0,
+    hasMore: false,
+    loading: false
+  }
+};
+
+// Wizard state (referenced by both events and profiles)
+export let eventWizard = null;
+export let profileWizard = null;
+export let profileEditConfirmed = false;
+
+export function setEventWizard(wizard) {
+  eventWizard = wizard;
+}
+
+export function setProfileWizard(wizard) {
+  profileWizard = wizard;
+}
+
+export function setProfileEditConfirmed(value) {
+  profileEditConfirmed = value;
+}
+
+export function getEventWizard() {
+  return eventWizard;
+}
+
+export function getProfileWizard() {
+  return profileWizard;
+}
+
+export function getProfileEditConfirmed() {
+  return profileEditConfirmed;
+}

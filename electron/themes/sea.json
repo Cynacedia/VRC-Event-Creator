@@ -1,0 +1,30 @@
+{
+  "name": "Foggy Sea",
+  "colors": {
+    "accent": "#1fc3ad",
+    "bg": "#cfd7d1",
+    "bgDeep": "#9aa7a2",
+    "backdrop": "#8c9f9a",
+    "panel": "#12181a",
+    "panelAlt": "#182022",
+    "headerBg": "#0c1012",
+    "overlay": "#080c0e",
+    "text": "#e8f0ec",
+    "textMuted": "#b8c6c0",
+    "link": "#1fc3ad",
+    "linkHover": "#4f96f2ff",
+    "button": "#4fc4f2ff",
+    "button2": "#1fc3ad",
+    "buttonText": "#12181a",
+    "border": "#eef6f2",
+    "shadow": "#090c0e",
+    "inputBg": "#060a0b",
+    "inputBgStrong": "#060a0b",
+    "inputText": "#f7fdf9",
+    "selectOptionBg": "#0f1416",
+    "selectOptionHighlight": "#1fc3ad",
+    "backdropOverlay": "#12181a",
+    "backdropGrid": "#ffffff",
+    "scanline": "#000000"
+  }
+}

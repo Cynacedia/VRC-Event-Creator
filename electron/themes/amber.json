@@ -1,0 +1,30 @@
+{
+  "name": "Altimit Amber",
+  "colors": {
+    "accent": "#ff9f38",
+    "bg": "#1c1c1c",
+    "bgDeep": "#4f4f4f",
+    "backdrop": "#171717",
+    "panel": "#212121",
+    "panelAlt": "#725d40",
+    "headerBg": "#0c1012",
+    "overlay": "#080c0e",
+    "text": "#f1efe9",
+    "textMuted": "#c3c6b8",
+    "link": "#ffae57",
+    "linkHover": "#d1d1d1",
+    "button": "#f7a74f",
+    "button2": "#363636",
+    "buttonText": "#000000",
+    "border": "#ffffff",
+    "shadow": "#402d17",
+    "inputBg": "#060a0b",
+    "inputBgStrong": "#060a0b",
+    "inputText": "#fdfaf7",
+    "selectOptionBg": "#171717",
+    "selectOptionHighlight": "#f7a74f",
+    "backdropOverlay": "#000000",
+    "backdropGrid": "#000000",
+    "scanline": "#000000"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "Crimson Knights",
+  "colors": {
+    "accent": "#f74f6b",
+    "bg": "#f0d5db",
+    "bgDeep": "#c9a3ad",
+    "backdrop": "#c9a3ad",
+    "panel": "#24181a",
+    "panelAlt": "#2a1e20",
+    "headerBg": "#0c1012",
+    "overlay": "#080c0e",
+    "text": "#e8f0ec",
+    "textMuted": "#b8c6c0",
+    "link": "#f74f6b",
+    "linkHover": "#adadad",
+    "button": "#949494",
+    "button2": "#f74f6b",
+    "buttonText": "#24181a",
+    "border": "#eef6f2",
+    "shadow": "#090c0e",
+    "inputBg": "#060a0b",
+    "inputBgStrong": "#060a0b",
+    "inputText": "#f7fdf9",
+    "selectOptionBg": "#0f1416",
+    "selectOptionHighlight": "#f74f6b",
+    "backdropOverlay": "#12181a",
+    "backdropGrid": "#ffffff",
+    "scanline": "#000000"
+  }
+}

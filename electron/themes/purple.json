@@ -1,0 +1,30 @@
+{
+  "name": "Purple Haze",
+  "colors": {
+    "accent": "#b47bf7",
+    "bg": "#e0d5f0",
+    "bgDeep": "#b5a3ca",
+    "backdrop": "#b5a3ca",
+    "panel": "#1e1824",
+    "panelAlt": "#241e2a",
+    "headerBg": "#0c1012",
+    "overlay": "#080c0e",
+    "text": "#e8f0ec",
+    "textMuted": "#b8c6c0",
+    "link": "#b47bf7",
+    "linkHover": "#f74fd3ff",
+    "button": "#5e1368ff",
+    "button2": "#b47bf7",
+    "buttonText": "#1e1824",
+    "border": "#eef6f2",
+    "shadow": "#090c0e",
+    "inputBg": "#060a0b",
+    "inputBgStrong": "#060a0b",
+    "inputText": "#f7fdf9",
+    "selectOptionBg": "#0f1416",
+    "selectOptionHighlight": "#b47bf7",
+    "backdropOverlay": "#12181a",
+    "backdropGrid": "#ffffff",
+    "scanline": "#000000"
+  }
+}

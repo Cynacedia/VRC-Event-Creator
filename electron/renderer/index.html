@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:;" />
+    <title>VRChat Event Creator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="backdrop"></div>
+    <div class="scanlines"></div>
+
+    <div class="app" data-auth="unknown">
+      <div class="titlebar" id="titlebar">
+        <div class="titlebar-drag">
+          <span class="titlebar-icon">VRChat</span>
+          <span class="titlebar-title">Event Creator</span>
+        </div>
+        <div class="titlebar-status">
+          <button class="status-pill" id="status-pill" type="button">Offline</button>
+        </div>
+        <div class="titlebar-controls">
+          <button class="titlebar-btn" id="window-minimize" type="button" aria-label="Minimize">_</button>
+          <button class="titlebar-btn" id="window-maximize" type="button" aria-label="Maximize">[]</button>
+          <button class="titlebar-btn is-close" id="window-close" type="button" aria-label="Close">X</button>
+        </div>
+      </div>
+
+      <main class="layout">
+        <nav class="sidebar">
+          <button class="nav-btn is-active" data-view="create" data-i18n="nav.create" disabled>Create Event</button>
+          <button class="nav-btn" data-view="modify" data-i18n="nav.modify" disabled>Modify Events</button>
+          <button class="nav-btn" data-view="profiles" data-i18n="nav.profiles" disabled>Manage Profiles</button>
+          <button class="nav-btn" data-view="about" data-i18n="nav.settings">Settings</button>
+        </nav>
+
+        <section class="content">
+          <section class="view" id="view-create">
+            <div class="view-header">
+              <h2 data-i18n="events.title">Create Event</h2>
+              <p data-i18n="events.profileHint">Profiles are optional. Use one for defaults, or create everything manually.</p>
+            </div>
+
+            <div class="wizard" id="event-wizard">
+              <div class="wizard-steps" id="event-steps">
+                <button class="wizard-stepper is-active" data-step="1" type="button">
+                  <span class="step-index">1</span>
+                  <span class="step-label" data-i18n="events.steps.group">Group</span>
+                </button>
+                <button class="wizard-stepper" data-step="2" type="button">
+                  <span class="step-index">2</span>
+                  <span class="step-label" data-i18n="events.steps.date">Date</span>
+                </button>
+                <button class="wizard-stepper" data-step="3" type="button">
+                  <span class="step-index">3</span>
+                  <span class="step-label" data-i18n="events.steps.details">Details</span>
+                </button>
+                <button class="wizard-stepper" data-step="4" type="button">
+                  <span class="step-index">4</span>
+                  <span class="step-label" data-i18n="events.steps.create">Create</span>
+                </button>
+              </div>
+
+              <div class="wizard-body">
+                <div class="wizard-step" data-step="1">
+                  <div class="card">
+                    <h3 data-i18n="events.section.groupProfile">Group + Profile</h3>
+                    <div class="field">
+                      <label for="event-group" data-i18n="events.labels.groupRequired">Group (required)</label>
+                      <select id="event-group"></select>
+                    </div>
+                    <div class="field">
+                      <label for="event-profile" data-i18n="events.labels.profileOptional">Profile (optional)</label>
+                      <div class="inline-row">
+                        <select id="event-profile"></select>
+                        <button id="event-profile-clear" class="ghost" type="button" data-i18n="events.clearProfile">Clear Profile</button>
+                      </div>
+                      <p class="hint" data-i18n="events.hints.profileDefaults">Pick a profile for defaults, or leave blank to create manually.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="wizard-step is-hidden" data-step="2">
+                  <div class="card">
+                    <h3 data-i18n="events.section.dateSelection">Date Selection</h3>
+                    <div class="grid three date-config-row">
+                      <div class="field">
+                        <label data-i18n="events.labels.dateSource">Use</label>
+                        <div class="radio-row" id="event-date-source">
+                          <label><input type="radio" name="date-source" value="pattern" /> <span data-i18n="events.labels.dateSourcePattern">Pattern</span></label>
+                          <label><input type="radio" name="date-source" value="manual" /> <span data-i18n="events.labels.dateSourceManual">Manual</span></label>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label for="event-timezone" data-i18n="events.timezone">Timezone</label>
+                        <select id="event-timezone"></select>
+                      </div>
+                      <div class="field">
+                        <label for="event-duration" data-i18n="events.duration">Duration</label>
+                        <div class="duration-row">
+                          <input id="event-duration" class="duration-input" type="text" inputmode="numeric" placeholder="--:--:--" />
+                          <div class="duration-preview" id="event-duration-preview"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="field" id="event-pattern-dates" hidden>
+                      <label for="event-date-option" data-i18n="events.labels.patternDates">Pattern Dates</label>
+                      <select id="event-date-option"></select>
+                    </div>
+                    <div class="grid two" id="event-manual-fields">
+                      <div class="field">
+                        <label for="event-manual-date" data-i18n="events.labels.manualDate">Manual Date</label>
+                        <input id="event-manual-date" type="date" />
+                      </div>
+                      <div class="field">
+                        <label for="event-manual-time" data-i18n="events.labels.manualTime">Manual Time</label>
+                        <input id="event-manual-time" type="time" />
+                      </div>
+                    </div>
+                    <p class="hint" id="event-date-hint" data-i18n="events.dateHints.default">Manual mode is ready. Profiles with patterns unlock date options.</p>
+                  </div>
+                </div>
+
+                <div class="wizard-step is-hidden" data-step="3">
+                  <div class="card">
+                    <h3 data-i18n="events.section.details">Event Details</h3>
+                    <div class="grid two">
+                      <div class="field">
+                        <label for="event-name" data-i18n="events.eventName">Event Name</label>
+                        <input id="event-name" type="text" maxlength="64" />
+                      </div>
+                      <div class="field">
+                        <label for="event-category" data-i18n="events.category">Category</label>
+                        <select id="event-category"></select>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label for="event-description" data-i18n="events.description">Description</label>
+                      <textarea id="event-description" rows="4" maxlength="1024"></textarea>
+                    </div>
+                    <div class="grid two">
+                      <div class="field">
+                        <label for="event-image-id" data-i18n="events.imageId">Image ID (optional)</label>
+                        <div class="inline-row">
+                          <input id="event-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="events.imageIdPlaceholder" />
+                          <button id="event-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label class="toggle">
+                          <input id="event-send-notification" type="checkbox" />
+                          <span data-i18n="events.sendNotification">Send Notification</span>
+                        </label>
+                      </div>
+                    </div>
+                    <div class="grid two">
+                      <div class="field">
+                        <label for="event-tags" data-i18n="events.tags">Tags (max 5)</label>
+                        <div class="tag-input" id="event-tags-input">
+                          <div class="tag-chips" id="event-tags-chips"></div>
+                          <input id="event-tags" type="text" />
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label for="event-access" data-i18n="events.accessType">Access Type</label>
+                        <select id="event-access"></select>
+                      </div>
+                    </div>
+                    <div class="role-restrictions is-hidden" id="event-role-restrictions">
+                      <div class="role-restrictions-header">
+                        <div>
+                          <div class="role-restrictions-title" data-i18n="events.roleRestrictions.title">Role Restrictions</div>
+                          <p class="hint" data-i18n="events.roleRestrictions.hint">Optional - If enabled, only the selected group roles may join.</p>
+                          <p class="hint" data-i18n="events.roleRestrictions.optional">For instance moderators, all roles at or above the lowest selected moderator role may join.</p>
+                        </div>
+                      </div>
+                      <div class="role-restrictions-list" id="event-role-list"></div>
+                    </div>
+                    <div class="grid two">
+                      <div class="field">
+                        <label data-i18n="events.languages">Languages (max 3)</label>
+                        <input id="event-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="events.filterLanguages" />
+                        <div class="multi-list" id="event-language-list"></div>
+                        <div class="hint" id="event-language-hint">0 selected</div>
+                      </div>
+                      <div class="field">
+                        <label data-i18n="events.platforms">Platforms</label>
+                        <div class="multi-list" id="event-platform-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="wizard-step is-hidden" data-step="4">
+                  <div class="card action-card">
+                    <div>
+                      <h3 data-i18n="events.section.readyTitle">Ready to create?</h3>
+                      <p data-i18n="events.section.readyHint">Review your selections, then create the event.</p>
+                      <p class="hint" id="event-limit-notice" data-i18n="events.upcomingLimitNotice">VRChat currently limits each group to 10 upcoming events.</p>
+                      <div class="event-limit-controls">
+                        <p class="hint" id="event-upcoming-count">Upcoming event count unavailable.</p>
+                        <button class="ghost event-count-refresh" id="event-count-refresh" type="button" data-i18n="events.upcomingCountRefresh">Refresh</button>
+                      </div>
+                    </div>
+                    <button id="event-create" class="primary" data-i18n="events.createButton">Create Event</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wizard-nav">
+                <button id="event-back" class="ghost" type="button" data-i18n="wizard.back">Back</button>
+                <div class="wizard-nav-actions">
+                  <button id="event-next" class="ghost" type="button" data-i18n="wizard.next">Next</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="view is-hidden" id="view-modify">
+            <div class="view-header">
+              <h2 data-i18n="modify.title">Modify Events</h2>
+              <p data-i18n="modify.subtitle">Edit or delete upcoming group events.</p>
+            </div>
+
+            <div class="card">
+              <div class="modify-toolbar">
+                <div class="field">
+                  <label for="modify-group" data-i18n="modify.groupLabel">Group</label>
+                  <select id="modify-group"></select>
+                </div>
+                <div class="modify-actions">
+                  <button class="ghost compact-button" id="modify-refresh" type="button" data-i18n="modify.refresh">Refresh</button>
+                </div>
+              </div>
+              <p class="hint" id="modify-count" data-i18n="modify.countEmpty">Upcoming events unavailable.</p>
+              <div class="event-grid" id="modify-event-grid"></div>
+            </div>
+          </section>
+
+          <section class="view is-hidden" id="view-profiles">
+            <div class="view-header">
+              <h2 data-i18n="profiles.title">Manage Profiles</h2>
+              <p data-i18n="profiles.subtitle">Create reusable templates per group.</p>
+            </div>
+
+            <div class="wizard" id="profile-wizard">
+              <div class="wizard-steps" id="profile-steps">
+                <button class="wizard-stepper is-active" data-step="1" type="button">
+                  <span class="step-index">1</span>
+                  <span class="step-label" data-i18n="profiles.steps.select">Select</span>
+                </button>
+                <button class="wizard-stepper" data-step="2" type="button">
+                  <span class="step-index">2</span>
+                  <span class="step-label" data-i18n="profiles.steps.basics">Basics</span>
+                </button>
+                <button class="wizard-stepper" data-step="3" type="button">
+                  <span class="step-index">3</span>
+                  <span class="step-label" data-i18n="profiles.steps.schedule">Schedule</span>
+                </button>
+                <button class="wizard-stepper" data-step="4" type="button">
+                  <span class="step-index">4</span>
+                  <span class="step-label" data-i18n="profiles.steps.audience">Audience</span>
+                </button>
+              </div>
+
+              <div class="wizard-body">
+                <div class="wizard-step" data-step="1">
+                  <div class="card">
+                    <h3 data-i18n="profiles.section.selection">Profile Selection</h3>
+                    <div class="field">
+                      <label for="profile-group" data-i18n="profiles.labels.group">Group</label>
+                      <select id="profile-group"></select>
+                    </div>
+                    <div class="field">
+                      <label for="profile-existing" data-i18n="profiles.labels.profile">Profile</label>
+                      <div class="profile-select-row">
+                        <button id="profile-new" class="ghost" type="button" data-i18n="profiles.buttons.new">New</button>
+                        <select id="profile-existing"></select>
+                        <div class="profile-actions-right">
+                          <button id="profile-edit" class="ghost is-hidden" type="button" data-i18n="profiles.editButton">Edit</button>
+                          <button id="profile-delete" class="danger is-hidden" type="button" data-i18n="profiles.deleteButton">Delete</button>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="hint" data-i18n="profiles.hints.groupAccess">Choose a group with calendar access.</p>
+                  </div>
+                </div>
+
+                <div class="wizard-step is-hidden" data-step="2">
+                  <div class="card">
+                    <h3 data-i18n="profiles.section.basics">Profile Basics</h3>
+                    <div class="grid two">
+                      <div class="field">
+                        <label for="profile-display-name" data-i18n="profiles.displayName">Profile Name</label>
+                        <input id="profile-display-name" type="text" placeholder="Community Hangout Template" data-i18n-placeholder="profiles.displayNamePlaceholder" />
+                      </div>
+                      <div class="field">
+                        <label for="profile-name" data-i18n="profiles.eventName">Event Name</label>
+                        <input id="profile-name" type="text" maxlength="64" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label for="profile-category" data-i18n="profiles.category">Category</label>
+                      <select id="profile-category"></select>
+                    </div>
+                    <div class="field">
+                      <label for="profile-description" data-i18n="profiles.description">Description</label>
+                      <textarea id="profile-description" rows="4" maxlength="1024"></textarea>
+                    </div>
+                    <div class="grid two">
+                      <div class="field">
+                        <label for="profile-tags" data-i18n="profiles.tags">Tags (max 5)</label>
+                        <div class="tag-input" id="profile-tags-input">
+                          <div class="tag-chips" id="profile-tags-chips"></div>
+                          <input id="profile-tags" type="text" />
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label for="profile-image-id" data-i18n="profiles.imageId">Image ID (optional)</label>
+                        <div class="inline-row">
+                          <input id="profile-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="profiles.imageIdPlaceholder" />
+                          <button id="profile-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label class="toggle">
+                        <input id="profile-send-notification" type="checkbox" />
+                        <span data-i18n="profiles.sendNotificationDefault">Send Notification by default</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="wizard-step is-hidden" data-step="3">
+                  <div class="card">
+                    <h3 data-i18n="profiles.section.schedule">Schedule</h3>
+                    <div class="grid three">
+                      <div class="field">
+                        <label for="profile-duration" data-i18n="profiles.durationDefault">Default Duration</label>
+                        <div class="duration-row">
+                          <input id="profile-duration" class="duration-input" type="text" inputmode="numeric" placeholder="--:--:--" />
+                          <div class="duration-preview" id="profile-duration-preview"></div>
+                        </div>
+                      </div>
+                      <div class="field">
+                        <label for="profile-timezone" data-i18n="profiles.timezone">Timezone</label>
+                        <select id="profile-timezone"></select>
+                      </div>
+                      <div class="field">
+                        <label for="profile-date-mode" data-i18n="profiles.dateMode">Date Mode</label>
+                        <select id="profile-date-mode"></select>
+                      </div>
+                    </div>
+                    <p class="hint" data-i18n="profiles.hints.patternsInfo">Patterns are used to pre-generate upcoming dates.</p>
+                    <div class="pattern-list" id="pattern-list"></div>
+                    <div class="grid three">
+                      <div class="field">
+                        <label for="pattern-type" data-i18n="profiles.patterns.patternType">Pattern Type</label>
+                        <select id="pattern-type"></select>
+                      </div>
+                      <div class="field">
+                        <label for="pattern-weekday" data-i18n="profiles.patterns.weekday">Weekday</label>
+                        <select id="pattern-weekday"></select>
+                      </div>
+                      <div class="field">
+                        <label for="pattern-time" data-i18n="profiles.patterns.time">Time</label>
+                        <input id="pattern-time" type="time" />
+                      </div>
+                    </div>
+                    <div class="button-row">
+                      <button id="pattern-add" class="ghost" type="button" data-i18n="profiles.patterns.addButton">Add Pattern</button>
+                      <button id="pattern-clear" class="danger" type="button" data-i18n="profiles.patterns.clearButton">Clear Patterns</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="wizard-step is-hidden" data-step="4">
+                  <div class="card">
+                      <h3 data-i18n="profiles.section.audience">Audience</h3>
+                      <div class="field">
+                        <label for="profile-access" data-i18n="profiles.accessType">Access Type</label>
+                        <select id="profile-access"></select>
+                      </div>
+                      <div class="role-restrictions is-hidden" id="profile-role-restrictions">
+                        <div class="role-restrictions-header">
+                          <div>
+                            <div class="role-restrictions-title" data-i18n="events.roleRestrictions.title">Role Restrictions</div>
+                            <p class="hint" data-i18n="events.roleRestrictions.hint">Optional - If enabled, only the selected group roles may join.</p>
+                            <p class="hint" data-i18n="events.roleRestrictions.optional">For instance moderators, all roles at or above the lowest selected moderator role may join.</p>
+                          </div>
+                        </div>
+                        <div class="role-restrictions-list" id="profile-role-list"></div>
+                      </div>
+                      <div class="grid two">
+                        <div class="field">
+                          <label data-i18n="profiles.languages">Languages (max 3)</label>
+                        <input id="profile-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="profiles.filterLanguages" />
+                        <div class="multi-list" id="profile-language-list"></div>
+                        <div class="hint" id="profile-language-hint">0 selected</div>
+                      </div>
+                      <div class="field">
+                        <label data-i18n="profiles.platforms">Platforms</label>
+                        <div class="multi-list" id="profile-platform-list"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="wizard-nav">
+                <button id="profile-back" class="ghost" type="button" data-i18n="wizard.back">Back</button>
+                <div class="wizard-nav-actions">
+                  <button id="profile-save" class="primary" type="button" data-i18n="profiles.save">Save</button>
+                  <button id="profile-next" class="ghost" type="button" data-i18n="wizard.next">Next</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="view is-hidden" id="view-about">
+            <div class="view-header">
+              <h2 data-i18n="settings.title">Settings</h2>
+            </div>
+
+            <div class="card">
+              <h3 data-i18n="settings.theme.title">Theme</h3>
+              <p data-i18n="settings.theme.description">Customize the appearance of the app. Select a preset or adjust manually.</p>
+              <div class="divider"></div>
+              <div class="theme-controls">
+                <div class="theme-preset-grid">
+                  <div class="field">
+                    <label for="settings-theme" data-i18n="settings.theme.presetLabel">Current Theme</label>
+                    <select id="settings-theme">
+                      <option value="wired">『ᵂᶤʳᵉᵈ ᶠʳᵃᵐᵉ』</option>
+                      <option value="default">VRChat Teal</option>
+                      <option value="custom">Custom</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="theme-preset-name" data-i18n="settings.theme.nameLabel">Theme Name</label>
+                    <input id="theme-preset-name" type="text" placeholder="New theme name" data-i18n-placeholder="settings.theme.namePlaceholder" />
+                  </div>
+                </div>
+                <div class="theme-preset-actions">
+                  <div class="theme-preset-actions-main">
+                    <button id="theme-preset-save" class="ghost" type="button" data-i18n="settings.theme.saveButton">Save Theme</button>
+                    <button id="theme-preset-delete" class="ghost" type="button" data-i18n="settings.theme.deleteButton">Delete Theme</button>
+                    <button type="button" id="theme-reset" class="reset-button" data-i18n="settings.theme.resetButton">Reset to Default</button>
+                  </div>
+                  <div class="theme-preset-actions-icons">
+                    <button id="theme-preset-import" class="ghost theme-icon-button" type="button">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 3a1 1 0 0 1 1 1v9.6l2.3-2.3a1 1 0 1 1 1.4 1.4l-4.1 4.1a1 1 0 0 1-1.4 0l-4.1-4.1a1 1 0 1 1 1.4-1.4L11 13.6V4a1 1 0 0 1 1-1zM5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
+                      </svg>
+                      <span class="sr-only" data-i18n="settings.theme.importButton">Import Theme</span>
+                    </button>
+                    <button id="theme-preset-export" class="ghost theme-icon-button" type="button">
+                      <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 21a1 1 0 0 1-1-1v-9.6l-2.3 2.3a1 1 0 1 1-1.4-1.4l4.1-4.1a1 1 0 0 1 1.4 0l4.1 4.1a1 1 0 1 1-1.4 1.4L13 10.4V20a1 1 0 0 1-1 1zM5 5a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
+                      </svg>
+                      <span class="sr-only" data-i18n="settings.theme.exportButton">Export Theme</span>
+                    </button>
+                  </div>
+                </div>
+                <button id="theme-open" class="primary" type="button" data-i18n="settings.theme.openStudio">Open Theme Studio</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 data-i18n="settings.appInfo.title">Application Info</h3>
+                <div class="meta-grid">
+                  <div class="meta-item meta-version">
+                    <span class="meta-label" data-i18n="settings.appInfo.version">App Version</span>
+                    <span id="about-version">-</span>
+                  </div>
+                  <div class="meta-item meta-data">
+                    <span class="meta-label" data-i18n="settings.appInfo.dataFolder">Current Data Folder</span>
+                    <span id="about-data-dir">-</span>
+                    <div class="meta-actions">
+                      <button id="settings-change-dir" class="ghost compact-button" type="button" data-i18n="settings.appInfo.changeButton">Change</button>
+                      <button id="settings-open-dir" class="ghost compact-button" type="button" data-i18n="settings.appInfo.openButton">Open</button>
+                    </div>
+                  </div>
+                  <div class="meta-item meta-session">
+                    <span class="meta-label" data-i18n="settings.appInfo.session">Session</span>
+                    <span id="about-session">Unknown</span>
+                  </div>
+                  <div class="meta-item meta-language meta-grid-end">
+                    <label class="meta-label" for="settings-language" data-i18n="settings.appInfo.language">Language</label>
+                    <div class="language-select" id="language-select">
+                      <button class="language-trigger" id="language-trigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+                        <span class="flag-circle" id="language-flag" aria-hidden="true"></span>
+                        <span class="language-label" id="language-label">English</span>
+                        <span class="language-caret">&#9662;</span>
+                      </button>
+                      <div class="language-menu is-hidden" id="language-menu" role="listbox"></div>
+                      <select id="settings-language" class="is-hidden" aria-hidden="true" tabindex="-1"></select>
+                    </div>
+                  </div>
+                </div>
+                <div class="divider"></div>
+                <p><strong data-i18n="settings.appInfo.githubLabel">GitHub Repository:</strong> <a id="github-link" href="https://github.com/Cynacedia/VRC-Event-Creator" target="_blank" rel="noopener">github.com/Cynacedia/VRC-Event-Creator</a></p>
+                <p class="hint"><strong data-i18n="settings.appInfo.disclaimerLabel">Disclaimer:</strong> <span data-i18n="settings.appInfo.disclaimerText">This application is unofficial and not affiliated with VRChat. Use at your own risk. The developers are not responsible for any issues arising from use of this tool.</span></p>
+              </div>
+
+            <button id="settings-save" class="primary" data-i18n="settings.saveButton">Save Settings</button>
+          </section>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-left">
+          <div class="status-line" id="status-line">Idle.</div>
+          <div class="foot-meta" id="foot-meta"></div>
+        </div>
+        <button class="ghost" id="logout-btn" data-i18n="auth.logout" disabled>Logout</button>
+      </footer>
+    </div>
+
+    <div class="overlay" id="login-overlay">
+      <div class="panel login-panel">
+        <div class="panel-header">
+          <span class="panel-title" data-i18n="auth.title">Access Node</span>
+          <span class="panel-sub" data-i18n="auth.subtitle">VRChat credentials required</span>
+          <button class="panel-close" id="login-close" title="Exit Application" aria-label="Exit Application">×</button>
+        </div>
+        <form id="login-form">
+          <div class="field">
+            <label for="login-username" data-i18n="auth.username">Username</label>
+            <input id="login-username" type="text" autocomplete="username" />
+          </div>
+          <div class="field">
+            <label for="login-password" data-i18n="auth.password">Password</label>
+            <input id="login-password" type="password" autocomplete="current-password" />
+          </div>
+          <button class="primary" type="submit" data-i18n="auth.signIn">Sign In</button>
+        </form>
+        <p class="hint" data-i18n="auth.sessionHint">Session is cached locally. Keep your cache file private.</p>
+      </div>
+    </div>
+
+    <div class="overlay is-hidden" id="language-overlay">
+      <div class="panel language-panel">
+        <div class="panel-header">
+          <span class="panel-title" data-i18n="languageSetup.title">Choose Language</span>
+          <span class="panel-sub" data-i18n="languageSetup.subtitle">Select your language to get started.</span>
+        </div>
+        <div class="language-setup-list" id="language-setup-list"></div>
+        <p class="hint" data-i18n="languageSetup.hint">You can change this anytime in Settings.</p>
+        <button class="primary" id="language-setup-continue" type="button" data-i18n="languageSetup.continue">Continue</button>
+      </div>
+    </div>
+
+      <div class="overlay is-hidden" id="theme-overlay">
+        <div class="panel theme-studio">
+          <div class="panel-header">
+            <span class="panel-title" data-i18n="settings.theme.studio.title">Theme Studio</span>
+            <span class="panel-sub" data-i18n="settings.theme.studio.subtitle">Preview and fine-tune the appearance of the app. Supports #RRGGBBAA for custom transparencies.</span>
+            <button class="panel-close" id="theme-overlay-close" type="button" title="Close theme studio" aria-label="Close theme studio">x</button>
+          </div>
+          <div class="theme-studio-body">
+            <div class="theme-preview">
+              <div class="theme-preview-backdrop">
+                <div class="theme-preview-screen">
+                  <div class="theme-preview-header">
+                    <div>
+                      <div class="theme-preview-title" data-i18n="settings.theme.studio.header">Header</div>
+                      <div class="theme-preview-sub" data-i18n="settings.theme.studio.statusLabels">Status and labels</div>
+                    </div>
+                    <div class="theme-preview-header-right">
+                      <div class="theme-preview-pill" data-i18n="settings.theme.studio.accent">Accent</div>
+                    </div>
+                  </div>
+                  <div class="theme-preview-content">
+                    <div class="theme-preview-card">
+                      <div class="theme-preview-row">
+                        <span class="theme-preview-label" data-i18n="settings.theme.studio.panel">Panel</span>
+                        <span class="theme-preview-muted" data-i18n="settings.theme.studio.mutedText">Muted text</span>
+                      </div>
+                      <div class="theme-preview-row theme-preview-buttons">
+                        <button class="primary" type="button" data-i18n="settings.theme.studio.primary">Primary</button>
+                        <button class="ghost" type="button" data-i18n="settings.theme.studio.ghost">Ghost</button>
+                      </div>
+                      <div class="theme-preview-row">
+                        <input type="text" value="Input field" data-i18n-value="settings.theme.studio.inputField" />
+                      </div>
+                      <div class="theme-preview-row">
+                        <div class="theme-preview-dropdown">
+                          <div class="theme-preview-select">
+                            <span data-i18n="settings.theme.studio.dropdown">Dropdown</span>
+                            <span class="theme-preview-caret">&#9662;</span>
+                          </div>
+                          <div class="theme-preview-menu">
+                            <div class="theme-preview-option is-selected" data-i18n="settings.theme.studio.dropdownOptionA">Dropdown option A</div>
+                            <div class="theme-preview-option" data-i18n="settings.theme.studio.dropdownOptionB">Dropdown option B</div>
+                            <div class="theme-preview-option" data-i18n="settings.theme.studio.dropdownOptionC">Dropdown option C</div>
+                            <div class="theme-preview-option" data-i18n="settings.theme.studio.dropdownOptionD">Dropdown option D</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="theme-preview-row">
+                        <a href="#" data-i18n="settings.theme.studio.previewLink">Preview link</a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="theme-preview-toast" data-i18n="settings.theme.studio.toastPreview">Toast preview uses Panel Alt</div>
+                </div>
+              </div>
+              <p class="hint" data-i18n="settings.theme.studio.previewHint">Preview updates live as you tweak colors.</p>
+            </div>
+            <div class="theme-color-panel">
+              <div id="theme-color-grid" class="theme-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay is-hidden" id="gallery-overlay">
+      <div class="panel gallery-panel">
+        <div class="panel-header">
+          <span class="panel-title" data-i18n="gallery.title">Gallery</span>
+          <span class="panel-sub" data-i18n="gallery.subtitle">Select a gallery image to use its file ID.</span>
+          <button class="panel-close" id="gallery-close" type="button" title="Close gallery" aria-label="Close gallery">x</button>
+        </div>
+        <div class="gallery-list" id="gallery-list"></div>
+        <div class="gallery-footer">
+          <div class="gallery-footer-left">
+            <button class="ghost compact-button" id="gallery-refresh" type="button" data-i18n="gallery.refresh">Refresh</button>
+            <button class="ghost compact-button" id="gallery-upload" type="button" data-i18n="gallery.uploadButton">Upload</button>
+          </div>
+          <div class="gallery-actions">
+            <button class="ghost compact-button" id="gallery-load-more" type="button" data-i18n="gallery.loadMore">Load more</button>
+            <button class="ghost compact-button" id="gallery-cancel" type="button" data-i18n="gallery.cancel">Cancel</button>
+            <button class="primary" id="gallery-use" type="button" data-i18n="gallery.useButton" disabled>Use Image ID</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay is-hidden" id="modify-overlay">
+      <div class="panel modify-panel">
+        <div class="panel-header">
+          <span class="panel-title" data-i18n="modify.modal.title">Edit Event</span>
+          <span class="panel-sub" data-i18n="modify.modal.subtitle">Changes are only applied when you press Save.</span>
+          <button class="panel-close" id="modify-close" type="button" title="Close editor" aria-label="Close editor">x</button>
+        </div>
+        <div class="modify-body">
+          <div class="field">
+            <label for="modify-profile" data-i18n="modify.profileLabel">Load Profile (optional)</label>
+            <div class="inline-row">
+              <select id="modify-profile"></select>
+              <button id="modify-profile-load" class="ghost compact-button" type="button" data-i18n="modify.profileLoad">Load</button>
+            </div>
+          </div>
+
+          <div class="grid two grid-paired">
+            <div class="field">
+              <label for="modify-event-date" data-i18n="modify.manualDate">Change Date</label>
+              <input id="modify-event-date" type="date" />
+            </div>
+            <div class="field">
+              <label for="modify-event-time" data-i18n="modify.manualTime">Change Time</label>
+              <input id="modify-event-time" type="time" />
+            </div>
+          </div>
+
+          <div class="grid two grid-paired">
+            <div class="field">
+              <label for="modify-event-timezone" data-i18n="modify.timezone">Timezone</label>
+              <select id="modify-event-timezone"></select>
+            </div>
+            <div class="field">
+              <label for="modify-event-duration" data-i18n="modify.duration">Duration</label>
+              <div class="duration-row">
+                <input id="modify-event-duration" class="duration-input" type="text" inputmode="numeric" placeholder="--:--:--" />
+                <div class="duration-preview" id="modify-event-duration-preview"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid two grid-paired">
+            <div class="field">
+              <label for="modify-event-name" data-i18n="modify.eventName">Event Name</label>
+              <input id="modify-event-name" type="text" maxlength="64" />
+            </div>
+            <div class="field">
+              <label for="modify-event-category" data-i18n="modify.category">Category</label>
+              <select id="modify-event-category"></select>
+            </div>
+          </div>
+
+            <div class="field">
+              <label for="modify-event-description" data-i18n="modify.description">Description</label>
+              <textarea id="modify-event-description" rows="4" maxlength="1024"></textarea>
+            </div>
+
+            <div class="field">
+              <label for="modify-event-image-id" data-i18n="modify.imageId">Image ID (optional)</label>
+              <div class="inline-row">
+                <input id="modify-event-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="modify.imageIdPlaceholder" />
+                <button id="modify-event-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
+              </div>
+            </div>
+
+            <div class="grid two grid-paired">
+              <div class="field">
+                <label for="modify-event-tags" data-i18n="modify.tags">Tags (max 5)</label>
+                <div class="tag-input" id="modify-tags-input">
+                  <div class="tag-chips" id="modify-tags-chips"></div>
+                <input id="modify-event-tags" type="text" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="modify-event-access" data-i18n="modify.accessType">Access Type</label>
+              <select id="modify-event-access"></select>
+            </div>
+            </div>
+            <div class="role-restrictions is-hidden" id="modify-role-restrictions">
+              <div class="role-restrictions-header">
+                <div>
+                  <div class="role-restrictions-title" data-i18n="events.roleRestrictions.title">Role Restrictions</div>
+                <p class="hint" data-i18n="events.roleRestrictions.hint">Optional - If enabled, only the selected group roles may join.</p>
+                <p class="hint" data-i18n="events.roleRestrictions.optional">For instance moderators, all roles at or above the lowest selected moderator role may join.</p>
+              </div>
+              </div>
+              <div class="role-restrictions-list" id="modify-role-list"></div>
+            </div>
+
+          <div class="grid two grid-paired">
+            <div class="field">
+              <label data-i18n="modify.languages">Languages (max 3)</label>
+              <input id="modify-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="modify.filterLanguages" />
+              <div class="multi-list" id="modify-language-list"></div>
+              <div class="hint" id="modify-language-hint">0 selected</div>
+            </div>
+            <div class="field">
+              <label data-i18n="modify.platforms">Platforms</label>
+              <div class="multi-list" id="modify-platform-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modify-footer">
+          <button class="ghost" id="modify-cancel" type="button" data-i18n="common.cancel">Cancel</button>
+          <button class="primary" id="modify-save" type="button" data-i18n="common.save">Save</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay is-hidden" id="twofactor-overlay">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title" data-i18n="twoFactor.title">Two-Factor Code</span>
+          <span class="panel-sub" data-i18n="twoFactor.subtitle">Enter your authentication code</span>
+        </div>
+        <form id="twofactor-form">
+          <div class="field">
+            <label for="twofactor-code" data-i18n="twoFactor.codeLabel">Code</label>
+            <input id="twofactor-code" type="text" inputmode="numeric" />
+          </div>
+          <button class="primary" type="submit" data-i18n="twoFactor.submit">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast is-hidden" id="toast"></div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

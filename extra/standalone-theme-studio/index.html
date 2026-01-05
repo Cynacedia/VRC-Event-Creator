@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Studio - Standalone</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1 class="app-title">Theme Studio</h1>
+        <p class="app-subtitle">Create and customize your perfect theme</p>
+      </div>
+      <div class="header-actions">
+        <button id="export-theme" class="ghost" type="button">Export Theme</button>
+        <button id="import-theme" class="ghost" type="button">Import Theme</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Settings Panel -->
+      <section class="settings-panel">
+        <div class="settings-group">
+          <label for="theme-preset">Theme Preset</label>
+          <select id="theme-preset" class="theme-select"></select>
+        </div>
+
+        <div class="settings-group">
+          <label for="preset-name">Save As</label>
+          <input type="text" id="preset-name" placeholder="Custom Theme Name" />
+        </div>
+
+        <div class="preset-actions">
+          <button id="save-preset" class="primary" type="button">Save Preset</button>
+          <button id="delete-preset" class="ghost" type="button">Delete</button>
+          <button id="reset-preset" class="reset-button" type="button">Reset</button>
+        </div>
+
+        <div class="hint-text">
+          <p>💡 Supports #RRGGBBAA format for custom transparencies</p>
+        </div>
+      </section>
+
+      <!-- Theme Studio Body -->
+      <div class="theme-studio-body">
+        <!-- Preview Panel -->
+        <div class="theme-preview">
+          <!-- Main UI Preview -->
+          <div class="theme-preview-backdrop">
+            <div class="theme-preview-screen">
+              <div class="theme-preview-header">
+                <div>
+                  <div class="theme-preview-title">Header</div>
+                  <div class="theme-preview-sub">Status and labels</div>
+                </div>
+                <div class="theme-preview-header-right">
+                  <div class="theme-preview-pill">Accent</div>
+                </div>
+              </div>
+              <div class="theme-preview-content">
+                <div class="theme-preview-card">
+                  <div class="theme-preview-row">
+                    <span class="theme-preview-label">Panel</span>
+                    <span class="theme-preview-muted">Muted text</span>
+                  </div>
+                  <div class="theme-preview-row theme-preview-buttons">
+                    <button class="primary" type="button">Primary</button>
+                    <button class="ghost" type="button">Ghost</button>
+                  </div>
+                  <div class="theme-preview-row">
+                    <input type="text" value="Input field" />
+                  </div>
+                  <div class="theme-preview-row">
+                    <div class="theme-preview-dropdown">
+                      <div class="theme-preview-select">
+                        <span>Dropdown</span>
+                        <span class="theme-preview-caret">&#9662;</span>
+                      </div>
+                      <div class="theme-preview-menu">
+                        <div class="theme-preview-option is-selected">Dropdown option A</div>
+                        <div class="theme-preview-option">Dropdown option B</div>
+                        <div class="theme-preview-option">Dropdown option C</div>
+                        <div class="theme-preview-option">Dropdown option D</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="theme-preview-row">
+                    <a href="#">Preview link</a>
+                  </div>
+                </div>
+              </div>
+              <div class="theme-preview-toast">Toast preview uses Panel Alt</div>
+            </div>
+          </div>
+
+          <!-- Overlay & Effects Preview -->
+          <div class="theme-preview-backdrop">
+            <!-- Background UI that will be behind the overlay -->
+            <div class="theme-preview-screen">
+              <div class="theme-preview-header">
+                <div>
+                  <div class="theme-preview-title">Background UI</div>
+                  <div class="theme-preview-sub">Content behind overlay</div>
+                </div>
+                <div class="theme-preview-header-right">
+                  <div class="theme-preview-pill">Accent</div>
+                </div>
+              </div>
+              <div class="theme-preview-content">
+                <div class="theme-preview-card">
+                  <div class="theme-preview-row">
+                    <span class="theme-preview-label">Panel</span>
+                    <span class="theme-preview-muted">Muted text</span>
+                  </div>
+                  <div class="theme-preview-row theme-preview-buttons">
+                    <button class="primary" type="button">Primary</button>
+                    <button class="ghost" type="button">Ghost</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Overlay layer on top -->
+            <div class="theme-preview-overlay-layer">
+              <div class="theme-preview-overlay-panel">
+                <div class="theme-preview-overlay-header">Overlay Dialog</div>
+                <div class="theme-preview-overlay-text">
+                  This panel appears over the overlay background. Notice how the overlay dims the content behind it.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <p class="hint">Preview updates live as you tweak colors.</p>
+        </div>
+
+        <!-- Color Panel -->
+        <div class="theme-color-panel">
+          <div id="theme-color-grid" class="theme-grid"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Hidden file input for importing -->
+    <input type="file" id="file-input" accept=".json" style="display: none;" />
+  </div>
+
+  <script src="theme-studio.js"></script>
+</body>
+</html>

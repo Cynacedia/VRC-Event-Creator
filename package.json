@@ -1,0 +1,45 @@
+{
+  "name": "VRCEventCreator",
+  "version": "0.9.8",
+  "main": "electron/main.js",
+  "scripts": {
+    "start:gui": "electron .",
+    "dist:gui": "electron-builder --win portable",
+    "dist:gui:all": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Cynacedia",
+  "license": "MIT",
+  "description": "VRChat Event Creator",
+  "dependencies": {
+    "keyv-file": "^5.3.3",
+    "luxon": "^3.7.2",
+    "vrchat": "^2.20.5"
+  },
+  "devDependencies": {
+    "electron": "^39.2.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.vrceventmaker.app",
+    "productName": "VRChat Event Creator",
+    "asar": true,
+    "files": [
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "electron/app.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "electron/app.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "electron/app.ico"
+    }
+  }
+}
