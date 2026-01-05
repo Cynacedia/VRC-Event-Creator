@@ -37,7 +37,6 @@ Crie e salve modelos de eventos por grupo, gere datas futuras a partir de padrõ
 
 ## Download
 - Lançamentos: https://github.com/Cynacedia/VRC-Event-Creator/releases
-- O `.exe` portátil do Windows funciona de forma independente.
 
 ## Privacidade e armazenamento de dados
 Sua senha não é armazenada. Apenas tokens de sessão ficam em cache.

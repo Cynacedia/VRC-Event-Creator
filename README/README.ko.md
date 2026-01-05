@@ -37,7 +37,6 @@
 
 ## 다운로드
 - 릴리스: https://github.com/Cynacedia/VRC-Event-Creator/releases
-- Windows 포터블 `.exe`는 단독으로 실행됩니다.
 
 ## 개인정보 및 데이터 저장
 비밀번호는 저장되지 않습니다. 세션 토큰만 캐시됩니다.

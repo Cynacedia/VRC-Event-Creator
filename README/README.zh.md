@@ -37,7 +37,6 @@
 
 ## 下载
 - 发布版：https://github.com/Cynacedia/VRC-Event-Creator/releases
-- Windows 便携式 `.exe` 可独立运行。
 
 ## 隐私与数据存储
 不会存储你的密码，只会缓存会话令牌。
