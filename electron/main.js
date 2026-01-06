@@ -13,6 +13,157 @@ app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
 
 const APP_NAME = "VRChat Event Creator";
 const IS_DEV = !app.isPackaged;
+
+// Debug logging for API calls (only in dev mode)
+// Debug log file path (created after app is ready)
+let DEBUG_LOG_PATH = null;
+
+function initDebugLog() {
+  if (!IS_DEV) return;
+  const logDir = app.getPath("userData");
+  DEBUG_LOG_PATH = path.join(logDir, "debug-api.json");
+  // Initialize with empty array
+  try {
+    fs.writeFileSync(DEBUG_LOG_PATH, "[\n", "utf8");
+  } catch (e) {
+    // Ignore
+  }
+}
+
+let debugLogFirstEntry = true;
+
+function writeDebugLog(entry) {
+  if (!IS_DEV || !DEBUG_LOG_PATH) return;
+  try {
+    const prefix = debugLogFirstEntry ? "" : ",\n";
+    debugLogFirstEntry = false;
+    fs.appendFileSync(DEBUG_LOG_PATH, prefix + JSON.stringify(entry, null, 2), "utf8");
+  } catch (e) {
+    // Ignore write errors
+  }
+}
+
+function finalizeDebugLog() {
+  if (!IS_DEV || !DEBUG_LOG_PATH) return;
+  try {
+    fs.appendFileSync(DEBUG_LOG_PATH, "\n]", "utf8");
+  } catch (e) {
+    // Ignore
+  }
+}
+
+// ANSI color codes for terminal output
+const DEBUG_COLORS = {
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  dim: "\x1b[2m",
+  cyan: "\x1b[36m",
+  yellow: "\x1b[33m",
+  green: "\x1b[32m",
+  red: "\x1b[31m",
+  magenta: "\x1b[35m",
+  blue: "\x1b[34m",
+  bgBlue: "\x1b[44m",
+  bgGreen: "\x1b[42m",
+  bgRed: "\x1b[41m",
+  bgYellow: "\x1b[43m",
+  white: "\x1b[37m"
+};
+
+function debugLog(context, ...args) {
+  if (IS_DEV) {
+    const timestamp = new Date().toISOString();
+    const timeStr = `${DEBUG_COLORS.dim}${timestamp}${DEBUG_COLORS.reset}`;
+    console.log(`${timeStr} ${DEBUG_COLORS.cyan}[${context}]${DEBUG_COLORS.reset}`, ...args);
+    // Write JSON entry to log file
+    writeDebugLog({
+      type: "log",
+      timestamp,
+      context,
+      message: args.map(a => typeof a === "object" ? a : String(a))
+    });
+  }
+}
+
+function debugApiCall(name, params) {
+  if (IS_DEV) {
+    const timestamp = new Date().toISOString();
+    const divider = `${DEBUG_COLORS.blue}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
+    const header = `${DEBUG_COLORS.bgBlue}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ▶ API REQUEST: ${name} ${DEBUG_COLORS.reset}`;
+    console.log("");
+    console.log(divider);
+    console.log(header);
+    console.log(divider);
+    console.log(`${DEBUG_COLORS.yellow}Parameters:${DEBUG_COLORS.reset}`);
+    console.log(JSON.stringify(params, null, 2));
+    // Write JSON entry to log file
+    writeDebugLog({
+      type: "request",
+      timestamp,
+      api: name,
+      params
+    });
+  }
+}
+
+function debugApiResponse(name, response, error = null) {
+  if (IS_DEV) {
+    const timestamp = new Date().toISOString();
+    if (error) {
+      const divider = `${DEBUG_COLORS.red}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
+      const header = `${DEBUG_COLORS.bgRed}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ✖ API ERROR: ${name} ${DEBUG_COLORS.reset}`;
+      console.log(divider);
+      console.log(header);
+      console.log(divider);
+      console.log(`${DEBUG_COLORS.red}Status:${DEBUG_COLORS.reset} ${error?.response?.status || "N/A"} ${error?.response?.statusText || ""}`);
+      console.log(`${DEBUG_COLORS.red}Message:${DEBUG_COLORS.reset} ${error?.message || "Unknown error"}`);
+      if (error?.response?.data) {
+        console.log(`${DEBUG_COLORS.red}Response Data:${DEBUG_COLORS.reset}`);
+        console.log(JSON.stringify(error.response.data, null, 2));
+      }
+      if (error?.stack) {
+        console.log(`${DEBUG_COLORS.dim}Stack: ${error.stack}${DEBUG_COLORS.reset}`);
+      }
+      console.log(divider);
+      console.log("");
+      // Write JSON entry to log file
+      writeDebugLog({
+        type: "error",
+        timestamp,
+        api: name,
+        status: error?.response?.status || null,
+        statusText: error?.response?.statusText || null,
+        message: error?.message || "Unknown error",
+        responseData: error?.response?.data || null
+      });
+    } else {
+      const divider = `${DEBUG_COLORS.green}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
+      const header = `${DEBUG_COLORS.bgGreen}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ✔ API RESPONSE: ${name} ${DEBUG_COLORS.reset}`;
+      console.log(divider);
+      console.log(header);
+      console.log(divider);
+      console.log(`${DEBUG_COLORS.green}Status:${DEBUG_COLORS.reset} ${response?.status || "N/A"} ${response?.statusText || ""}`);
+      console.log(`${DEBUG_COLORS.green}Data Type:${DEBUG_COLORS.reset} ${typeof response?.data}`);
+      if (response?.data && typeof response.data === "object") {
+        const keys = Array.isArray(response.data) ? `Array[${response.data.length}]` : Object.keys(response.data).join(", ");
+        console.log(`${DEBUG_COLORS.green}Data Keys:${DEBUG_COLORS.reset} ${keys}`);
+      }
+      console.log(`${DEBUG_COLORS.magenta}Response Data:${DEBUG_COLORS.reset}`);
+      console.log(JSON.stringify(response?.data, null, 2));
+      console.log(divider);
+      console.log("");
+      // Write JSON entry to log file
+      writeDebugLog({
+        type: "response",
+        timestamp,
+        api: name,
+        status: response?.status || null,
+        statusText: response?.statusText || null,
+        data: response?.data || null
+      });
+    }
+  }
+}
 const pkg = (() => {
   const pkgPath = path.join(__dirname, "..", "package.json");
   return JSON.parse(fs.readFileSync(pkgPath, "utf8"));
@@ -473,6 +624,7 @@ async function clearSession() {
 }
 
 async function getCurrentUser() {
+  debugApiCall("getCurrentUser", {});
   try {
     const res = await requestGet(
       "getCurrentUser",
@@ -480,12 +632,15 @@ async function getCurrentUser() {
       () => vrchat.getCurrentUser(),
       { cacheFailures: false }
     );
+    debugApiResponse("getCurrentUser", res);
     if (typeof res.data === "string" || res.data?.error) {
+      debugLog("getCurrentUser", "Invalid response data type or error in data");
       return null;
     }
     currentUser = res.data;
     return currentUser;
   } catch (err) {
+    debugApiResponse("getCurrentUser", null, err);
     return null;
   }
 }
@@ -517,18 +672,26 @@ async function login(credentials) {
   if (!username || !password) {
     throw new Error("Missing username or password.");
   }
-  const loginRes = await vrchat.login({
-    username,
-    password,
-    twoFactorCode: async () => {
-      const code = await requestTwoFactorCode();
-      twoFactorRequest = null;
-      return code;
-    },
-    throwOnError: true
-  });
-  currentUser = loginRes.data;
-  return currentUser;
+  debugApiCall("login", { username, password: "***REDACTED***" });
+  try {
+    const loginRes = await vrchat.login({
+      username,
+      password,
+      twoFactorCode: async () => {
+        debugLog("login", "Two-factor authentication requested");
+        const code = await requestTwoFactorCode();
+        twoFactorRequest = null;
+        return code;
+      },
+      throwOnError: true
+    });
+    debugApiResponse("login", loginRes);
+    currentUser = loginRes.data;
+    return currentUser;
+  } catch (err) {
+    debugApiResponse("login", null, err);
+    throw err;
+  }
 }
 
 function createWindow() {
@@ -613,6 +776,7 @@ function buildEventTimes({ selectedDateIso, manualDate, manualTime, timezone, du
 }
 
 async function findConflictingEvent(groupId, startsAtUtc) {
+  debugApiCall("getGroupCalendarEvents (findConflict)", { groupId, n: 100 });
   const currentEvents = await requestGet(
     "getGroupCalendarEvents",
     { path: { groupId }, query: { n: 100 } },
@@ -621,6 +785,7 @@ async function findConflictingEvent(groupId, startsAtUtc) {
       query: { n: 100 }
     })
   );
+  debugApiResponse("getGroupCalendarEvents (findConflict)", currentEvents);
   const results = getCalendarEventList(currentEvents.data);
   const startUtc = DateTime.fromISO(startsAtUtc);
   const match = results.find(event => {
@@ -641,6 +806,7 @@ async function findConflictingEvent(groupId, startsAtUtc) {
 }
 
 async function getUpcomingEventCount(groupId) {
+  debugApiCall("getGroupCalendarEvents (countUpcoming)", { groupId, n: 100 });
   const currentEvents = await requestGet(
     "getGroupCalendarEvents",
     { path: { groupId }, query: { n: 100 } },
@@ -649,6 +815,7 @@ async function getUpcomingEventCount(groupId) {
       query: { n: 100 }
     })
   );
+  debugApiResponse("getGroupCalendarEvents (countUpcoming)", currentEvents);
   const results = getCalendarEventList(currentEvents.data);
   const now = DateTime.utc();
   let upcomingCount = 0;
@@ -910,19 +1077,23 @@ async function ensureCalendarPermission(groupId) {
   let permissions = groupPermissionCache.get(groupId);
   if (!permissions) {
     try {
+      debugApiCall("getGroup (ensureCalendarPermission)", { groupId });
       const res = await requestGet(
         "getGroup",
         { path: { groupId } },
         () => vrchat.getGroup({ path: { groupId } })
       );
+      debugApiResponse("getGroup (ensureCalendarPermission)", res);
       permissions = res.data?.myMember?.permissions || [];
     } catch (err) {
+      debugApiResponse("getGroup (ensureCalendarPermission)", null, err);
       permissions = [];
     }
     groupPermissionCache.set(groupId, permissions);
   }
   const allowed =
     permissions.includes("*") || permissions.includes("group-calendar-manage");
+  debugLog("ensureCalendarPermission", { groupId, permissions, allowed });
   if (!allowed) {
     throw new Error("You do not have permission to manage this group's calendar.");
   }
@@ -1084,12 +1255,14 @@ ipcMain.handle("auth:twofactor:submit", async (_, code) => {
 });
 
 ipcMain.handle("groups:list", async () => {
+  debugApiCall("getUserGroups", {});
   const user = await ensureUser();
   const groupsResponse = await requestGet(
     "getUserGroups",
     { path: { userId: user.id } },
     () => vrchat.getUserGroups({ path: { userId: user.id } })
   );
+  debugApiResponse("getUserGroups", groupsResponse);
   const limitedGroups = groupsResponse.data || [];
   const enriched = [];
   for (const group of limitedGroups) {
@@ -1104,14 +1277,17 @@ ipcMain.handle("groups:list", async () => {
     const hasPrivacy = privacy !== undefined;
     if (!hasPermissions || !hasPrivacy) {
       try {
+        debugApiCall("getGroup", { groupId });
         const groupRes = await requestGet(
           "getGroup",
           { path: { groupId } },
           () => vrchat.getGroup({ path: { groupId } })
         );
+        debugApiResponse("getGroup", groupRes);
         permissions = groupRes.data?.myMember?.permissions || [];
         privacy = groupRes.data?.privacy;
       } catch (err) {
+        debugApiResponse("getGroup", null, err);
         if (!hasPermissions) {
           permissions = [];
         }
@@ -1137,11 +1313,13 @@ ipcMain.handle("groups:roles", async (_, payload) => {
   await ensureCalendarPermission(groupId);
   let roles = groupRolesCache.get(groupId);
   if (!roles) {
+    debugApiCall("getGroupRoles", { groupId });
     const response = await requestGet(
       "getGroupRoles",
       { path: { groupId } },
       () => vrchat.getGroupRoles({ path: { groupId } })
     );
+    debugApiResponse("getGroupRoles", response);
     roles = response.data || [];
     groupRolesCache.set(groupId, roles);
   }
@@ -1223,30 +1401,34 @@ ipcMain.handle("events:create", async (_, payload) => {
       throw new Error("Missing event data.");
     }
     await ensureCalendarPermission(groupId);
+    const requestBody = {
+      title: eventData.title,
+      description: eventData.description,
+      startsAt: startsAtUtc,
+      endsAt: endsAtUtc,
+      category: eventData.category,
+      sendCreationNotification: eventData.sendCreationNotification,
+      accessType: eventData.accessType,
+      languages: eventData.languages || [],
+      platforms: eventData.platforms || [],
+      tags: eventData.tags || [],
+      imageId: eventData.imageId || null,
+      featured: false,
+      isDraft: false,
+      parentId: null,
+      roleIds: Array.isArray(eventData.roleIds) ? eventData.roleIds : []
+    };
+    debugApiCall("createGroupCalendarEvent", { groupId, body: requestBody });
     const response = await vrchat.createGroupCalendarEvent({
       throwOnError: true,
       path: { groupId },
-        body: {
-          title: eventData.title,
-          description: eventData.description,
-          startsAt: startsAtUtc,
-          endsAt: endsAtUtc,
-          category: eventData.category,
-          sendCreationNotification: eventData.sendCreationNotification,
-          accessType: eventData.accessType,
-          languages: eventData.languages || [],
-          platforms: eventData.platforms || [],
-          tags: eventData.tags || [],
-          imageId: eventData.imageId || null,
-          featured: false,
-          isDraft: false,
-          parentId: null,
-          roleIds: Array.isArray(eventData.roleIds) ? eventData.roleIds : []
-        }
-      });
-      const eventId = getEventId(response.data);
-      return { ok: true, eventId };
-    } catch (err) {
+      body: requestBody
+    });
+    debugApiResponse("createGroupCalendarEvent", response);
+    const eventId = getEventId(response.data);
+    return { ok: true, eventId };
+  } catch (err) {
+    debugApiResponse("createGroupCalendarEvent", null, err);
     const status = err?.response?.status || null;
     return {
       ok: false,
@@ -1276,6 +1458,7 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
   }
   await ensureUser();
   await ensureCalendarPermission(groupId);
+  debugApiCall("getGroupCalendarEvents (listGroup)", { groupId, n: 100, upcomingOnly });
   const response = await requestGet(
     "getGroupCalendarEvents",
     { path: { groupId }, query: { n: 100 } },
@@ -1284,6 +1467,7 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
       query: { n: 100 }
     })
   );
+  debugApiResponse("getGroupCalendarEvents (listGroup)", response);
   const results = getCalendarEventList(response.data);
   const now = DateTime.utc();
   const mapped = results
@@ -1364,29 +1548,33 @@ ipcMain.handle("events:update", async (_, payload) => {
       timezone,
       durationMinutes
     });
-    await vrchat.updateGroupCalendarEvent({
+    const requestBody = {
+      title: eventData.title,
+      description: eventData.description,
+      startsAt: times.startsAtUtc,
+      endsAt: times.endsAtUtc,
+      category: eventData.category,
+      sendCreationNotification: eventData.sendCreationNotification,
+      accessType: eventData.accessType,
+      languages: eventData.languages || [],
+      platforms: eventData.platforms || [],
+      tags: eventData.tags || [],
+      imageId: eventData.imageId || null,
+      featured: false,
+      isDraft: false,
+      parentId: null,
+      ...(Array.isArray(eventData.roleIds) ? { roleIds: eventData.roleIds } : {})
+    };
+    debugApiCall("updateGroupCalendarEvent", { groupId, eventId, body: requestBody });
+    const response = await vrchat.updateGroupCalendarEvent({
       throwOnError: true,
       path: { groupId, calendarId: eventId },
-        body: {
-          title: eventData.title,
-          description: eventData.description,
-          startsAt: times.startsAtUtc,
-          endsAt: times.endsAtUtc,
-          category: eventData.category,
-          sendCreationNotification: eventData.sendCreationNotification,
-          accessType: eventData.accessType,
-          languages: eventData.languages || [],
-          platforms: eventData.platforms || [],
-          tags: eventData.tags || [],
-          imageId: eventData.imageId || null,
-          featured: false,
-          isDraft: false,
-          parentId: null,
-          ...(Array.isArray(eventData.roleIds) ? { roleIds: eventData.roleIds } : {})
-        }
-      });
-      return { ok: true };
-    } catch (err) {
+      body: requestBody
+    });
+    debugApiResponse("updateGroupCalendarEvent", response);
+    return { ok: true };
+  } catch (err) {
+    debugApiResponse("updateGroupCalendarEvent", null, err);
     return {
       ok: false,
       error: {
@@ -1405,12 +1593,15 @@ ipcMain.handle("events:delete", async (_, payload) => {
     }
     await ensureUser();
     await ensureCalendarPermission(groupId);
-    await vrchat.deleteGroupCalendarEvent({
+    debugApiCall("deleteGroupCalendarEvent", { groupId, eventId });
+    const response = await vrchat.deleteGroupCalendarEvent({
       throwOnError: true,
       path: { groupId, calendarId: eventId }
     });
+    debugApiResponse("deleteGroupCalendarEvent", response);
     return { ok: true };
   } catch (err) {
+    debugApiResponse("deleteGroupCalendarEvent", null, err);
     return {
       ok: false,
       error: {
@@ -1425,6 +1616,7 @@ ipcMain.handle("files:listGallery", async (_, payload) => {
   await ensureUser();
   const limit = Math.max(1, Math.min(100, Number(payload?.limit) || 40));
   const offset = Math.max(0, Number(payload?.offset) || 0);
+  debugApiCall("getFiles (listGallery)", { tag: "gallery", n: limit, offset });
   const res = await requestGet(
     "getFiles",
     { query: { tag: "gallery", n: limit, offset } },
@@ -1436,6 +1628,7 @@ ipcMain.handle("files:listGallery", async (_, payload) => {
       }
     })
   );
+  debugApiResponse("getFiles (listGallery)", res);
   const files = Array.isArray(res.data) ? res.data : [];
   return files.map(file => {
     const latest = getLatestFileVersion(file);
@@ -1455,6 +1648,7 @@ ipcMain.handle("files:uploadGallery", async () => {
   try {
     await ensureUser();
 
+    debugApiCall("getFiles (uploadGallery limitCheck)", { tag: "gallery", n: 64, offset: 0 });
     const limitCheck = await requestGet(
       "getFiles",
       { query: { tag: "gallery", n: 64, offset: 0 } },
@@ -1466,8 +1660,10 @@ ipcMain.handle("files:uploadGallery", async () => {
         }
       })
     );
+    debugApiResponse("getFiles (uploadGallery limitCheck)", limitCheck);
     const existingFiles = Array.isArray(limitCheck.data) ? limitCheck.data : [];
     if (existingFiles.length >= 64) {
+      debugLog("uploadGallery", "Gallery limit reached:", existingFiles.length);
       return { ok: false, error: { code: "GALLERY_LIMIT" } };
     }
 
@@ -1523,10 +1719,12 @@ ipcMain.handle("files:uploadGallery", async () => {
       const uploadFile = typeof File === "function"
         ? new File([buffer], fileName, { type: mimeType })
         : new Blob([buffer], { type: mimeType });
+      debugApiCall("uploadGalleryImage", { fileName, mimeType, size: buffer.length, width, height });
       const res = await vrchat.uploadGalleryImage({
         body: { file: uploadFile },
         throwOnError: true
       });
+      debugApiResponse("uploadGalleryImage", res);
 
       return { ok: true, data: res?.data || null };
     } catch (fdErr) {
@@ -1534,6 +1732,7 @@ ipcMain.handle("files:uploadGallery", async () => {
       throw fdErr;
     }
   } catch (err) {
+    debugApiResponse("uploadGalleryImage", null, err);
     return {
       ok: false,
       error: {
@@ -1545,10 +1744,14 @@ ipcMain.handle("files:uploadGallery", async () => {
 });
 
 app.whenReady().then(() => {
+  initDebugLog();
   initializePaths();
   maybeImportProfiles();
   profiles = loadProfiles();
   createWindow();
+  if (IS_DEV && DEBUG_LOG_PATH) {
+    console.log(`\n📄 Debug log file: ${DEBUG_LOG_PATH}\n`);
+  }
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -1561,5 +1764,9 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("will-quit", () => {
+  finalizeDebugLog();
 });
 

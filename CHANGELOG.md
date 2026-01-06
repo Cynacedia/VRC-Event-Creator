@@ -43,7 +43,7 @@ All notable changes to VRChat Event Creator will be documented in this file.
 ## [0.9.16] - 2026-01-06
 
 ### Added
-- Fynn theme with orange accent and bioluminescent-style grid
+- Fynn theme
 
 ### Fixed
 - Theme seeding now tracks keys properly (new themes get added, deleted themes stay deleted)
