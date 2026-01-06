@@ -22,6 +22,7 @@ All notable changes to VRChat Event Creator will be documented in this file.
 - Reduced unnecessary API calls through intelligent caching and deduplication
 - Improved rate limit error handling across event creation and gallery uploads
 - Better user feedback when hitting rate limits
+- Events created on VRChat website now correctly count toward hourly limit
 
 ## [0.9.17] - 2026-01-06
 

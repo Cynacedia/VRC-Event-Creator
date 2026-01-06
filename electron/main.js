@@ -1223,7 +1223,7 @@ ipcMain.handle("events:create", async (_, payload) => {
       throw new Error("Missing event data.");
     }
     await ensureCalendarPermission(groupId);
-    await vrchat.createGroupCalendarEvent({
+    const response = await vrchat.createGroupCalendarEvent({
       throwOnError: true,
       path: { groupId },
         body: {
@@ -1244,7 +1244,8 @@ ipcMain.handle("events:create", async (_, payload) => {
           roleIds: Array.isArray(eventData.roleIds) ? eventData.roleIds : []
         }
       });
-      return { ok: true };
+      const eventId = getEventId(response.data);
+      return { ok: true, eventId };
     } catch (err) {
     const status = err?.response?.status || null;
     return {
