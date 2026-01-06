@@ -251,6 +251,8 @@ export const es = {
     upcomingCountToast: "{group} ahora tiene {count}/{limit} eventos próximos.",
     upcomingLimitReached: "Límite alcanzado: {group} ya tiene {limit} eventos próximos. Elimina o reprograma uno.",
     upcomingLimitError: "Límite alcanzado: {group} ya tiene {limit} eventos próximos. Elimina o reprograma uno.",
+    crossPlatformRateLimit: "Límite de tasa. Eventos no rastreados creados en otra plataforma pueden contar para tu límite. Inténtalo de nuevo en {minutes} minutos.",
+    unknownRateLimit: "Límite de tasa. Inténtalo más tarde.",
     upcomingCountRefresh: "Actualizar",
     createButton: "Crear evento",
     created: "Evento creado.",
@@ -433,6 +435,7 @@ export const es = {
     save: "Guardar",
     cancel: "Cancelar",
     loading: "Cargando...",
+    rateLimitError: "Límite de tasa. Por favor espere e inténtelo más tarde.",
     noMatches: "Sin coincidencias.",
     noGroupsAccess: "No hay grupos con acceso al calendario",
     accessTypes: {
@@ -457,6 +460,13 @@ export const es = {
   wizard: {
     back: "Atrás",
     next: "Siguiente"
+  },
+  conflict: {
+    title: "Conflicto de evento",
+    message: "Ya existe un evento \"{title}\" programado en este horario.",
+    skipSession: "No preguntar de nuevo en esta sesión",
+    changeTime: "Elegir otra hora",
+    continue: "Crear de todas formas"
   }
 };
 

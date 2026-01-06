@@ -639,6 +639,25 @@
       </div>
     </div>
 
+    <div class="overlay is-hidden" id="conflict-overlay">
+      <div class="panel conflict-panel">
+        <div class="panel-header">
+          <span class="panel-title" data-i18n="conflict.title">Event Conflict</span>
+          <span class="panel-sub" id="conflict-message"></span>
+        </div>
+        <div class="conflict-body">
+          <label class="checkbox-label">
+            <input type="checkbox" id="conflict-skip-session">
+            <span data-i18n="conflict.skipSession">Don't ask again this session</span>
+          </label>
+        </div>
+        <div class="conflict-footer">
+          <button class="ghost" id="conflict-change-time" type="button" data-i18n="conflict.changeTime">Choose Different Time</button>
+          <button class="primary" id="conflict-continue" type="button" data-i18n="conflict.continue">Create Anyway</button>
+        </div>
+      </div>
+    </div>
+
     <div class="overlay is-hidden" id="modify-overlay">
       <div class="panel modify-panel">
         <div class="panel-header">

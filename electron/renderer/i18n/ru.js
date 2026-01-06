@@ -248,6 +248,8 @@ export const ru = {
     upcomingCountToast: "Теперь у {group} {count}/{limit} предстоящих событий.",
     upcomingLimitReached: "Лимит достигнут: у {group} уже {limit} предстоящих событий. Удалите или перенесите одно.",
     upcomingLimitError: "Лимит достигнут: у {group} уже {limit} предстоящих событий. Удалите или перенесите одно.",
+    crossPlatformRateLimit: "Ограничение скорости. Неотслеживаемые события, созданные на другой платформе, могут учитываться в вашем лимите. Повторите попытку через {minutes} минут.",
+    unknownRateLimit: "Ограничение скорости. Повторите попытку позже.",
     upcomingCountRefresh: "Обновить",
     createButton: "Создать событие",
     created: "Событие создано.",
@@ -430,6 +432,7 @@ export const ru = {
     save: "Сохранить",
     cancel: "Отмена",
     loading: "Загрузка...",
+    rateLimitError: "Ограничение скорости. Пожалуйста, подождите и попробуйте позже.",
     noMatches: "Совпадений нет.",
     noGroupsAccess: "Нет групп с доступом к календарю",
     accessTypes: {
@@ -454,6 +457,13 @@ export const ru = {
   wizard: {
     back: "Назад",
     next: "Далее"
+  },
+  conflict: {
+    title: "Конфликт события",
+    message: "Событие \"{title}\" уже запланировано на это время.",
+    skipSession: "Не спрашивать снова в этой сессии",
+    changeTime: "Выбрать другое время",
+    continue: "Создать в любом случае"
   }
 };
 

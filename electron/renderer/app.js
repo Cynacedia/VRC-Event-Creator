@@ -2,7 +2,7 @@
 
 import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, TAG_LIMIT } from "./config.js";
 import { dom, state, setEventWizard, setProfileWizard, getProfileEditConfirmed } from "./state.js";
-import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
+import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
@@ -21,6 +21,7 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
   const UPDATE_REPO_URL = "https://github.com/Cynacedia/VRC-Event-Creator";
   const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000;
   let updateInfo = { available: false, downloaded: false, url: UPDATE_REPO_URL };
+  let resyncInProgress = false;
 
   // Core app functions
   function renderGroupSelects(config = {}) {
@@ -208,12 +209,13 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     }
   }
 
-  async function refreshData() {
+  async function refreshData(options = {}) {
+    const { preserveSelection = false } = options;
     try {
       setFootMeta(t("common.syncing"));
       state.groups = await api.getGroups();
       state.profiles = await api.getProfiles();
-      renderGroupSelects();
+      renderGroupSelects({ preserveSelection });
       enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
       enforceGroupAccess(dom.profileAccess, dom.profileGroup.value);
       if (dom.modifyEventAccess) {
@@ -225,10 +227,34 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       void renderProfileRoleRestrictions(api);
       await refreshUpcomingEventCount(api);
       setFootMeta(t("common.ready"));
+      return true;
     } catch (err) {
       showToast("Failed to load profiles or groups.", true);
       setFootMeta(t("common.error"));
     }
+    return false;
+  }
+
+  async function resyncUserData() {
+    if (!state.user || resyncInProgress) {
+      return;
+    }
+    resyncInProgress = true;
+    if (dom.statusPill) {
+      dom.statusPill.dataset.hover = "resync";
+      dom.statusPill.textContent = "Syncing...";
+      dom.statusPill.disabled = true;
+      dom.statusPill.setAttribute("aria-disabled", "true");
+    }
+    const ok = await refreshData({ preserveSelection: true });
+    if (ok) {
+      showToast("Synced successfully.");
+    }
+    resyncInProgress = false;
+    if (dom.statusPill) {
+      delete dom.statusPill.dataset.hover;
+    }
+    refreshStatusPill();
   }
 
   function renderProfileLanguageList() {
@@ -578,8 +604,21 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       });
     }
     if (dom.statusPill) {
+      dom.statusPill.addEventListener("mouseenter", () => {
+        if (!updateInfo.available && state.user && !resyncInProgress) {
+          dom.statusPill.dataset.hover = "resync";
+          dom.statusPill.textContent = "Resync";
+        }
+      });
+      dom.statusPill.addEventListener("mouseleave", () => {
+        if (!updateInfo.available && state.user && !resyncInProgress) {
+          delete dom.statusPill.dataset.hover;
+          refreshStatusPill();
+        }
+      });
       dom.statusPill.addEventListener("click", async () => {
         if (!updateInfo.available) {
+          await resyncUserData();
           return;
         }
         if (updateInfo.downloaded && api.installUpdate) {

@@ -50,6 +50,11 @@ export const dom = {
   galleryLoadMore: document.getElementById("gallery-load-more"),
   galleryCancel: document.getElementById("gallery-cancel"),
   galleryUse: document.getElementById("gallery-use"),
+  conflictOverlay: document.getElementById("conflict-overlay"),
+  conflictMessage: document.getElementById("conflict-message"),
+  conflictSkipSession: document.getElementById("conflict-skip-session"),
+  conflictChangeTime: document.getElementById("conflict-change-time"),
+  conflictContinue: document.getElementById("conflict-continue"),
   settingsChangeDir: document.getElementById("settings-change-dir"),
   settingsOpenDir: document.getElementById("settings-open-dir"),
   settingsLanguage: document.getElementById("settings-language"),
@@ -166,6 +171,9 @@ export const state = {
     updateAvailable: false,
     rateLimits: {}
   },
+  session: {
+    skipConflictWarning: false
+  },
   user: null,
   groups: [],
   groupRoles: {},
@@ -182,6 +190,9 @@ export const state = {
     upcomingLimit: 10,
     hourlyCreateHistory: {},
     hourlyLimitUntil: {},
+    createdEventIds: {},
+    serverHourlyCount: 0,
+    backoffIndex: 0,
     createBlocked: false,
     createInProgress: false,
     tagInput: null,
@@ -196,7 +207,12 @@ export const state = {
     roleIds: [],
     tagInput: null,
     loading: false,
-    saving: false
+    saving: false,
+    pendingDeletions: new Set(),
+    deletedTombstones: new Map(),
+    refreshBackoffUntil: 0,
+    refreshBackoffIndex: 0,
+    lastRefreshTime: 0
   },
   profile: {
     mode: "create",

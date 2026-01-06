@@ -2,6 +2,38 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.19] - 2026-01-06
+
+### Added
+- Optimistic event deletion with instant UI feedback (events disappear immediately)
+- Automatic rollback if deletion fails on backend
+- Tombstone tracking to prevent deleted events from reappearing (60-second filter)
+- Exponential backoff for refresh button rate limiting (2s → 60s sequence)
+- Visual countdown timer on refresh button during rate limit backoff
+- Race condition prevention in modify events refresh logic
+- Resync functionality via status pill (hover shows "Resync" when online, click to sync data)
+- Green pulsing animation on status pill when update is ready to install
+- Improved status pill accessibility (clickable when online, disabled when offline)
+- WCAG-compliant contrast checking for update pill colors
+
+### Changed
+- Event deletion now provides immediate visual feedback before backend confirmation
+- Refresh button respects 10-second deduplication window before allowing cache bypass
+- Scroll position maintained when deleting events or refreshing event list
+- Disabled event conflict detection backend logic (assumes user intent for duplicate time slots)
+- Status pill now interactive when online (hover for resync, click to sync groups/profiles)
+- Update pill colors now use theme accent with automatic fallback if contrast too low
+- Restart pill displays in green with pulsing shadow animation
+- Status pill transitions smoothly between states (online/update/downloading/restart)
+
+### Fixed
+- Ghost events no longer remain visible after deletion
+- Multiple rapid refresh clicks no longer cause race conditions
+- Scroll position no longer resets to top after deletions or refreshes
+- 429 rate limit errors now trigger appropriate backoff delays
+- Status pill color contrast issues with certain custom themes
+- Update progress bar visual clarity during download phase
+
 ## [0.9.18] - 2026-01-06
 
 ### Added

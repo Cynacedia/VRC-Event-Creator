@@ -251,6 +251,8 @@ export const ja = {
     upcomingCountToast: "{group} は現在 {count}/{limit} 件の今後のイベントがあります。",
     upcomingLimitReached: "上限に達しました: {group} には今後のイベントが {limit} 件あります。1 件削除するか日程を変更してください。",
     upcomingLimitError: "上限に達しました: {group} には今後のイベントが {limit} 件あります。1 件削除するか日程を変更してください。",
+    crossPlatformRateLimit: "レート制限。他のプラットフォームで作成された追跡されていないイベントが制限にカウントされる可能性があります。{minutes}分後に再試行してください。",
+    unknownRateLimit: "レート制限。後でもう一度お試しください。",
     upcomingCountRefresh: "更新",
     createButton: "イベントを作成",
     created: "イベントを作成しました。",
@@ -433,6 +435,7 @@ export const ja = {
     save: "保存",
     cancel: "キャンセル",
     loading: "読み込み中...",
+    rateLimitError: "レート制限。しばらく待ってから再試行してください。",
     noMatches: "一致する項目がありません。",
     noGroupsAccess: "カレンダー権限のあるグループがありません",
     accessTypes: {
@@ -457,6 +460,13 @@ export const ja = {
   wizard: {
     back: "戻る",
     next: "次へ"
+  },
+  conflict: {
+    title: "イベントの競合",
+    message: "イベント「{title}」はすでにこの時間に予定されています。",
+    skipSession: "このセッションでは再度表示しない",
+    changeTime: "別の時間を選択",
+    continue: "そのまま作成"
   }
 };
 

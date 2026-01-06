@@ -14,7 +14,11 @@ function updateStatusPill() {
   if (!dom.statusPill) {
     return;
   }
+  const isResyncHover = dom.statusPill.dataset.hover === "resync";
   if (updateAvailable) {
+    if (dom.statusPill.dataset.hover) {
+      delete dom.statusPill.dataset.hover;
+    }
     if (updateDownloaded) {
       dom.statusPill.textContent = t("common.updateReady");
       dom.statusPill.style.setProperty("--update-progress", "100%");
@@ -27,14 +31,24 @@ function updateStatusPill() {
     }
     dom.statusPill.classList.add("is-update");
     dom.statusPill.classList.toggle("is-downloading", updateDownloading);
+    dom.statusPill.classList.toggle("is-downloaded", updateDownloaded);
+    dom.statusPill.classList.remove("is-online");
     dom.statusPill.disabled = false;
     dom.statusPill.setAttribute("aria-disabled", "false");
   } else {
-    dom.statusPill.textContent = statusIsAuthed ? t("common.online") : t("common.offline");
-    dom.statusPill.classList.remove("is-update", "is-downloading");
+    if (!statusIsAuthed && dom.statusPill.dataset.hover) {
+      delete dom.statusPill.dataset.hover;
+    }
+    if (statusIsAuthed && !isResyncHover) {
+      dom.statusPill.textContent = t("common.online");
+    } else if (!statusIsAuthed) {
+      dom.statusPill.textContent = t("common.offline");
+    }
+    dom.statusPill.classList.remove("is-update", "is-downloading", "is-downloaded");
+    dom.statusPill.classList.toggle("is-online", statusIsAuthed);
     dom.statusPill.style.setProperty("--update-progress", "0%");
-    dom.statusPill.disabled = true;
-    dom.statusPill.setAttribute("aria-disabled", "true");
+    dom.statusPill.disabled = !statusIsAuthed;
+    dom.statusPill.setAttribute("aria-disabled", statusIsAuthed ? "false" : "true");
   }
 }
 
@@ -47,6 +61,10 @@ export function setUpdateAvailable(isAvailable, isDownloaded = false) {
 export function setUpdateProgress(percent, isDownloading = true) {
   updateDownloading = Boolean(isDownloading);
   updateProgress = Math.round(percent || 0);
+  updateStatusPill();
+}
+
+export function refreshStatusPill() {
   updateStatusPill();
 }
 
@@ -391,8 +409,16 @@ export function applyTheme(colors) {
   root.style.setProperty("--button-2", normalized.button2);
   root.style.setProperty("--button-text", normalized.buttonText);
   const panelBase = getHexBase(normalized.panel);
-  root.style.setProperty("--update-pill-bg", getContrastColor(panelBase));
-  root.style.setProperty("--update-pill-text", panelBase);
+  const accentBase = getHexBase(normalized.accent);
+  const contrastRatio = getContrastRatio(accentBase, panelBase);
+  const fallbackUpdateBg = "#FF6B35";
+  const fallbackRestartBg = "#22C55E";
+  const updateBg = contrastRatio >= 4.5 ? accentBase : fallbackUpdateBg;
+  const updateText = getLuminance(updateBg) > 0.5 ? "#000000" : "#FFFFFF";
+  root.style.setProperty("--update-pill-bg", updateBg);
+  root.style.setProperty("--update-pill-text", updateText);
+  root.style.setProperty("--restart-pill-bg", fallbackRestartBg);
+  root.style.setProperty("--restart-pill-text", "#FFFFFF");
 
   root.style.setProperty("--accent-soft", rgbaFromHex(normalized.accent, 0.2));
   root.style.setProperty("--glow", `0 0 12px ${rgbaFromHex(normalized.accent, 0.4)}`);
@@ -966,10 +992,10 @@ function adjustColor(hex, percent) {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}${alphaSuffix}`;
 }
 
-function getContrastColor(hex) {
+function getLuminance(hex) {
   const rgb = hexToRgb(hex);
   if (!rgb) {
-    return "#000000";
+    return 0;
   }
   const channels = [rgb.r, rgb.g, rgb.b].map(value => {
     const normalized = value / 255;
@@ -977,6 +1003,18 @@ function getContrastColor(hex) {
       ? normalized / 12.92
       : Math.pow((normalized + 0.055) / 1.055, 2.4);
   });
-  const luminance = 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function getContrastRatio(color1, color2) {
+  const lum1 = getLuminance(color1);
+  const lum2 = getLuminance(color2);
+  const lighter = Math.max(lum1, lum2);
+  const darker = Math.min(lum1, lum2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function getContrastColor(hex) {
+  const luminance = getLuminance(hex);
   return luminance > 0.55 ? "#000000" : "#FFFFFF";
 }

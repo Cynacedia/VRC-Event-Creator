@@ -248,6 +248,8 @@ export const en = {
     upcomingCountToast: "Events created for {group} this hour: {count}/{limit}.",
     upcomingLimitReached: "Event creation is temporarily restricted. Please wait and try again later.",
     upcomingLimitError: "Event creation failed. Please wait and try again.",
+    crossPlatformRateLimit: "Rate Limited. Untracked events created on another platform may count toward your limit. Try again in {minutes} minutes.",
+    unknownRateLimit: "Rate limited. Try again later.",
     upcomingCountRefresh: "Refresh",
     createButton: "Create Event",
     created: "Event created.",
@@ -430,7 +432,7 @@ export const en = {
     save: "Save",
     cancel: "Cancel",
     loading: "Loading...",
-    rateLimitError: "Request limited. Please wait and try again.",
+    rateLimitError: "Rate limited. Please wait and try again later.",
     noMatches: "No matches.",
     noGroupsAccess: "No groups with calendar access",
     accessTypes: {
@@ -455,6 +457,13 @@ export const en = {
   wizard: {
     back: "Back",
     next: "Next"
+  },
+  conflict: {
+    title: "Event Conflict",
+    message: "An event \"{title}\" is already scheduled at this time.",
+    skipSession: "Don't ask again this session",
+    changeTime: "Choose Different Time",
+    continue: "Create Anyway"
   }
 };
 

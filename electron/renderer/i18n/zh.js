@@ -251,6 +251,8 @@ export const zh = {
     upcomingCountToast: "{group} 现在有 {count}/{limit} 个即将到来活动。",
     upcomingLimitReached: "已达上限：{group} 已有 {limit} 个即将到来活动。请删除或改期一个。",
     upcomingLimitError: "已达上限：{group} 已有 {limit} 个即将到来活动。请删除或改期一个。",
+    crossPlatformRateLimit: "速率限制。在其他平台上创建的未跟踪活动可能计入您的限制。请在{minutes}分钟后重试。",
+    unknownRateLimit: "速率限制。请稍后重试。",
     upcomingCountRefresh: "刷新",
     createButton: "创建活动",
     created: "活动已创建。",
@@ -433,6 +435,7 @@ export const zh = {
     save: "保存",
     cancel: "取消",
     loading: "加载中...",
+    rateLimitError: "速率限制。请稍候再试。",
     noMatches: "无匹配项。",
     noGroupsAccess: "没有具有日历权限的群组",
     accessTypes: {
@@ -457,6 +460,13 @@ export const zh = {
   wizard: {
     back: "返回",
     next: "下一步"
+  },
+  conflict: {
+    title: "活动冲突",
+    message: "活动「{title}」已在此时间安排。",
+    skipSession: "在此会话中不再询问",
+    changeTime: "选择其他时间",
+    continue: "仍然创建"
   }
 };
 

@@ -776,33 +776,8 @@ function buildEventTimes({ selectedDateIso, manualDate, manualTime, timezone, du
 }
 
 async function findConflictingEvent(groupId, startsAtUtc) {
-  debugApiCall("getGroupCalendarEvents (findConflict)", { groupId, n: 100 });
-  const currentEvents = await requestGet(
-    "getGroupCalendarEvents",
-    { path: { groupId }, query: { n: 100 } },
-    () => vrchat.getGroupCalendarEvents({
-      path: { groupId },
-      query: { n: 100 }
-    })
-  );
-  debugApiResponse("getGroupCalendarEvents (findConflict)", currentEvents);
-  const results = getCalendarEventList(currentEvents.data);
-  const startUtc = DateTime.fromISO(startsAtUtc);
-  const match = results.find(event => {
-    const startValue = getEventStartValue(event);
-    const eventStart = parseEventDateValue(startValue);
-    if (!eventStart || !eventStart.isValid) {
-      return false;
-    }
-    return Math.abs(eventStart.diff(startUtc, "seconds").seconds) < 60;
-  });
-  if (!match) {
-    return null;
-  }
-  return {
-    id: match.id,
-    title: match.title
-  };
+  // Disabled - assume user intent if creating multiple events at same time
+  return null;
 }
 
 async function getUpcomingEventCount(groupId) {

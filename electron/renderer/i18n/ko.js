@@ -248,6 +248,8 @@ export const ko = {
     upcomingCountToast: "{group}의 예정 이벤트가 {count}/{limit}개가 되었습니다.",
     upcomingLimitReached: "제한에 도달했습니다: {group}에 이미 예정 이벤트 {limit}개가 있습니다. 하나를 삭제하거나 일정 변경하세요.",
     upcomingLimitError: "제한에 도달했습니다: {group}에 이미 예정 이벤트 {limit}개가 있습니다. 하나를 삭제하거나 일정 변경하세요.",
+    crossPlatformRateLimit: "속도 제한. 다른 플랫폼에서 생성된 추적되지 않은 이벤트가 제한에 포함될 수 있습니다. {minutes}분 후 다시 시도하세요.",
+    unknownRateLimit: "속도 제한. 나중에 다시 시도하세요.",
     upcomingCountRefresh: "새로고침",
     createButton: "이벤트 생성",
     created: "이벤트가 생성되었습니다.",
@@ -430,6 +432,7 @@ export const ko = {
     save: "저장",
     cancel: "취소",
     loading: "불러오는 중...",
+    rateLimitError: "속도 제한. 잠시 기다렸다가 다시 시도하세요.",
     noMatches: "일치하는 항목이 없습니다.",
     noGroupsAccess: "캘린더 접근 권한이 있는 그룹이 없습니다",
     accessTypes: {
@@ -454,6 +457,13 @@ export const ko = {
   wizard: {
     back: "뒤로",
     next: "다음"
+  },
+  conflict: {
+    title: "이벤트 충돌",
+    message: "이벤트 \"{title}\"이(가) 이미 이 시간에 예약되어 있습니다.",
+    skipSession: "이 세션에서 다시 묻지 않기",
+    changeTime: "다른 시간 선택",
+    continue: "그래도 생성"
   }
 };
 

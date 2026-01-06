@@ -8,10 +8,13 @@ import { fetchGroupRoles, renderRoleList } from "./roles.js";
 const HOLD_DURATION_MS = 2000;
 const MODIFY_RATE_LIMIT_KEYS = {
   update: "events:update",
-  delete: "events:delete"
+  delete: "events:delete",
+  refresh: "events:refresh"
 };
+const REFRESH_BACKOFF_SEQUENCE = [2000, 5000, 10000, 20000, 40000, 60000]; // 2s, 5s, 10s, 20s, 40s, 60s
 let modifyApi = null;
 let roleFetchToken = 0;
+let refreshButtonTimer = null;
 
 function getGroupName(groupId) {
   if (!groupId) {
@@ -27,6 +30,83 @@ function getDurationUnits() {
     hour: t("common.durationUnits.hour"),
     minute: t("common.durationUnits.minute")
   };
+}
+
+function applyRefreshBackoff() {
+  const backoffMs = REFRESH_BACKOFF_SEQUENCE[state.modify.refreshBackoffIndex];
+  state.modify.refreshBackoffUntil = Date.now() + backoffMs;
+  state.modify.refreshBackoffIndex = Math.min(
+    state.modify.refreshBackoffIndex + 1,
+    REFRESH_BACKOFF_SEQUENCE.length - 1
+  );
+  updateRefreshButtonState();
+}
+
+function clearRefreshBackoff() {
+  state.modify.refreshBackoffUntil = 0;
+  state.modify.refreshBackoffIndex = 0;
+  updateRefreshButtonState();
+}
+
+function updateRefreshButtonState() {
+  if (!dom.modifyRefresh) {
+    return;
+  }
+
+  const now = Date.now();
+  const remainingMs = Math.max(0, state.modify.refreshBackoffUntil - now);
+
+  if (remainingMs > 0) {
+    const seconds = Math.ceil(remainingMs / 1000);
+    dom.modifyRefresh.textContent = `${t("modify.refresh")} (${seconds}s)`;
+    dom.modifyRefresh.disabled = true;
+
+    // Clear existing timer
+    if (refreshButtonTimer) {
+      clearTimeout(refreshButtonTimer);
+    }
+
+    // Schedule next update
+    refreshButtonTimer = setTimeout(updateRefreshButtonState, 1000);
+  } else {
+    dom.modifyRefresh.textContent = t("modify.refresh");
+    dom.modifyRefresh.disabled = state.modify.loading;
+
+    if (refreshButtonTimer) {
+      clearTimeout(refreshButtonTimer);
+      refreshButtonTimer = null;
+    }
+  }
+}
+
+async function handleRefreshClick() {
+  const now = Date.now();
+
+  // Check if still in backoff period
+  if (state.modify.refreshBackoffUntil > now) {
+    return;
+  }
+
+  // Respect 10-second deduplication window
+  const timeSinceLastRefresh = now - state.modify.lastRefreshTime;
+  if (timeSinceLastRefresh < 10000) {
+    // Too soon, use cached data
+    return;
+  }
+
+  state.modify.lastRefreshTime = now;
+
+  try {
+    await refreshModifyEvents(modifyApi, { bypassCache: true });
+    // Success - reset backoff
+    clearRefreshBackoff();
+  } catch (err) {
+    // Check if 429 error
+    if (isRateLimitError(err)) {
+      applyRefreshBackoff();
+      showToast(t("common.rateLimitError"), true, { duration: 8000 });
+    }
+  }
 }
 
 export function updateModifyDurationPreview() {
@@ -464,8 +544,59 @@ async function handleDeleteEvent(event) {
     showToast(t("common.rateLimitError"), true, { duration: 8000 });
     return;
   }
+
+  // Check if already pending deletion
+  if (state.modify.pendingDeletions.has(event.id)) {
+    return;
+  }
+
+  // Optimistic UI update: immediately remove from list
+  state.modify.pendingDeletions.add(event.id);
+  const eventIndex = state.modify.events.findIndex(e => e.id === event.id);
+  const deletedEvent = eventIndex >= 0 ? state.modify.events[eventIndex] : null;
+
+  // Capture scroll position before render
+  const scrollPos = dom.modifyEventGrid ? dom.modifyEventGrid.scrollTop : 0;
+
+  if (eventIndex >= 0) {
+    state.modify.events.splice(eventIndex, 1);
+  }
+
+  // Re-render immediately without the deleted event
+  renderModifyEventGrid();
+  renderModifyCount();
+
+  // Restore scroll position
+  if (dom.modifyEventGrid && scrollPos > 0) {
+    dom.modifyEventGrid.scrollTop = scrollPos;
+  }
+
+  // Send delete request to backend in background
   const result = await modifyApi.deleteEvent({ groupId: event.groupId, eventId: event.id });
+
+  // Remove from pending set
+  state.modify.pendingDeletions.delete(event.id);
+
   if (!result?.ok) {
+    // Rollback: restore the event to the list
+    if (deletedEvent) {
+      // Capture scroll before rollback render
+      const rollbackScrollPos = dom.modifyEventGrid ? dom.modifyEventGrid.scrollTop : 0;
+
+      if (eventIndex >= 0 && eventIndex < state.modify.events.length) {
+        state.modify.events.splice(eventIndex, 0, deletedEvent);
+      } else {
+        state.modify.events.push(deletedEvent);
+      }
+      renderModifyEventGrid();
+      renderModifyCount();
+
+      // Restore scroll after rollback
+      if (dom.modifyEventGrid && rollbackScrollPos > 0) {
+        dom.modifyEventGrid.scrollTop = rollbackScrollPos;
+      }
+    }
+
     if (isRateLimitError(result?.error)) {
       registerRateLimit(MODIFY_RATE_LIMIT_KEYS.delete);
       showToast(t("common.rateLimitError"), true, { duration: 8000 });
@@ -474,9 +605,25 @@ async function handleDeleteEvent(event) {
     showToast(result?.error?.message || t("modify.deleteFailed"), true);
     return;
   }
+
+  // Success: add to tombstone list to filter out if it reappears
+  state.modify.deletedTombstones.set(event.id, Date.now());
+
+  // Clean up old tombstones (older than 60 seconds)
+  const now = Date.now();
+  for (const [id, timestamp] of state.modify.deletedTombstones) {
+    if (now - timestamp > 60000) {
+      state.modify.deletedTombstones.delete(id);
+    }
+  }
+
   clearRateLimit(MODIFY_RATE_LIMIT_KEYS.delete);
   showToast(t("modify.deleted"));
-  await refreshModifyEvents(modifyApi, { preserveSelection: true });
+
+  // Optionally refresh in background to sync with server (but don't block UI)
+  refreshModifyEvents(modifyApi, { preserveSelection: true }).catch(() => {
+    // Ignore refresh errors - optimistic delete already succeeded
+  });
 }
 
 async function handleModifySave() {
@@ -629,7 +776,27 @@ function handleProfileLoad() {
   showToast(t("modify.profileLoaded"));
 }
 
+// Track current refresh promise to fix race conditions
+let currentRefreshPromise = null;
+
 export async function refreshModifyEvents(api, options = {}) {
+  // If already refreshing, wait for it to complete
+  if (currentRefreshPromise) {
+    await currentRefreshPromise;
+    return;
+  }
+
+  currentRefreshPromise = performRefresh(api, options);
+  try {
+    await currentRefreshPromise;
+  } finally {
+    currentRefreshPromise = null;
+  }
+}
+
+async function performRefresh(api, options = {}) {
+  const { preserveScroll = true } = options;
+
   if (api) {
     modifyApi = api;
   }
@@ -646,22 +813,52 @@ export async function refreshModifyEvents(api, options = {}) {
     renderModifyCount();
     return;
   }
-  if (state.modify.loading) {
-    return;
-  }
+
+  // Capture scroll position before refresh
+  const scrollPos = preserveScroll && dom.modifyEventGrid ? dom.modifyEventGrid.scrollTop : 0;
+
   state.modify.selectedGroupId = groupId;
   setModifyLoading(true);
   renderModifyEventGrid();
+
   try {
     const events = await modifyApi.listGroupEvents({ groupId, upcomingOnly: true });
-    state.modify.events = Array.isArray(events) ? events : [];
+    let filteredEvents = Array.isArray(events) ? events : [];
+
+    // Filter out tombstoned (recently deleted) events
+    const now = Date.now();
+    filteredEvents = filteredEvents.filter(event => {
+      const tombstoneTime = state.modify.deletedTombstones.get(event.id);
+      if (tombstoneTime && now - tombstoneTime < 60000) {
+        return false; // Event was recently deleted, filter it out
+      }
+      return true;
+    });
+
+    state.modify.events = filteredEvents;
+
+    // Success - clear any refresh backoff
+    if (options.bypassCache) {
+      clearRefreshBackoff();
+    }
   } catch (err) {
+    // Check for 429 rate limit
+    if (isRateLimitError(err)) {
+      applyRefreshBackoff();
+      throw err; // Re-throw to be handled by caller
+    }
+
     showToast(t("modify.loadFailed"), true);
     state.modify.events = [];
   } finally {
     setModifyLoading(false);
     renderModifyEventGrid();
     renderModifyCount();
+
+    // Restore scroll position
+    if (preserveScroll && dom.modifyEventGrid && scrollPos > 0) {
+      dom.modifyEventGrid.scrollTop = scrollPos;
+    }
   }
 }
 
@@ -672,8 +869,14 @@ export function initModifyEvents(api) {
   if (!dom.modifyEventGrid) {
     return;
   }
-  dom.modifyRefresh.addEventListener("click", () => { void refreshModifyEvents(modifyApi); });
-  dom.modifyGroup.addEventListener("change", () => { void refreshModifyEvents(modifyApi); });
+  dom.modifyRefresh.addEventListener("click", () => { void handleRefreshClick(); });
+  dom.modifyGroup.addEventListener("change", () => {
+    // Clear backoff and tombstones when switching groups
+    clearRefreshBackoff();
+    state.modify.deletedTombstones.clear();
+    state.modify.lastRefreshTime = 0;
+    void refreshModifyEvents(modifyApi);
+  });
   if (dom.modifyClose) {
     dom.modifyClose.addEventListener("click", closeModifyModal);
   }

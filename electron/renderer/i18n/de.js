@@ -251,6 +251,8 @@ export const de = {
     upcomingCountToast: "{group} hat jetzt {count}/{limit} kommende Events.",
     upcomingLimitReached: "Limit erreicht: {group} hat bereits {limit} kommende Events. Entferne oder verschiebe eines.",
     upcomingLimitError: "Limit erreicht: {group} hat bereits {limit} kommende Events. Entferne oder verschiebe eines.",
+    crossPlatformRateLimit: "Ratenbegrenzung. Nicht erfasste Events von einer anderen Plattform zählen möglicherweise zu Ihrem Limit. Versuchen Sie es in {minutes} Minuten erneut.",
+    unknownRateLimit: "Ratenbegrenzung. Bitte später erneut versuchen.",
     upcomingCountRefresh: "Aktualisieren",
     createButton: "Event erstellen",
     created: "Event erstellt.",
@@ -433,6 +435,7 @@ export const de = {
     save: "Speichern",
     cancel: "Abbrechen",
     loading: "Wird geladen...",
+    rateLimitError: "Ratenbegrenzung. Bitte warten Sie und versuchen Sie es später erneut.",
     noMatches: "Keine Treffer.",
     noGroupsAccess: "Keine Gruppen mit Kalenderzugriff",
     accessTypes: {
@@ -457,6 +460,13 @@ export const de = {
   wizard: {
     back: "Zurück",
     next: "Weiter"
+  },
+  conflict: {
+    title: "Ereigniskonflikt",
+    message: "Ein Ereignis \"{title}\" ist bereits zu dieser Zeit geplant.",
+    skipSession: "Nicht mehr fragen in dieser Sitzung",
+    changeTime: "Andere Zeit wählen",
+    continue: "Trotzdem erstellen"
   }
 };
 
