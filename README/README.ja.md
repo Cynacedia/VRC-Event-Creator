@@ -37,7 +37,6 @@ VRChat向けのオールインワンなイベント作成ツールで、繰り�
 
 ## ダウンロード
 - リリース: https://github.com/Cynacedia/VRC-Event-Creator/releases
-- Windowsのポータブル`.exe`は単体で動作します。
 
 ## プライバシーとデータ保存
 パスワードは保存されません。セッショントークンのみキャッシュされます。

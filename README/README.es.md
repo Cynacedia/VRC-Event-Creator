@@ -37,7 +37,6 @@ Crea y guarda plantillas de eventos por grupo, genera fechas próximas a partir 
 
 ## Descarga
 - Lanzamientos: https://github.com/Cynacedia/VRC-Event-Creator/releases
-- El `.exe` portátil de Windows funciona de forma independiente.
 
 ## Privacidad y almacenamiento de datos
 Tu contraseña no se guarda. Solo se almacenan en caché los tokens de sesión.

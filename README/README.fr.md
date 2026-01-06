@@ -37,7 +37,6 @@ Créez et enregistrez des modèles d'événements par groupe, générez des date
 
 ## Téléchargement
 - Releases : https://github.com/Cynacedia/VRC-Event-Creator/releases
-- L'exécutable portable Windows `.exe` fonctionne de façon autonome.
 
 ## Confidentialité et stockage des données
 Votre mot de passe n'est pas stocké. Seuls les jetons de session sont mis en cache.

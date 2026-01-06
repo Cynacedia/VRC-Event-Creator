@@ -37,7 +37,6 @@ Erstelle und speichere gruppenbezogene Event-Vorlagen, generiere kommende Termin
 
 ## Download
 - Releases: https://github.com/Cynacedia/VRC-Event-Creator/releases
-- Die portable Windows-`.exe` läuft eigenständig.
 
 ## Datenschutz und Datenspeicher
 Dein Passwort wird nicht gespeichert. Nur Session-Tokens werden gecacht.
