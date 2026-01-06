@@ -730,7 +730,7 @@ async function handleModifySave() {
     if (!result?.ok) {
       if (isRateLimitError(result?.error)) {
         hitRateLimit = true;
-        const rateLimit = registerRateLimit(MODIFY_RATE_LIMIT_KEYS.update);
+        registerRateLimit(MODIFY_RATE_LIMIT_KEYS.update);
         showToast(t("common.rateLimitError"), true, { duration: 8000 });
         return;
       }

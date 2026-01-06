@@ -169,9 +169,6 @@ function ensureCreatedEventIdsLoaded() {
 
 function recordCreatedEventId(groupId, eventId, timestamp) {
   ensureCreatedEventIdsLoaded();
-  if (!groupId || !eventId) {
-    return;
-  }
   const userId = getCurrentUserId();
   if (!userId) {
     return;

@@ -1,6 +1,6 @@
 {
   "name": "VRCEventCreator",
-  "version": "0.9.19",
+  "version": "0.9.20",
   "main": "electron/main.js",
   "scripts": {
     "start:gui": "electron .",

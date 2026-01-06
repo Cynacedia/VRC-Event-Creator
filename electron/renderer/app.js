@@ -863,7 +863,7 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       dom.aboutVersion.textContent = info.version || "-";
       dom.aboutDataDir.textContent = info.dataDir || "-";
     }
-    await checkForUpdates();
+    void checkForUpdates();
     window.setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
     if (api.onUpdateProgress) {
       api.onUpdateProgress((data) => {

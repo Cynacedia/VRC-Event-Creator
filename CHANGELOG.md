@@ -2,6 +2,13 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.20] - 2026-01-06
+
+### Fixed
+- Update checks no longer block app startup, improving launch performance
+- Removed dead code validation checks flagged by CodeQL analysis
+- Removed unused variable in rate limit error handling
+
 ## [0.9.19] - 2026-01-06
 
 ### Added
