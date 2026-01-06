@@ -23,8 +23,32 @@ const UPDATE_REPO_NAME = pkg.build?.publish?.repo || "VRC-Event-Creator";
 const UPDATE_REPO_URL = `https://github.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}`;
 
 // Auto-updater configuration
-autoUpdater.autoDownload = false;
+autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
+
+// Track update state
+let updateDownloaded = false;
+let updateDownloading = false;
+let updateProgress = 0;
+let updateVersion = null;
+
+autoUpdater.on("download-progress", (progress) => {
+  updateDownloading = true;
+  updateProgress = Math.round(progress.percent || 0);
+  if (mainWindow) {
+    mainWindow.webContents.send("update-progress", { percent: updateProgress });
+  }
+});
+
+autoUpdater.on("update-downloaded", (info) => {
+  updateDownloaded = true;
+  updateDownloading = false;
+  updateProgress = 100;
+  updateVersion = info?.version || null;
+  if (mainWindow) {
+    mainWindow.webContents.send("update-ready", { version: updateVersion });
+  }
+});
 
 // Force update checks in dev mode for testing
 if (IS_DEV) {
@@ -808,6 +832,9 @@ ipcMain.handle("app:checkUpdate", async () => {
     const updateAvailable = latestVersion && latestVersion !== APP_VERSION;
     return {
       updateAvailable,
+      updateDownloaded,
+      updateDownloading,
+      updateProgress,
       currentVersion: APP_VERSION,
       latestVersion,
       repoUrl: UPDATE_REPO_URL
@@ -815,6 +842,9 @@ ipcMain.handle("app:checkUpdate", async () => {
   } catch (err) {
     return {
       updateAvailable: false,
+      updateDownloaded,
+      updateDownloading,
+      updateProgress,
       currentVersion: APP_VERSION,
       latestVersion: null,
       repoUrl: UPDATE_REPO_URL
@@ -822,17 +852,8 @@ ipcMain.handle("app:checkUpdate", async () => {
   }
 });
 
-ipcMain.handle("app:downloadUpdate", async () => {
-  try {
-    await autoUpdater.downloadUpdate();
-    return { ok: true };
-  } catch (err) {
-    return { ok: false, error: err?.message || "Download failed" };
-  }
-});
-
 ipcMain.handle("app:installUpdate", () => {
-  autoUpdater.quitAndInstall(false, true);
+  autoUpdater.quitAndInstall(true, true);
 });
 
 ipcMain.handle("app:openExternal", (_, url) => {

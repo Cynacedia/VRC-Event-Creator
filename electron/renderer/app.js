@@ -2,7 +2,7 @@
 
 import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, TAG_LIMIT } from "./config.js";
 import { dom, state, setEventWizard, setProfileWizard, getProfileEditConfirmed } from "./state.js";
-import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
+import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
@@ -20,7 +20,7 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
   let pendingAuthStart = false;
   const UPDATE_REPO_URL = "https://github.com/Cynacedia/VRC-Event-Creator";
   const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000;
-  let updateInfo = { available: false, url: UPDATE_REPO_URL };
+  let updateInfo = { available: false, downloaded: false, url: UPDATE_REPO_URL };
 
   // Core app functions
   function renderGroupSelects(config = {}) {
@@ -526,10 +526,16 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       }
       updateInfo = {
         available: Boolean(result.updateAvailable),
+        downloaded: Boolean(result.updateDownloaded),
+        downloading: Boolean(result.updateDownloading),
+        progress: result.updateProgress || 0,
         url: result.repoUrl || UPDATE_REPO_URL
       };
       state.app.updateAvailable = updateInfo.available;
-      setUpdateAvailable(updateInfo.available);
+      setUpdateAvailable(updateInfo.available, updateInfo.downloaded);
+      if (updateInfo.downloading) {
+        setUpdateProgress(updateInfo.progress, true);
+      }
       setAuthState(Boolean(state.user));
     } catch (err) {
       // Ignore update check failures.
@@ -572,11 +578,22 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       });
     }
     if (dom.statusPill) {
-      dom.statusPill.addEventListener("click", () => {
-        if (!updateInfo.available || !api.openExternal) {
+      dom.statusPill.addEventListener("click", async () => {
+        if (!updateInfo.available) {
           return;
         }
-        api.openExternal(updateInfo.url);
+        if (updateInfo.downloaded && api.installUpdate) {
+          // Update is downloaded, restart to install
+          api.installUpdate();
+        } else {
+          // Update is still downloading, check again and show status
+          await checkForUpdates();
+          if (updateInfo.downloaded && api.installUpdate) {
+            api.installUpdate();
+          } else {
+            showToast(t("common.updateDownloading") || "Downloading update...");
+          }
+        }
       });
     }
     if (dom.languageTrigger && dom.languageMenu) {
@@ -809,6 +826,20 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     }
     await checkForUpdates();
     window.setInterval(checkForUpdates, UPDATE_CHECK_INTERVAL);
+    if (api.onUpdateProgress) {
+      api.onUpdateProgress((data) => {
+        updateInfo.downloading = true;
+        updateInfo.progress = data.percent || 0;
+        setUpdateProgress(data.percent || 0, true);
+      });
+    }
+    if (api.onUpdateReady) {
+      api.onUpdateReady(() => {
+        updateInfo.downloaded = true;
+        updateInfo.downloading = false;
+        setUpdateAvailable(updateInfo.available, true);
+      });
+    }
     pendingAuthStart = true;
     showView("create");
     if (shouldShowLanguageSetup()) {

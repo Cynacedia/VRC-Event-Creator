@@ -288,6 +288,9 @@ a:visited {
   font-size: var(--text-11);
   box-shadow: var(--glow);
   cursor: default;
+  position: relative;
+  overflow: hidden;
+  --update-progress: 0%;
 }
 
 .status-pill:disabled {
@@ -301,6 +304,16 @@ a:visited {
   box-shadow: none;
   cursor: pointer;
   opacity: 1;
+}
+
+.status-pill.is-update.is-downloading {
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--update-progress),
+    var(--update-pill-bg) var(--update-progress),
+    var(--update-pill-bg) 100%
+  );
 }
 
 .layout {

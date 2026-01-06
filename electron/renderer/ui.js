@@ -6,26 +6,47 @@ import { t } from "./i18n/index.js";
 
 let statusIsAuthed = false;
 let updateAvailable = false;
+let updateDownloaded = false;
+let updateDownloading = false;
+let updateProgress = 0;
 
 function updateStatusPill() {
   if (!dom.statusPill) {
     return;
   }
   if (updateAvailable) {
-    dom.statusPill.textContent = t("common.update");
+    if (updateDownloaded) {
+      dom.statusPill.textContent = t("common.updateReady");
+      dom.statusPill.style.setProperty("--update-progress", "100%");
+    } else if (updateDownloading) {
+      dom.statusPill.textContent = `${t("common.updating")} ${updateProgress}%`;
+      dom.statusPill.style.setProperty("--update-progress", `${updateProgress}%`);
+    } else {
+      dom.statusPill.textContent = t("common.update");
+      dom.statusPill.style.setProperty("--update-progress", "0%");
+    }
     dom.statusPill.classList.add("is-update");
+    dom.statusPill.classList.toggle("is-downloading", updateDownloading);
     dom.statusPill.disabled = false;
     dom.statusPill.setAttribute("aria-disabled", "false");
   } else {
     dom.statusPill.textContent = statusIsAuthed ? t("common.online") : t("common.offline");
-    dom.statusPill.classList.remove("is-update");
+    dom.statusPill.classList.remove("is-update", "is-downloading");
+    dom.statusPill.style.setProperty("--update-progress", "0%");
     dom.statusPill.disabled = true;
     dom.statusPill.setAttribute("aria-disabled", "true");
   }
 }
 
-export function setUpdateAvailable(isAvailable) {
+export function setUpdateAvailable(isAvailable, isDownloaded = false) {
   updateAvailable = Boolean(isAvailable);
+  updateDownloaded = Boolean(isDownloaded);
+  updateStatusPill();
+}
+
+export function setUpdateProgress(percent, isDownloading = true) {
+  updateDownloading = Boolean(isDownloading);
+  updateProgress = Math.round(percent || 0);
   updateStatusPill();
 }
 
