@@ -477,7 +477,7 @@ export const zh = {
   },
   conflict: {
     title: "活动冲突",
-    message: "活动"{title}"已在此时间安排。",
+    message: "活动\"{title}\"已在此时间安排。",
     changeTime: "重新选择时间",
     continue: "仍然创建"
   }

@@ -553,7 +553,6 @@ function migrateThemeStorePresets(rawStore) {
 }
 
 function saveSettings(nextSettings) {
-  const previousSettings = settings;
   settings = normalizeSettings(nextSettings);
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
 
