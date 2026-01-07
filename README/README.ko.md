@@ -3,7 +3,7 @@
 </h1>
 <p align="center">
   <a href="https://github.com/Cynacedia/VRC-Event-Creator/releases">
-    <img src="https://img.shields.io/github/downloads/Cynacedia/VRC-Event-Creator/total?style=plastic&labelColor=555&color=blue" alt="Downloads" />
+    <img src="https://gist.githubusercontent.com/Cynacedia/30c5da7160619ca08933e7e3e92afcc3/raw/downloads-badge.svg" alt="Downloads" />
   </a>
 </p>
 <p align="center">
