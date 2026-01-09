@@ -1,0 +1,103 @@
+name: UI/UX Issue
+description: Report problems with the user interface, themes, or translations
+title: "[UI/UX]: "
+labels: ["ui/ux", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report issues with the user interface, themes, colors, layout, translations, or accessibility.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using the latest version or have verified this exists in the latest
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Issue Category
+      description: What type of UI/UX issue is this?
+      options:
+        - Theme/Colors
+        - Translation error
+        - Layout issue
+        - Accessibility
+        - Other UI
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language (if translation issue)
+      description: Select the language if this is a translation issue
+      options:
+        - N/A
+        - English
+        - German
+        - Spanish
+        - French
+        - Japanese
+        - Korean
+        - Portuguese
+        - Russian
+        - Chinese
+    validations:
+      required: true
+
+  - type: input
+    id: theme
+    attributes:
+      label: Theme (if theme issue)
+      description: Which theme are you using?
+      placeholder: "Default, Ocean Blue, Purple Haze, etc."
+
+  - type: input
+    id: page_section
+    attributes:
+      label: Page/Section
+      description: Where in the app is this issue located?
+      placeholder: "Create Event tab, Profile settings, Theme studio, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the UI/UX issue
+      placeholder: |
+        The text in the dropdown menu is cut off when using...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: Add screenshots to help explain the issue
+      placeholder: Drag and drop images here
+
+  - type: textarea
+    id: suggested_fix
+    attributes:
+      label: Suggested Fix
+      description: If you have a suggestion for how to fix this, describe it here
+      placeholder: The dropdown should be wider to accommodate longer text...

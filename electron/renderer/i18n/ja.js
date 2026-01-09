@@ -40,11 +40,9 @@ export const ja = {
     gallery: {
     title: "ギャラリー",
     subtitle: "ギャラリー画像を選択してファイルIDを使用します。",
-    refresh: "更新",
     empty: "ギャラリー画像が見つかりません。",
     loading: "ギャラリーを読み込み中...",
     useButton: "画像IDを使用",
-    cancel: "キャンセル",
     chooseButton: "選択",
     uploadButton: "アップロード",
     uploadSuccess: "ギャラリー画像をアップロードしました。",
@@ -329,7 +327,22 @@ export const ja = {
     saved: "イベントを更新しました。",
     deleteFailed: "イベントを削除できませんでした。",
     deleted: "イベントを削除しました。",
-    loadFailed: "イベントを読み込めませんでした。"
+    loadFailed: "イベントを読み込めませんでした。",
+    missedAutomationNoticeSingular: "1つのイベントは予定された自動化時刻に投稿できませんでした。",
+    missedAutomationNoticePlural: "{count}つのイベントは予定された自動化時刻に投稿できませんでした。",
+    pending: {
+      postNow: "今すぐ投稿",
+      edit: "編集",
+      cancel: "キャンセル",
+      publishAt: "公開日: {time}",
+      missedHint: "この自動化は見逃されました。今すぐ投稿するか削除してください。",
+      posted: "イベントが正常に投稿されました。",
+      postFailed: "イベントを投稿できませんでした。",
+      cancelled: "予定イベントがキャンセルされました。",
+      cancelFailed: "予定イベントをキャンセルできませんでした。",
+      editSaved: "予定イベントが更新されました。",
+      editFailed: "予定イベントを更新できませんでした。"
+    }
   },
   profiles: {
     title: "プロフィール管理",
@@ -421,7 +434,64 @@ export const ja = {
       ordinal1: "第1",
       ordinal2: "第2",
       ordinal3: "第3",
-      ordinal4: "第4"
+      ordinal4: "第4",
+      date: "日付",
+      selectMonth: "月を選択",
+      annual: "毎年[日付]"
+    },
+    automation: {
+      title: "自動化（実験的）",
+      description: "パターンに基づいてイベントを自動投稿します。イベントは「イベントを変更」に「保留中」として表示されます。",
+      enableLabel: "自動化を有効にする",
+      timingLabel: "スケジュール規則",
+      frequencyLabel: "タイミング（DD:HH:MM）",
+      timingModes: {
+        before: "イベント開始前",
+        after: "前のイベント終了後",
+        monthly: "毎月特定の日"
+      },
+      offsetHint: "イベントを投稿するまでの時間（前/後）：",
+      days: "日",
+      hours: "時間",
+      minutes: "分",
+      monthlyHint: "毎月この日にイベントを投稿：",
+      monthlyDay: "日",
+      monthlyHour: "時",
+      monthlyMinute: "分",
+      repeatMode: "繰り返し",
+      repeatModes: {
+        indefinite: "無期限",
+        count: "固定回数"
+      },
+      repeatCount: "作成数",
+      disclaimer: "自動化にはアプリの実行が必要です。見逃した自動化は「イベントを変更」タブから処理できます。",
+      patternsRequired: "自動化には少なくとも1つのパターンが必要です",
+      confirmTitle: "自動化を有効にしますか？",
+      confirmEnable: "自動化にはイベントを投稿するためにアプリの実行が必要です。見逃した自動化は「イベントを変更」タブから処理できます。",
+      offsetCorrected: "オフセット（{oldOffset}日）がパターン頻度（{frequency}日）を超えました。「前」モードに切り替え、{newOffset}日のオフセットに設定しました。",
+      offsetCapped: "オフセット（{oldOffset}日）がパターン頻度を超えました。{newOffset}日に制限しました。",
+      prose: {
+        day: "1日",
+        days: "{count}日",
+        hour: "1時間",
+        hours: "{count}時間",
+        minute: "1分",
+        minutes: "{count}分",
+        and: "および",
+        noTime: "—",
+        before: "次のイベントの開始{time}前に投稿する。",
+        after: "前のイベントの終了{time}後に投稿する。",
+        monthly: "毎月{day}日{time}"
+      },
+      helpers: {
+        offsetDays: "イベントを投稿する日数を設定します",
+        offsetHours: "イベントを投稿する時間を設定します",
+        offsetMinutes: "イベントを投稿する分数を設定します",
+        monthlyDay: "29～31日は短い月の最終日になります",
+        monthlyTime: "毎月イベントが投稿される時刻を設定します"
+      },
+      offsetProse: "次のイベントの開始7日前に投稿する。",
+      monthlyProse: "毎月1日午後6時"
     },
     created: "プロフィールを作成しました。",
     updated: "プロフィールを更新しました。",
@@ -448,10 +518,16 @@ export const ja = {
     updateDownloading: "アップデートをダウンロード中...",
     save: "保存",
     cancel: "キャンセル",
+    enable: "有効にする",
     loading: "読み込み中...",
+    refresh: "更新",
+    edit: "編集",
+    delete: "削除",
     rateLimitError: "レート制限。しばらく待ってから再試行してください。",
     noMatches: "一致する項目がありません。",
     noGroupsAccess: "カレンダー権限のあるグループがありません",
+    selectGroup: "グループを選択",
+    selectGroupPlaceholder: "グループを選択してください",
     accessTypes: {
       public: "公開",
       group: "グループ"
@@ -469,6 +545,24 @@ export const ja = {
       friday: "金曜日",
       saturday: "土曜日",
       sunday: "日曜日"
+    },
+    fields: {
+      eventName: "イベント名",
+      description: "説明",
+      category: "カテゴリー",
+      tags: "タグ（最大5）",
+      accessType: "アクセスタイプ",
+      imageId: "画像ID（任意）",
+      imageIdPlaceholder: "例: file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      sendNotification: "通知を送信",
+      timezone: "タイムゾーン",
+      duration: "期間（DD:HH:MM）",
+      languages: "言語（最大3）",
+      languagesHint: "{count}件選択",
+      filterLanguages: "言語を検索...",
+      platforms: "プラットフォーム",
+      manualDate: "日付",
+      manualTime: "時刻"
     }
   },
   wizard: {

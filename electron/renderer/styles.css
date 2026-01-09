@@ -67,6 +67,11 @@
   --sidebar-width: clamp(180px, 18vw, 220px);
 }
 
+/* Utility classes */
+.is-hidden {
+  display: none !important;
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: none;
@@ -735,12 +740,14 @@ a:visited {
   font-size: var(--text-11);
   color: var(--text-muted);
   font-family: var(--font-display);
+  cursor: help;
 }
 
 .event-delete {
   position: absolute;
   top: var(--space-2);
   right: var(--space-2);
+  z-index: 10;
   width: 32px;
   height: 32px;
   padding: 0;
@@ -1005,6 +1012,24 @@ textarea {
   text-overflow: ellipsis;
 }
 
+.input-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.input-row select {
+  flex: 1;
+  min-width: 0;
+}
+
+.preview {
+  display: block;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-11);
+  letter-spacing: 0.3px;
+}
+
 textarea::-webkit-scrollbar {
   width: 0;
   height: 0;
@@ -1056,6 +1081,150 @@ textarea::-webkit-scrollbar {
   font-size: var(--text-14);
   text-transform: none;
   letter-spacing: 0;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  user-select: none;
+}
+
+.toggle-row input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.toggle-row span {
+  font-size: var(--text-13);
+  letter-spacing: 0.3px;
+  text-transform: none;
+  cursor: pointer;
+}
+
+/* Automation toggle - only checkbox and text are clickable */
+.automation-toggle-row {
+  cursor: default;
+}
+
+/* Main automation row - all fields on one line */
+.automation-main-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: flex-end;
+  margin-bottom: var(--space-2);
+}
+
+.automation-rule-field {
+  flex: 0 0 auto;
+  min-width: 180px;
+}
+
+.automation-timing-field {
+  flex: 0 0 auto;
+}
+
+.automation-timing-field .duration-input {
+  width: 100px;
+}
+
+/* Monthly fields inline */
+.automation-monthly-fields {
+  display: contents;
+}
+
+.automation-monthly-fields.is-hidden {
+  display: none;
+}
+
+.automation-prose {
+  display: block;
+  font-size: var(--text-13);
+  color: var(--text);
+  font-style: italic;
+  margin-bottom: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.automation-prose.is-hidden {
+  display: none;
+}
+
+/* Monthly day and time fields - uniform styling */
+.automation-monthly-day-field,
+.automation-monthly-time-field {
+  flex: 0 0 auto;
+}
+
+.automation-monthly-day-field input {
+  width: 80px;
+}
+
+.automation-monthly-time-field input {
+  width: 130px;
+}
+
+/* Repeat and count fields */
+.automation-repeat-field {
+  flex: 0 0 auto;
+  min-width: 130px;
+}
+
+.automation-count-field {
+  flex: 0 0 auto;
+  min-width: 110px;
+}
+
+.automation-count-field.is-hidden {
+  display: none;
+}
+
+.automation-repeat-select {
+  width: 100%;
+}
+
+.automation-repeat-input {
+  width: 100%;
+}
+
+/* Responsive: stack fields vertically on narrow windows */
+@media (max-width: 900px) {
+  .automation-main-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .automation-main-row > .field,
+  .automation-main-row > .automation-monthly-fields > .field {
+    width: 100%;
+  }
+
+  .automation-monthly-fields {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--space-3);
+  }
+
+  .automation-monthly-day-field input,
+  .automation-monthly-time-field input,
+  .automation-timing-field .duration-input {
+    width: 100%;
+  }
+}
+
+.compact-toggle {
+  font-size: var(--text-12);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-tight);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.compact-toggle:hover {
+  background: var(--surface);
+  border-color: var(--accent);
 }
 
 .multi-list {
@@ -1977,6 +2146,17 @@ button:disabled {
   max-width: 45%;
 }
 
+/* Automation confirm dialog */
+.automation-confirm-header {
+  text-align: center;
+}
+
+.automation-confirm-message {
+  display: block;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
 .panel-close {
   position: absolute;
   top: 0;
@@ -2283,4 +2463,142 @@ input[type="color"]::-webkit-color-swatch {
 input[type="color"]::-moz-color-swatch {
   border: none;
   border-radius: 3px;
+}
+
+/* ============================================================================
+   Pending Event Cards
+   ============================================================================ */
+
+.event-card.is-pending {
+  opacity: 0.45;
+  border-style: dashed;
+}
+
+.event-card.is-pending:hover {
+  opacity: 0.85;
+}
+
+.event-card.is-pending .event-thumb {
+  position: relative;
+}
+
+.event-card.is-pending .event-title {
+  color: var(--text-muted);
+}
+
+.pending-publish-time {
+  font-size: var(--text-11);
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  letter-spacing: 0.3px;
+  opacity: 0.8;
+}
+
+/* Hover actions overlay */
+.pending-hover-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: rgba(8, 12, 14, 0.85);
+  border-radius: var(--radius-tight);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.event-card.is-pending:hover .pending-hover-actions {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Suppress hover overlay when hovering on date/publish-time rows */
+.event-card.is-pending.suppress-hover-overlay:hover .pending-hover-actions {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.pending-action-btn {
+  min-width: 90px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-11);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: var(--radius-tight);
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pending-action-btn:hover {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.pending-action-btn.pending-post-now {
+  background: linear-gradient(120deg, var(--button-1), var(--button-2));
+  border-color: var(--button-2);
+  color: var(--button-text);
+}
+
+.pending-action-btn.pending-post-now:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--glow);
+}
+
+/* Missed badge */
+.pending-missed-badge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: var(--text-12);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(224, 106, 94, 0.5);
+  z-index: 2;
+}
+
+.event-card.is-missed {
+  border-color: var(--danger);
+}
+
+.event-card.is-missed:hover {
+  box-shadow: 0 0 12px rgba(224, 106, 94, 0.4);
+}
+
+/* Nav badge for missed events */
+.nav-btn {
+  position: relative;
+}
+
+.nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: var(--text-11);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(224, 106, 94, 0.5);
 }

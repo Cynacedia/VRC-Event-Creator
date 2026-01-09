@@ -7,6 +7,7 @@ const { DateTime } = require("luxon");
 const { VRChat } = require("vrchat");
 const { KeyvFile } = require("keyv-file");
 const { generateDateOptionsFromPatterns, safeZone } = require("./core/date-utils");
+const automationEngine = require("./core/automation-engine");
 
 // Disable GPU cache to suppress warnings
 app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
@@ -219,6 +220,10 @@ let PROFILES_PATH;
 let CACHE_PATH;
 let SETTINGS_PATH;
 let THEMES_PATH;
+let PENDING_EVENTS_PATH;
+let AUTOMATION_STATE_PATH;
+let GALLERY_CACHE_DIR;
+let GALLERY_MANIFEST_PATH;
 let settings;
 let vrchat;
 let themeStore;
@@ -247,6 +252,10 @@ function initializePaths() {
   CACHE_PATH = path.join(DATA_DIR, "cache.json");
   SETTINGS_PATH = path.join(DATA_DIR, "settings.json");
   THEMES_PATH = path.join(DATA_DIR, "themes.json");
+  PENDING_EVENTS_PATH = path.join(DATA_DIR, "pending-events.json");
+  AUTOMATION_STATE_PATH = path.join(DATA_DIR, "automation-state.json");
+  GALLERY_CACHE_DIR = path.join(DATA_DIR, "gallery-cache");
+  GALLERY_MANIFEST_PATH = path.join(GALLERY_CACHE_DIR, "manifest.json");
   THEME_PRESETS_DIR = path.join(DATA_DIR, "themes");
   THEME_PRESETS_SEED_PATH = path.join(THEME_PRESETS_DIR, ".seeded");
   THEME_PRESETS_BUNDLED_DIR = path.join(__dirname, "themes");
@@ -280,6 +289,156 @@ function loadSettings() {
     return normalizeSettings(raw);
   } catch (err) {
     return normalizeSettings({});
+  }
+}
+
+// Gallery cache helper functions
+function ensureGalleryCacheDir() {
+  try {
+    fs.mkdirSync(GALLERY_CACHE_DIR, { recursive: true });
+  } catch (err) {
+    debugLog("galleryCache", "Failed to create cache directory:", err.message);
+  }
+}
+
+function loadGalleryCacheManifest() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(GALLERY_MANIFEST_PATH, "utf8"));
+    if (raw.version !== 1) return { version: 1, images: {} };
+    return raw;
+  } catch {
+    return { version: 1, images: {} };
+  }
+}
+
+function saveGalleryCacheManifest(manifest) {
+  try {
+    ensureGalleryCacheDir();
+    fs.writeFileSync(GALLERY_MANIFEST_PATH, JSON.stringify(manifest, null, 2), "utf8");
+  } catch (err) {
+    debugLog("galleryCache", "Failed to save manifest:", err.message);
+  }
+}
+
+async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
+  try {
+    ensureGalleryCacheDir();
+    const ext = mimeType === "image/png" ? ".png" : ".jpg";
+    const localFileName = `${imageId}${ext}`;
+    const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
+
+    const response = await fetch(remoteUrl);
+    if (!response.ok) {
+      debugLog("galleryCache", `Failed to download ${imageId}: HTTP ${response.status}`);
+      return null;
+    }
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    fs.writeFileSync(localPath, buffer);
+
+    const manifest = loadGalleryCacheManifest();
+    manifest.images[imageId] = {
+      localPath: localFileName,
+      cachedAt: Date.now(),
+      lastAccessed: Date.now(),
+      size: buffer.length,
+      mimeType
+    };
+    saveGalleryCacheManifest(manifest);
+
+    debugLog("galleryCache", `Cached image: ${imageId} (${buffer.length} bytes)`);
+    return localFileName;
+  } catch (err) {
+    debugLog("galleryCache", `Error caching ${imageId}:`, err.message);
+    return null;
+  }
+}
+
+function getCachedImageAsDataUrl(imageId) {
+  try {
+    const manifest = loadGalleryCacheManifest();
+    const entry = manifest.images[imageId];
+    if (!entry) return null;
+
+    const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
+    if (!fs.existsSync(localPath)) {
+      // File missing, remove from manifest
+      delete manifest.images[imageId];
+      saveGalleryCacheManifest(manifest);
+      return null;
+    }
+
+    const buffer = fs.readFileSync(localPath);
+    const base64 = buffer.toString("base64");
+    const dataUrl = `data:${entry.mimeType};base64,${base64}`;
+
+    // Update last accessed time
+    entry.lastAccessed = Date.now();
+    saveGalleryCacheManifest(manifest);
+
+    return dataUrl;
+  } catch (err) {
+    debugLog("galleryCache", `Error reading cached image ${imageId}:`, err.message);
+    return null;
+  }
+}
+
+function cleanGalleryCache(maxAgeDays = 30) {
+  try {
+    const manifest = loadGalleryCacheManifest();
+    const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    let removed = 0;
+
+    for (const [imageId, entry] of Object.entries(manifest.images)) {
+      const age = now - (entry.lastAccessed || entry.cachedAt);
+      if (age > maxAgeMs) {
+        const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
+        try {
+          fs.unlinkSync(localPath);
+        } catch { /* ignore */ }
+        delete manifest.images[imageId];
+        removed++;
+      }
+    }
+
+    if (removed > 0) {
+      saveGalleryCacheManifest(manifest);
+      debugLog("galleryCache", `Cleaned ${removed} stale cache entries`);
+    }
+    return removed;
+  } catch (err) {
+    debugLog("galleryCache", "Error cleaning cache:", err.message);
+    return 0;
+  }
+}
+
+function removeDeletedFromGalleryCache(currentImageIds) {
+  try {
+    const manifest = loadGalleryCacheManifest();
+    const currentSet = new Set(currentImageIds);
+    let removed = 0;
+
+    for (const cachedId of Object.keys(manifest.images)) {
+      if (!currentSet.has(cachedId)) {
+        const entry = manifest.images[cachedId];
+        const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
+        try {
+          fs.unlinkSync(localPath);
+        } catch { /* ignore */ }
+        delete manifest.images[cachedId];
+        removed++;
+      }
+    }
+
+    if (removed > 0) {
+      saveGalleryCacheManifest(manifest);
+      debugLog("galleryCache", `Removed ${removed} deleted images from cache`);
+    }
+    return removed;
+  } catch (err) {
+    debugLog("galleryCache", "Error removing deleted images:", err.message);
+    return 0;
   }
 }
 
@@ -581,6 +740,47 @@ function maybeImportProfiles() {
   }
 }
 
+function normalizeAutomation(raw) {
+  if (!raw || typeof raw !== "object") {
+    return {
+      enabled: false,
+      timingMode: "before",
+      daysOffset: 7,
+      hoursOffset: 0,
+      minutesOffset: 0,
+      monthlyDay: 1,
+      monthlyHour: 18,
+      monthlyMinute: 0,
+      repeatMode: "indefinite",
+      repeatCount: 10
+    };
+  }
+  return {
+    enabled: typeof raw.enabled === "boolean" ? raw.enabled : false,
+    timingMode: ["before", "after", "monthly"].includes(raw.timingMode) ? raw.timingMode : "before",
+    daysOffset: typeof raw.daysOffset === "number" ? Math.max(0, Math.min(30, raw.daysOffset)) : 7,
+    hoursOffset: typeof raw.hoursOffset === "number" ? Math.max(0, Math.min(23, raw.hoursOffset)) : 0,
+    minutesOffset: typeof raw.minutesOffset === "number" ? Math.max(0, Math.min(59, raw.minutesOffset)) : 0,
+    monthlyDay: typeof raw.monthlyDay === "number" ? Math.max(1, Math.min(31, raw.monthlyDay)) : 1,
+    monthlyHour: typeof raw.monthlyHour === "number" ? Math.max(0, Math.min(23, raw.monthlyHour)) : 18,
+    monthlyMinute: typeof raw.monthlyMinute === "number" ? Math.max(0, Math.min(59, raw.monthlyMinute)) : 0,
+    repeatMode: ["indefinite", "count"].includes(raw.repeatMode) ? raw.repeatMode : "indefinite",
+    repeatCount: typeof raw.repeatCount === "number" ? Math.max(1, Math.min(100, raw.repeatCount)) : 10
+  };
+}
+
+function normalizeProfile(raw) {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+  // Normalize automation field if present
+  const automation = raw.automation ? normalizeAutomation(raw.automation) : normalizeAutomation({});
+  return {
+    ...raw,
+    automation
+  };
+}
+
 function normalizeProfiles(raw) {
   if (!raw || typeof raw !== "object") {
     return {};
@@ -590,9 +790,18 @@ function normalizeProfiles(raw) {
     if (!groupData || typeof groupData !== "object") {
       return;
     }
+    // Normalize each profile within the group
+    const normalizedProfiles = {};
+    const profilesData = groupData.profiles || {};
+    Object.entries(profilesData).forEach(([profileKey, profileData]) => {
+      const normalized = normalizeProfile(profileData);
+      if (normalized) {
+        normalizedProfiles[profileKey] = normalized;
+      }
+    });
     output[groupId] = {
       groupName: groupData.groupName || "Unknown Group",
-      profiles: groupData.profiles || {}
+      profiles: normalizedProfiles
     };
   });
   return output;
@@ -1506,6 +1715,12 @@ ipcMain.handle("profiles:update", async (_, payload) => {
   profiles[groupId].groupName = groupName || profiles[groupId].groupName;
   profiles[groupId].profiles[profileKey] = data;
   saveProfiles(profiles);
+
+  // Trigger automation recalculation for this profile
+  if (automationEngine.isInitialized()) {
+    automationEngine.updatePendingEventsForProfile(groupId, profileKey, data);
+  }
+
   return profiles;
 });
 
@@ -1517,6 +1732,11 @@ ipcMain.handle("profiles:delete", async (_, payload) => {
   if (profiles[groupId]?.profiles?.[profileKey]) {
     delete profiles[groupId].profiles[profileKey];
     saveProfiles(profiles);
+
+    // Clean up pending events for deleted profile
+    if (automationEngine.isInitialized()) {
+      automationEngine.cancelJobsForProfile(groupId, profileKey);
+    }
   }
   return profiles;
 });
@@ -1779,7 +1999,7 @@ ipcMain.handle("files:listGallery", async (_, payload) => {
   );
   debugApiResponse("getFiles (listGallery)", res);
   const files = Array.isArray(res.data) ? res.data : [];
-  return files.map(file => {
+  const mappedFiles = files.map(file => {
     const latest = getLatestFileVersion(file);
     return {
       id: file.id,
@@ -1791,6 +2011,14 @@ ipcMain.handle("files:listGallery", async (_, payload) => {
       createdAt: normalizeFileDate(latest?.created_at || file.created_at || file.createdAt)
     };
   });
+
+  // Cache invalidation: remove images no longer in gallery
+  if (offset === 0) {
+    const currentIds = mappedFiles.map(f => f.id);
+    removeDeletedFromGalleryCache(currentIds);
+  }
+
+  return mappedFiles;
 });
 
 ipcMain.handle("files:uploadGallery", async () => {
@@ -1892,6 +2120,151 @@ ipcMain.handle("files:uploadGallery", async () => {
   }
 });
 
+// ============================================
+// Gallery Cache IPC Handlers
+// ============================================
+
+ipcMain.handle("gallery:getCachedImage", async (_, payload) => {
+  const { imageId } = payload || {};
+  if (!imageId) return null;
+  return getCachedImageAsDataUrl(imageId);
+});
+
+ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {
+  const { imageIds } = payload || {};
+  if (!Array.isArray(imageIds)) return {};
+  const manifest = loadGalleryCacheManifest();
+  const status = {};
+  for (const id of imageIds) {
+    status[id] = !!manifest.images[id];
+  }
+  return status;
+});
+
+ipcMain.handle("gallery:cleanCache", async (_, payload) => {
+  const { maxAgeDays } = payload || {};
+  return cleanGalleryCache(maxAgeDays || 30);
+});
+
+ipcMain.handle("gallery:triggerBackgroundCache", async (_, payload) => {
+  const { images } = payload || {};
+  if (!Array.isArray(images) || images.length === 0) return;
+
+  const manifest = loadGalleryCacheManifest();
+  const toDownload = images.filter(img => !manifest.images[img.id] && img.previewUrl);
+
+  if (toDownload.length === 0) return;
+
+  // Download images in background with throttling
+  setImmediate(async () => {
+    for (const img of toDownload) {
+      await downloadGalleryImage(img.id, img.previewUrl, img.mimeType || "image/png");
+      // Throttle: 100ms delay between downloads to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  });
+});
+
+// ============================================
+// Pending Events & Automation IPC Handlers
+// ============================================
+
+ipcMain.handle("pending:list", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { events: [], missedCount: 0 };
+  }
+  const { groupId, limit } = payload || {};
+  const rawEvents = automationEngine.getPendingEvents(groupId, limit);
+  const missedCount = automationEngine.getMissedCount(groupId);
+
+  // Resolve event details for each pending event for display
+  const events = rawEvents.map(event => {
+    const resolvedDetails = automationEngine.resolveEventDetails(event.id);
+    return {
+      ...event,
+      resolvedDetails
+    };
+  });
+
+  return { events, missedCount };
+});
+
+ipcMain.handle("pending:action", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { ok: false, error: { message: "Automation not initialized" } };
+  }
+  const { pendingEventId, action, overrides } = payload || {};
+  if (!pendingEventId || !action) {
+    return { ok: false, error: { message: "Missing pendingEventId or action" } };
+  }
+
+  try {
+    switch (action) {
+      case "postNow":
+        return await automationEngine.handleMissedEvent(pendingEventId, "postNow");
+      case "reschedule":
+        return await automationEngine.handleMissedEvent(pendingEventId, "reschedule");
+      case "cancel":
+        return await automationEngine.handleMissedEvent(pendingEventId, "cancel");
+      case "edit":
+        if (!overrides || typeof overrides !== "object") {
+          return { ok: false, error: { message: "Missing overrides for edit action" } };
+        }
+        return automationEngine.updatePendingEventOverrides(pendingEventId, overrides);
+      default:
+        return { ok: false, error: { message: `Unknown action: ${action}` } };
+    }
+  } catch (err) {
+    return { ok: false, error: { message: err.message || "Action failed" } };
+  }
+});
+
+ipcMain.handle("pending:getSettings", async () => {
+  if (!automationEngine.isInitialized()) {
+    return { displayLimit: 10 };
+  }
+  return automationEngine.getPendingSettings();
+});
+
+ipcMain.handle("pending:updateSettings", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { ok: false };
+  }
+  const { displayLimit } = payload || {};
+  if (typeof displayLimit === "number" && displayLimit >= 1 && displayLimit <= 100) {
+    automationEngine.updatePendingSettings({ displayLimit });
+    return { ok: true };
+  }
+  return { ok: false, error: { message: "Invalid displayLimit" } };
+});
+
+ipcMain.handle("automation:getStatus", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { initialized: false };
+  }
+  const { groupId, profileKey } = payload || {};
+  if (!groupId || !profileKey) {
+    return { initialized: true, profileStatus: null };
+  }
+  const status = automationEngine.getAutomationStatus(groupId, profileKey);
+  return { initialized: true, profileStatus: status };
+});
+
+ipcMain.handle("automation:resolveEvent", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { ok: false, error: { message: "Automation not initialized" } };
+  }
+  const { pendingEventId } = payload || {};
+  if (!pendingEventId) {
+    return { ok: false, error: { message: "Missing pendingEventId" } };
+  }
+  const resolved = automationEngine.resolveEventDetails(pendingEventId, profiles);
+  if (!resolved) {
+    return { ok: false, error: { message: "Could not resolve event details" } };
+  }
+  return { ok: true, eventDetails: resolved };
+});
+
 app.whenReady().then(() => {
   initDebugLog();
   initializePaths();
@@ -1901,6 +2274,72 @@ app.whenReady().then(() => {
   if (IS_DEV && DEBUG_LOG_PATH) {
     console.log(`\n📄 Debug log file: ${DEBUG_LOG_PATH}\n`);
   }
+
+  // Initialize automation engine after 2 seconds to allow UI to fully load
+  setTimeout(() => {
+    automationEngine.initializeAutomation({
+      pendingEventsPath: PENDING_EVENTS_PATH,
+      automationStatePath: AUTOMATION_STATE_PATH,
+      profiles,
+      createEventFn: async (groupId, eventData, startsAtUtc, endsAtUtc) => {
+        // This function is called by the automation engine to create events
+        try {
+          await ensureCalendarPermission(groupId);
+          const requestBody = {
+            title: eventData.title,
+            description: eventData.description,
+            startsAt: startsAtUtc,
+            endsAt: endsAtUtc,
+            category: eventData.category,
+            sendCreationNotification: eventData.sendCreationNotification ?? false,
+            accessType: eventData.accessType,
+            languages: eventData.languages || [],
+            platforms: eventData.platforms || [],
+            tags: eventData.tags || [],
+            imageId: eventData.imageId || null,
+            featured: false,
+            isDraft: false,
+            parentId: null,
+            roleIds: Array.isArray(eventData.roleIds) ? eventData.roleIds : []
+          };
+          debugApiCall("createGroupCalendarEvent (automation)", { groupId, body: requestBody });
+          const response = await vrchat.createGroupCalendarEvent({
+            throwOnError: true,
+            path: { groupId },
+            body: requestBody
+          });
+          debugApiResponse("createGroupCalendarEvent (automation)", response);
+          const eventId = getEventId(response.data);
+          trackCreatedEvent(groupId, startsAtUtc, eventData.title);
+          return { ok: true, eventId };
+        } catch (err) {
+          debugApiResponse("createGroupCalendarEvent (automation)", null, err);
+          const status = err?.response?.status || null;
+          return {
+            ok: false,
+            error: {
+              status,
+              code: status === 429 ? "UPCOMING_LIMIT" : null,
+              message: err?.message || "Could not create event."
+            }
+          };
+        }
+      },
+      onMissedEvent: (pendingEvent) => {
+        // Notify renderer about missed events
+        if (mainWindow) {
+          mainWindow.webContents.send("automation:missed", pendingEvent);
+        }
+      },
+      onEventCreated: (pendingEvent, eventId) => {
+        // Notify renderer about successfully created events
+        if (mainWindow) {
+          mainWindow.webContents.send("automation:created", { pendingEvent, eventId });
+        }
+      },
+      debugLog: IS_DEV ? debugLog : () => {}
+    });
+  }, 2000);
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

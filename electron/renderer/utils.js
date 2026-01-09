@@ -106,6 +106,25 @@ export function getMaxEventDateString() {
 }
 
 export function getTimeZoneAbbr(timeZone) {
+  // Custom mappings for timezones that would otherwise show generic abbreviations
+  const customMappings = {
+    "Asia/Tokyo": "JST",
+    "Asia/Seoul": "KST",
+    "Asia/Shanghai": "UTC+8",    // Beijing CST conflicts with Central Standard Time
+    "Asia/Dubai": "UTC+3",        // Arabian AST conflicts with Atlantic Standard Time
+    "Asia/Tehran": "IRST",        // Iran Standard Time
+    "Asia/Kolkata": "IST",
+    "Asia/Manila": "PHT",
+    "Asia/Bangkok": "ICT",
+    "Asia/Jakarta": "WIB"
+  };
+
+  // Return custom mapping if available
+  if (customMappings[timeZone]) {
+    return customMappings[timeZone];
+  }
+
+  // Otherwise use Intl.DateTimeFormat
   try {
     const parts = new Intl.DateTimeFormat("en-US", {
       timeZone,

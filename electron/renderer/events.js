@@ -881,10 +881,10 @@ export async function handleEventCreate(api) {
     return { success: false, message: "Maximum 3 languages allowed." };
   }
   if (!eventData.title) {
-    return { success: false, message: t("events.requiredSingle", { field: t("events.eventName") }) };
+    return { success: false, message: t("events.requiredSingle", { field: t("common.fields.eventName") }) };
   }
   if (!eventData.description) {
-    return { success: false, message: t("events.requiredSingle", { field: t("events.description") }) };
+    return { success: false, message: t("events.requiredSingle", { field: t("common.fields.description") }) };
   }
 
   // Check if user wants conflict warnings - if so, lock button IMMEDIATELY to prevent race conditions
@@ -1023,10 +1023,10 @@ export function renderEventLanguageList() {
     onChange: next => {
       state.event.languages = next;
       renderEventLanguageList();
-      dom.eventLanguageHint.textContent = t("events.languagesHint", { count: next.length });
+      dom.eventLanguageHint.textContent = t("common.fields.languagesHint", { count: next.length });
     }
   });
-  dom.eventLanguageHint.textContent = t("events.languagesHint", { count: state.event.languages.length });
+  dom.eventLanguageHint.textContent = t("common.fields.languagesHint", { count: state.event.languages.length });
 }
 
 export function renderEventPlatformList() {

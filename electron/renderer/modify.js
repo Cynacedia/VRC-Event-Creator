@@ -1,6 +1,6 @@
 import { dom, state } from "./state.js";
 import { renderSelect, renderChecklist, showToast } from "./ui.js";
-import { buildTimezones, ensureTimezoneOption, createTagInput, enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput, parseDurationInput, sanitizeDurationInputValue, formatDurationPreview, enforceGroupAccess, getTodayDateString, getMaxEventDateString, getRateLimitRemainingMs, registerRateLimit, clearRateLimit, isRateLimitError } from "./utils.js";
+import { buildTimezones, ensureTimezoneOption, createTagInput, enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput, parseDurationInput, sanitizeDurationInputValue, formatDurationPreview, enforceGroupAccess, getTodayDateString, getMaxEventDateString, getRateLimitRemainingMs, registerRateLimit, clearRateLimit, isRateLimitError, getTimeZoneAbbr } from "./utils.js";
 import { ACCESS_TYPES, CATEGORIES, EVENT_DESCRIPTION_LIMIT, EVENT_NAME_LIMIT, LANGUAGES, PLATFORMS, TAG_LIMIT } from "./config.js";
 import { t, getLanguageDisplayName } from "./i18n/index.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
@@ -13,6 +13,37 @@ const MODIFY_RATE_LIMIT_KEYS = {
 };
 const REFRESH_BACKOFF_SEQUENCE = [2000, 5000, 10000, 20000, 40000, 60000]; // 2s, 5s, 10s, 20s, 40s, 60s
 let modifyApi = null;
+
+// In-memory cache for image data URLs
+const modifyImageDataUrlCache = new Map();
+
+async function loadCachedImageForElement(imgElement, imageId, fallbackUrl) {
+  if (!imageId || !modifyApi?.getCachedImage) return;
+
+  // Check in-memory cache first
+  if (modifyImageDataUrlCache.has(imageId)) {
+    imgElement.src = modifyImageDataUrlCache.get(imageId);
+    return;
+  }
+
+  // Try to get from disk cache
+  try {
+    const dataUrl = await modifyApi.getCachedImage(imageId);
+    if (dataUrl) {
+      modifyImageDataUrlCache.set(imageId, dataUrl);
+      imgElement.src = dataUrl;
+    }
+  } catch {
+    // Silently fail - image will continue using remote URL
+  }
+}
+
+function extractImageIdFromUrl(url) {
+  if (!url) return null;
+  // VRChat file URLs contain file ID like "file_abc123"
+  const match = url.match(/file_[a-zA-Z0-9-]+/);
+  return match ? match[0] : null;
+}
 let roleFetchToken = 0;
 let refreshButtonTimer = null;
 
@@ -58,7 +89,7 @@ function updateRefreshButtonState() {
 
   if (remainingMs > 0) {
     const seconds = Math.ceil(remainingMs / 1000);
-    dom.modifyRefresh.textContent = `${t("modify.refresh")} (${seconds}s)`;
+    dom.modifyRefresh.textContent = `${t("common.refresh")} (${seconds}s)`;
     dom.modifyRefresh.disabled = true;
 
     // Clear existing timer
@@ -69,7 +100,7 @@ function updateRefreshButtonState() {
     // Schedule next update
     refreshButtonTimer = setTimeout(updateRefreshButtonState, 1000);
   } else {
-    dom.modifyRefresh.textContent = t("modify.refresh");
+    dom.modifyRefresh.textContent = t("common.refresh");
     dom.modifyRefresh.disabled = state.modify.loading;
 
     if (refreshButtonTimer) {
@@ -229,7 +260,70 @@ function formatEventDisplayDate(value) {
   if (Number.isNaN(date.getTime())) {
     return t("modify.dateUnknown");
   }
-  return date.toLocaleString();
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+/**
+ * Format date in a specific timezone with timezone abbreviation
+ * @param {string} value - ISO date string
+ * @param {string} timeZone - IANA timezone string
+ * @returns {string} Formatted date with timezone code
+ */
+function formatDateInTimezone(value, timeZone) {
+  if (!value) {
+    return t("modify.dateUnknown");
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return t("modify.dateUnknown");
+  }
+  const formatted = date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone
+  });
+  const tzAbbr = getTimeZoneAbbr(timeZone);
+  return `${formatted} ${tzAbbr}`;
+}
+
+/**
+ * Get system local timezone
+ * @returns {string} IANA timezone string
+ */
+function getSystemTimezone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+}
+
+/**
+ * Setup hover-to-convert behavior for a date element
+ * Shows local time with timezone code on hover, original on mouse leave
+ * @param {HTMLElement} element - The element to attach hover behavior to
+ * @param {string} isoDate - The ISO date string
+ * @param {string} originalTimezone - The original timezone for normal display
+ */
+function setupDateHoverConvert(element, isoDate, originalTimezone) {
+  const systemTz = getSystemTimezone();
+  const originalText = formatDateInTimezone(isoDate, originalTimezone);
+  const localText = formatDateInTimezone(isoDate, systemTz);
+
+  element.textContent = originalText;
+
+  element.addEventListener("mouseenter", () => {
+    element.textContent = localText;
+  });
+
+  element.addEventListener("mouseleave", () => {
+    element.textContent = originalText;
+  });
 }
 
 function renderModifyCount() {
@@ -242,10 +336,43 @@ function renderModifyCount() {
     return;
   }
   const groupName = getGroupName(groupId) || t("modify.countGroupFallback");
-  dom.modifyCount.textContent = t("modify.countStatus", {
+
+  // Base text: "Upcoming events for <group>."
+  let countText = t("modify.countStatus", {
     group: groupName,
     count: state.modify.events.length
   });
+
+  // Append missed automation text if count > 0
+  const missedCount = state.modify.missedCount || 0;
+  if (missedCount > 0) {
+    const missedKey = missedCount === 1
+      ? "modify.missedAutomationNoticeSingular"
+      : "modify.missedAutomationNoticePlural";
+    const missedText = t(missedKey, { count: missedCount });
+    countText += ` <strong>${missedText}</strong>`;
+  }
+
+  dom.modifyCount.innerHTML = countText; // Use innerHTML to support <strong> tags
+}
+
+function getMergedEvents() {
+  // Merge real events and pending events, sorted by event start time
+  const realEvents = state.modify.events.map(e => ({
+    ...e,
+    isPending: false,
+    sortTime: new Date(e.startsAtUtc || e.endsAtUtc).getTime()
+  }));
+
+  const pendingEvents = state.modify.showPending
+    ? state.modify.pendingEvents.map(p => ({
+        ...p,
+        isPending: true,
+        sortTime: new Date(p.eventStartsAt).getTime()
+      }))
+    : [];
+
+  return [...realEvents, ...pendingEvents].sort((a, b) => a.sortTime - b.sortTime);
 }
 
 function renderModifyEventGrid() {
@@ -260,77 +387,426 @@ function renderModifyEventGrid() {
     dom.modifyEventGrid.appendChild(loading);
     return;
   }
-  if (!state.modify.events.length) {
+
+  const mergedEvents = getMergedEvents();
+
+  if (!mergedEvents.length) {
     const empty = document.createElement("div");
     empty.className = "hint";
     empty.textContent = t("modify.empty");
     dom.modifyEventGrid.appendChild(empty);
     return;
   }
-  state.modify.events.forEach(event => {
-    const card = document.createElement("div");
-    card.className = "event-card";
-    card.dataset.eventId = event.id;
-    card.setAttribute("role", "button");
-    card.tabIndex = 0;
 
-    const thumb = document.createElement("div");
-    thumb.className = "event-thumb";
-    const imageUrl = event.imageUrl || getGroupBanner(event.groupId);
-    if (imageUrl) {
-      const img = document.createElement("img");
-      img.src = imageUrl;
-      img.alt = event.title || t("modify.eventImage");
-      img.loading = "lazy";
-      img.addEventListener("error", () => {
-        img.remove();
-        const fallback = document.createElement("div");
-        fallback.className = "event-thumb-placeholder";
-        fallback.textContent = t("modify.noImage");
-        thumb.appendChild(fallback);
-      });
-      thumb.appendChild(img);
+  mergedEvents.forEach(event => {
+    if (event.isPending) {
+      renderPendingCard(event);
     } else {
+      renderPublishedCard(event);
+    }
+  });
+}
+
+function renderPublishedCard(event) {
+  const card = document.createElement("div");
+  card.className = "event-card";
+  card.dataset.eventId = event.id;
+  card.setAttribute("role", "button");
+  card.tabIndex = 0;
+
+  const thumb = document.createElement("div");
+  thumb.className = "event-thumb";
+  const imageUrl = event.imageUrl || getGroupBanner(event.groupId);
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.alt = event.title || t("modify.eventImage");
+    img.loading = "lazy";
+    img.addEventListener("error", () => {
+      img.remove();
       const fallback = document.createElement("div");
       fallback.className = "event-thumb-placeholder";
       fallback.textContent = t("modify.noImage");
       thumb.appendChild(fallback);
+    });
+    thumb.appendChild(img);
+    // Try to use cached version
+    const imageId = extractImageIdFromUrl(event.imageUrl);
+    if (imageId) {
+      loadCachedImageForElement(img, imageId, imageUrl);
+    }
+  } else {
+    const fallback = document.createElement("div");
+    fallback.className = "event-thumb-placeholder";
+    fallback.textContent = t("modify.noImage");
+    thumb.appendChild(fallback);
+  }
+
+  const title = document.createElement("h4");
+  title.className = "event-title";
+  title.textContent = event.title || t("modify.untitled");
+
+  const date = document.createElement("div");
+  date.className = "event-date";
+  // Published events: show local time, on hover show with timezone code
+  const eventDateValue = event.startsAtUtc || event.endsAtUtc;
+  const systemTz = getSystemTimezone();
+  const normalDateText = formatEventDisplayDate(eventDateValue);
+  const hoverDateText = formatDateInTimezone(eventDateValue, systemTz);
+  date.textContent = normalDateText;
+  date.addEventListener("mouseenter", () => {
+    date.textContent = hoverDateText;
+  });
+  date.addEventListener("mouseleave", () => {
+    date.textContent = normalDateText;
+  });
+
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "event-delete";
+  deleteBtn.setAttribute("aria-label", t("common.delete"));
+  const deleteIcon = document.createElement("span");
+  deleteIcon.innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zm-6 0h2v9H8V9z"></path>
+    </svg>
+  `;
+  deleteBtn.appendChild(deleteIcon);
+  attachHoldToDelete(deleteBtn, () => handleDeleteEvent(event));
+
+  card.appendChild(deleteBtn);
+  card.appendChild(thumb);
+  card.appendChild(title);
+  card.appendChild(date);
+  card.addEventListener("click", () => openModifyModal(event));
+  card.addEventListener("keydown", evt => {
+    if (evt.key === "Enter" || evt.key === " ") {
+      evt.preventDefault();
+      openModifyModal(event);
+    }
+  });
+  dom.modifyEventGrid.appendChild(card);
+}
+
+function renderPendingCard(pendingEvent) {
+  const card = document.createElement("div");
+  card.className = "event-card is-pending";
+  if (pendingEvent.status === "missed") {
+    card.classList.add("is-missed");
+  }
+  card.dataset.pendingId = pendingEvent.id;
+  card.setAttribute("role", "button");
+  card.tabIndex = 0;
+
+  const thumb = document.createElement("div");
+  thumb.className = "event-thumb";
+
+  // Get resolved event details for display
+  const details = pendingEvent.resolvedDetails || {};
+  const imageUrl = details.imageUrl || getGroupBanner(pendingEvent.groupId);
+  if (imageUrl) {
+    const img = document.createElement("img");
+    img.src = imageUrl;
+    img.alt = details.title || t("modify.eventImage");
+    img.loading = "lazy";
+    img.addEventListener("error", () => {
+      img.remove();
+      const fallback = document.createElement("div");
+      fallback.className = "event-thumb-placeholder";
+      fallback.textContent = t("modify.noImage");
+      thumb.appendChild(fallback);
+    });
+    thumb.appendChild(img);
+    // Try to use cached version
+    const imageId = extractImageIdFromUrl(details.imageUrl);
+    if (imageId) {
+      loadCachedImageForElement(img, imageId, imageUrl);
+    }
+  } else {
+    const fallback = document.createElement("div");
+    fallback.className = "event-thumb-placeholder";
+    fallback.textContent = t("modify.noImage");
+    thumb.appendChild(fallback);
+  }
+
+  // Hover actions overlay (Post Now, Edit)
+  const hoverActions = document.createElement("div");
+  hoverActions.className = "pending-hover-actions";
+
+  const postNowBtn = document.createElement("button");
+  postNowBtn.type = "button";
+  postNowBtn.className = "pending-action-btn pending-post-now";
+  postNowBtn.textContent = t("modify.pending.postNow");
+  postNowBtn.addEventListener("click", evt => {
+    evt.stopPropagation();
+    handlePendingPostNow(pendingEvent);
+  });
+
+  const editBtn = document.createElement("button");
+  editBtn.type = "button";
+  editBtn.className = "pending-action-btn pending-edit";
+  editBtn.textContent = t("modify.pending.edit");
+  editBtn.addEventListener("click", evt => {
+    evt.stopPropagation();
+    handlePendingEdit(pendingEvent);
+  });
+
+  hoverActions.appendChild(postNowBtn);
+  hoverActions.appendChild(editBtn);
+  thumb.appendChild(hoverActions);
+
+  // Missed badge (exclamation mark)
+  if (pendingEvent.status === "missed") {
+    const missedBadge = document.createElement("div");
+    missedBadge.className = "pending-missed-badge";
+    missedBadge.textContent = "!";
+    missedBadge.title = t("modify.pending.missedHint");
+    thumb.appendChild(missedBadge);
+  }
+
+  const title = document.createElement("h4");
+  title.className = "event-title";
+  title.textContent = details.title || t("modify.untitled");
+
+  // Get profile timezone from resolved details (for hover conversion)
+  const profileTz = details.timezone || getSystemTimezone();
+
+  const dateRow = document.createElement("div");
+  dateRow.className = "event-date";
+  setupDateHoverConvert(dateRow, pendingEvent.eventStartsAt, profileTz);
+  // Suppress hover overlay when hovering on date row
+  dateRow.addEventListener("mouseenter", () => card.classList.add("suppress-hover-overlay"));
+  dateRow.addEventListener("mouseleave", () => card.classList.remove("suppress-hover-overlay"));
+
+  // Show scheduled publish time with hover-to-convert
+  const publishTime = document.createElement("div");
+  publishTime.className = "pending-publish-time";
+  const publishTimeSpan = document.createElement("span");
+  publishTimeSpan.className = "pending-publish-time-value";
+  setupDateHoverConvert(publishTimeSpan, pendingEvent.scheduledPublishTime, profileTz);
+  // Build the label with the hoverable time span
+  const publishLabel = t("modify.pending.publishAt", { time: "" }).replace(/:\s*$/, ": ");
+  publishTime.textContent = publishLabel;
+  publishTime.appendChild(publishTimeSpan);
+  // Suppress hover overlay when hovering on publish time
+  publishTime.addEventListener("mouseenter", () => card.classList.add("suppress-hover-overlay"));
+  publishTime.addEventListener("mouseleave", () => card.classList.remove("suppress-hover-overlay"));
+
+  // Delete (cancel) button - same as published cards
+  const deleteBtn = document.createElement("button");
+  deleteBtn.type = "button";
+  deleteBtn.className = "event-delete";
+  deleteBtn.setAttribute("aria-label", t("modify.pending.cancel"));
+  const deleteIcon = document.createElement("span");
+  deleteIcon.innerHTML = `
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zm-6 0h2v9H8V9z"></path>
+    </svg>
+  `;
+  deleteBtn.appendChild(deleteIcon);
+  attachHoldToDelete(deleteBtn, () => handlePendingCancel(pendingEvent));
+
+  card.appendChild(deleteBtn);
+  card.appendChild(thumb);
+  card.appendChild(title);
+  card.appendChild(dateRow);
+  card.appendChild(publishTime);
+
+  // Click card to see details (no edit modal for pending - actions are on hover)
+  card.addEventListener("click", () => {
+    // Do nothing on card click - actions are in hover overlay
+  });
+
+  dom.modifyEventGrid.appendChild(card);
+}
+
+async function handlePendingPostNow(pendingEvent) {
+  if (!modifyApi?.pendingAction) {
+    showToast(t("modify.pending.postFailed"), true);
+    return;
+  }
+  try {
+    const result = await modifyApi.pendingAction({
+      pendingEventId: pendingEvent.id,
+      action: "postNow"
+    });
+    if (!result?.ok) {
+      showToast(result?.error?.message || t("modify.pending.postFailed"), true);
+      return;
+    }
+    showToast(t("modify.pending.posted"));
+    await refreshModifyEvents(modifyApi, { preserveScroll: true });
+  } catch (err) {
+    showToast(t("modify.pending.postFailed"), true);
+  }
+}
+
+async function handlePendingEdit(pendingEvent) {
+  if (!modifyApi?.pendingAction) {
+    showToast(t("modify.pending.editFailed"), true);
+    return;
+  }
+  // Store selected pending event and open modify modal with its resolved details
+  state.modify.selectedPendingEvent = pendingEvent;
+  const details = pendingEvent.resolvedDetails || {};
+
+  // Store current imageUrl for card preview after save
+  state.modify.selectedImageUrl = details.imageUrl || "";
+
+  // Create a fake event object for the modify form
+  const fakeEvent = {
+    id: pendingEvent.id,
+    groupId: pendingEvent.groupId,
+    title: details.title || "",
+    description: details.description || "",
+    category: details.category || "hangout",
+    tags: details.tags || [],
+    accessType: details.accessType || "public",
+    imageId: details.imageId || "",
+    imageUrl: details.imageUrl || "",
+    roleIds: details.roleIds || [],
+    languages: details.languages || [],
+    platforms: details.platforms || [],
+    durationMinutes: details.durationMinutes || 120,
+    timezone: details.timezone || "UTC",
+    startsAtUtc: pendingEvent.eventStartsAt,
+    isPendingEdit: true
+  };
+
+  applyModifyFormFromEvent(fakeEvent);
+  dom.modifyOverlay.classList.remove("is-hidden");
+}
+
+async function handlePendingCancel(pendingEvent) {
+  if (!modifyApi?.pendingAction) {
+    showToast(t("modify.pending.cancelFailed"), true);
+    return;
+  }
+  try {
+    const result = await modifyApi.pendingAction({
+      pendingEventId: pendingEvent.id,
+      action: "cancel"
+    });
+    if (!result?.ok) {
+      showToast(result?.error?.message || t("modify.pending.cancelFailed"), true);
+      return;
+    }
+    showToast(t("modify.pending.cancelled"));
+
+    // Optimistically remove from local state
+    state.modify.pendingEvents = state.modify.pendingEvents.filter(p => p.id !== pendingEvent.id);
+    renderModifyEventGrid();
+    renderModifyCount();
+  } catch (err) {
+    showToast(t("modify.pending.cancelFailed"), true);
+  }
+}
+
+async function handlePendingSave() {
+  const pendingEvent = state.modify.selectedPendingEvent;
+  if (!pendingEvent) {
+    showToast(t("modify.pending.editFailed"), true);
+    return;
+  }
+  if (!modifyApi?.pendingAction) {
+    showToast(t("modify.pending.editFailed"), true);
+    return;
+  }
+  if (state.modify.saving) {
+    return;
+  }
+  if (state.modify.tagInput) {
+    state.modify.tagInput.commit();
+  }
+
+  const tags = state.modify.tagInput
+    ? state.modify.tagInput.getTags()
+    : enforceTagsInput(dom.modifyEventTags, TAG_LIMIT, true);
+  const title = sanitizeText(dom.modifyEventName.value, {
+    maxLength: EVENT_NAME_LIMIT,
+    allowNewlines: false,
+    trim: true
+  });
+  const description = sanitizeText(dom.modifyEventDescription.value, {
+    maxLength: EVENT_DESCRIPTION_LIMIT,
+    allowNewlines: true,
+    trim: true
+  });
+
+  if (!title) {
+    showToast(t("modify.requiredSingle", { field: t("common.fields.eventName") }), true);
+    return;
+  }
+  if (!description) {
+    showToast(t("modify.requiredSingle", { field: t("common.fields.description") }), true);
+    return;
+  }
+
+  let durationMinutes = parseDurationInput(dom.modifyEventDuration.value)?.minutes ?? null;
+  if (!durationMinutes) {
+    durationMinutes = normalizeDurationInput(dom.modifyEventDuration, 120);
+  }
+  if (!durationMinutes || durationMinutes < 1) {
+    showToast(t("modify.durationError"), true);
+    return;
+  }
+
+  state.modify.saving = true;
+  dom.modifySave.disabled = true;
+
+  try {
+    // Build manual overrides from form data
+    const manualDate = dom.modifyEventDate.value;
+    const manualTime = dom.modifyEventTime.value;
+    const manualTimezone = dom.modifyEventTimezone.value;
+
+    // Calculate eventStartsAt from date/time/timezone
+    let eventStartsAt = null;
+    if (manualDate && manualTime) {
+      // Parse as local time in the selected timezone, then convert to ISO
+      const dateTimeStr = `${manualDate}T${manualTime}:00`;
+      // Create date assuming local time, then adjust for timezone
+      const localDate = new Date(dateTimeStr);
+      eventStartsAt = localDate.toISOString();
     }
 
-    const title = document.createElement("h4");
-    title.className = "event-title";
-    title.textContent = event.title || t("modify.untitled");
+    const manualOverrides = {
+      title,
+      description,
+      category: dom.modifyEventCategory.value,
+      accessType: dom.modifyEventAccess.value,
+      languages: state.modify.languages.slice(),
+      platforms: state.modify.platforms.slice(),
+      tags,
+      imageId: dom.modifyEventImageId.value.trim() || null,
+      imageUrl: state.modify.selectedImageUrl || null,
+      roleIds: dom.modifyEventAccess.value === "group" ? state.modify.roleIds.slice() : [],
+      durationMinutes,
+      timezone: manualTimezone,
+      eventStartsAt
+    };
 
-    const date = document.createElement("div");
-    date.className = "event-date";
-    date.textContent = formatEventDisplayDate(event.startsAtUtc || event.endsAtUtc);
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.type = "button";
-    deleteBtn.className = "event-delete";
-    deleteBtn.setAttribute("aria-label", t("modify.delete"));
-    const deleteIcon = document.createElement("span");
-    deleteIcon.innerHTML = `
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M9 3h6l1 2h4v2H4V5h4l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zm-6 0h2v9H8V9z"></path>
-      </svg>
-    `;
-    deleteBtn.appendChild(deleteIcon);
-    attachHoldToDelete(deleteBtn, () => handleDeleteEvent(event));
-
-    card.appendChild(deleteBtn);
-    card.appendChild(thumb);
-    card.appendChild(title);
-    card.appendChild(date);
-    card.addEventListener("click", () => openModifyModal(event));
-    card.addEventListener("keydown", evt => {
-      if (evt.key === "Enter" || evt.key === " ") {
-        evt.preventDefault();
-        openModifyModal(event);
-      }
+    const result = await modifyApi.pendingAction({
+      pendingEventId: pendingEvent.id,
+      action: "edit",
+      overrides: manualOverrides
     });
-    dom.modifyEventGrid.appendChild(card);
-  });
+
+    if (!result?.ok) {
+      showToast(result?.error?.message || t("modify.pending.editFailed"), true);
+      return;
+    }
+
+    showToast(t("modify.pending.editSaved"));
+    closeModifyModal();
+    state.modify.selectedPendingEvent = null;
+    await refreshModifyEvents(modifyApi, { preserveScroll: true });
+  } catch (err) {
+    showToast(t("modify.pending.editFailed"), true);
+  } finally {
+    state.modify.saving = false;
+    dom.modifySave.disabled = false;
+  }
 }
 
 function renderModifyProfileOptions(groupId) {
@@ -362,10 +838,10 @@ function renderModifyLanguageList() {
     onChange: next => {
       state.modify.languages = next;
       renderModifyLanguageList();
-      dom.modifyLanguageHint.textContent = t("modify.languagesHint", { count: next.length });
+      dom.modifyLanguageHint.textContent = t("common.fields.languagesHint", { count: next.length });
     }
   });
-  dom.modifyLanguageHint.textContent = t("modify.languagesHint", { count: state.modify.languages.length });
+  dom.modifyLanguageHint.textContent = t("common.fields.languagesHint", { count: state.modify.languages.length });
 }
 
 function renderModifyPlatformList() {
@@ -430,6 +906,7 @@ function closeModifyModal() {
   }
   dom.modifyOverlay.classList.add("is-hidden");
   state.modify.selectedEvent = null;
+  state.modify.selectedPendingEvent = null;
 }
 
 function applyProfileToModifyForm(profile) {
@@ -627,6 +1104,12 @@ async function handleDeleteEvent(event) {
 }
 
 async function handleModifySave() {
+  // Check if we're editing a pending event
+  if (state.modify.selectedPendingEvent) {
+    await handlePendingSave();
+    return;
+  }
+
   if (!modifyApi?.updateEvent) {
     showToast(t("modify.saveFailed"), true);
     return;
@@ -667,11 +1150,11 @@ async function handleModifySave() {
   });
   dom.modifyEventDescription.value = description;
   if (!title) {
-    showToast(t("modify.requiredSingle", { field: t("modify.eventName") }), true);
+    showToast(t("modify.requiredSingle", { field: t("common.fields.eventName") }), true);
     return;
   }
   if (!description) {
-    showToast(t("modify.requiredSingle", { field: t("modify.description") }), true);
+    showToast(t("modify.requiredSingle", { field: t("common.fields.description") }), true);
     return;
   }
   const manualDate = dom.modifyEventDate.value;
@@ -802,15 +1285,19 @@ async function performRefresh(api, options = {}) {
   }
   if (!modifyApi?.listGroupEvents || !dom.modifyGroup) {
     state.modify.events = [];
+    state.modify.pendingEvents = [];
     renderModifyEventGrid();
     renderModifyCount();
+    updateMissedBadge();
     return;
   }
   const groupId = dom.modifyGroup.value;
   if (!groupId) {
     state.modify.events = [];
+    state.modify.pendingEvents = [];
     renderModifyEventGrid();
     renderModifyCount();
+    updateMissedBadge();
     return;
   }
 
@@ -822,7 +1309,12 @@ async function performRefresh(api, options = {}) {
   renderModifyEventGrid();
 
   try {
-    const events = await modifyApi.listGroupEvents({ groupId, upcomingOnly: true });
+    // Fetch both real events and pending events in parallel
+    const [events, pendingResult] = await Promise.all([
+      modifyApi.listGroupEvents({ groupId, upcomingOnly: true }),
+      modifyApi.getPendingEvents ? modifyApi.getPendingEvents({ groupId }) : Promise.resolve({ events: [], missedCount: 0 })
+    ]);
+
     let filteredEvents = Array.isArray(events) ? events : [];
 
     // Filter out tombstoned (recently deleted) events
@@ -837,6 +1329,12 @@ async function performRefresh(api, options = {}) {
 
     state.modify.events = filteredEvents;
 
+    // Process pending events with resolved details
+    const pendingEvents = pendingResult?.events || [];
+
+    state.modify.pendingEvents = pendingEvents;
+    state.modify.missedCount = pendingResult?.missedCount || 0;
+
     // Success - clear any refresh backoff
     if (options.bypassCache) {
       clearRefreshBackoff();
@@ -850,15 +1348,41 @@ async function performRefresh(api, options = {}) {
 
     showToast(t("modify.loadFailed"), true);
     state.modify.events = [];
+    state.modify.pendingEvents = [];
   } finally {
     setModifyLoading(false);
     renderModifyEventGrid();
     renderModifyCount();
+    updateMissedBadge();
 
     // Restore scroll position
     if (preserveScroll && dom.modifyEventGrid && scrollPos > 0) {
       dom.modifyEventGrid.scrollTop = scrollPos;
     }
+  }
+}
+
+function updateMissedBadge() {
+  // Update the badge on the Modify Events nav button
+  const modifyNavBtn = Array.from(dom.navButtons || []).find(btn =>
+    btn.dataset.view === "modify"
+  );
+  if (!modifyNavBtn) {
+    return;
+  }
+
+  // Remove existing badge
+  const existingBadge = modifyNavBtn.querySelector(".nav-badge");
+  if (existingBadge) {
+    existingBadge.remove();
+  }
+
+  // Add badge if there are missed events
+  if (state.modify.missedCount > 0) {
+    const badge = document.createElement("span");
+    badge.className = "nav-badge";
+    badge.textContent = state.modify.missedCount > 9 ? "9+" : state.modify.missedCount;
+    modifyNavBtn.appendChild(badge);
   }
 }
 
@@ -869,6 +1393,14 @@ export function initModifyEvents(api) {
   if (!dom.modifyEventGrid) {
     return;
   }
+
+  // Listen for automated event creation to refresh the view
+  if (api?.onAutomationCreated) {
+    api.onAutomationCreated(() => {
+      void refreshModifyEvents(modifyApi, { bypassCache: true });
+    });
+  }
+
   dom.modifyRefresh.addEventListener("click", () => { void handleRefreshClick(); });
   dom.modifyGroup.addEventListener("change", () => {
     // Clear backoff and tombstones when switching groups
@@ -877,6 +1409,12 @@ export function initModifyEvents(api) {
     state.modify.lastRefreshTime = 0;
     void refreshModifyEvents(modifyApi);
   });
+  if (dom.modifyShowPending) {
+    dom.modifyShowPending.addEventListener("change", () => {
+      state.modify.showPending = dom.modifyShowPending.checked;
+      renderModifyEventGrid();
+    });
+  }
   if (dom.modifyClose) {
     dom.modifyClose.addEventListener("click", closeModifyModal);
   }
@@ -939,6 +1477,12 @@ export function initModifyEvents(api) {
     wrapperEl: dom.modifyTagsInput,
     maxTags: TAG_LIMIT
   });
+  // Listen for gallery selection to capture image URL for pending event preview
+  if (dom.modifyEventImageId) {
+    dom.modifyEventImageId.addEventListener("gallerySelect", evt => {
+      state.modify.selectedImageUrl = evt.detail?.url || "";
+    });
+  }
   renderModifyLanguageList();
   renderModifyPlatformList();
 }

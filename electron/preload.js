@@ -23,6 +23,10 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   deleteEvent: payload => ipcRenderer.invoke("events:delete", payload),
   getGalleryFiles: payload => ipcRenderer.invoke("files:listGallery", payload),
   uploadGalleryImage: () => ipcRenderer.invoke("files:uploadGallery"),
+  getCachedImage: imageId => ipcRenderer.invoke("gallery:getCachedImage", { imageId }),
+  getCacheStatus: imageIds => ipcRenderer.invoke("gallery:getCacheStatus", { imageIds }),
+  cleanGalleryCache: maxAgeDays => ipcRenderer.invoke("gallery:cleanCache", { maxAgeDays }),
+  triggerBackgroundCache: images => ipcRenderer.invoke("gallery:triggerBackgroundCache", { images }),
   getAppInfo: () => ipcRenderer.invoke("app:info"),
   checkForUpdate: () => ipcRenderer.invoke("app:checkUpdate"),
   downloadUpdate: () => ipcRenderer.invoke("app:downloadUpdate"),
@@ -45,7 +49,21 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   quitApp: () => ipcRenderer.invoke("app:quit"),
   openExternal: url => ipcRenderer.invoke("app:openExternal", url),
   openDataDir: () => ipcRenderer.invoke("app:openDataDir"),
-  selectDataDir: () => ipcRenderer.invoke("app:selectDataDir")
+  selectDataDir: () => ipcRenderer.invoke("app:selectDataDir"),
+
+  // Pending Events & Automation
+  getPendingEvents: payload => ipcRenderer.invoke("pending:list", payload),
+  pendingAction: payload => ipcRenderer.invoke("pending:action", payload),
+  getPendingSettings: () => ipcRenderer.invoke("pending:getSettings"),
+  updatePendingSettings: payload => ipcRenderer.invoke("pending:updateSettings", payload),
+  getAutomationStatus: payload => ipcRenderer.invoke("automation:getStatus", payload),
+  resolveAutomationEvent: payload => ipcRenderer.invoke("automation:resolveEvent", payload),
+  onAutomationMissed: callback => {
+    ipcRenderer.on("automation:missed", (_, data) => callback(data));
+  },
+  onAutomationCreated: callback => {
+    ipcRenderer.on("automation:created", (_, data) => callback(data));
+  }
 });
 
 contextBridge.exposeInMainWorld("windowControls", {

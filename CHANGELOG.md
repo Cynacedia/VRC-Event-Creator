@@ -2,6 +2,40 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.24] - 2026-01-09
+Feature Complete Release!
+
+### Added
+- **Event Automation System (Experimental)** - Automatically post events based on profile patterns
+  - Three timing modes: "Before event starts", "After previous event ends", "Monthly on specific day"
+  - Configurable offset timing (days/hours/minutes before or after)
+  - Repeat modes: indefinite or fixed count
+  - Pending events view in Modify Events tab with "Scheduled" and "Missed" status indicators
+  - Smart scheduling: checks for missed automations on app launch
+  - Persistent storage of pending events and automation state
+  - Manual override capability for individual pending events (edit title, description, time, etc.)
+  - Post now, reschedule, or cancel actions for missed automations
+  - Automatic retry logic with 15-minute delay on API failures
+  - Dynamic event resolution: pulls latest profile data when posting
+- Pending event display limit setting (default: 10 events shown)
+- Monthly automation with intelligent date handling (days 29-31 use last day of shorter months)
+- Visual indicators for pending vs missed automations
+- Confirmation dialog when enabling automation with disclaimer about app requirements
+
+### Changed
+- Profile management UI expanded with automation configuration panel
+- Modify Events tab now includes "Show Pending" toggle to view automated events
+- Automation state persisted separately from profiles for tracking created event counts
+- Pattern-based date generation extended to 3 months for automation scheduling
+- Pending events stored with profile references rather than full event data (dynamic resolution)
+
+### Fixed
+- Added missing `common.months` translation section to German (de.js)
+- Fixed French typo: "Mise ? jour" → "Mise à jour"
+- Standardized German automation keys to match English structure
+- Cleaned up translation redundancies across all language files
+- Translation coverage for all automation-related UI strings across 9 languages
+
 ## [0.9.23] - 2026-01-07
 
 ### Added

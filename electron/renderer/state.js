@@ -103,6 +103,7 @@ export const dom = {
   eventWarnConflicts: document.getElementById("event-warn-conflicts"),
   modifyGroup: document.getElementById("modify-group"),
   modifyRefresh: document.getElementById("modify-refresh"),
+  modifyShowPending: document.getElementById("modify-show-pending"),
   modifyEventGrid: document.getElementById("modify-event-grid"),
   modifyCount: document.getElementById("modify-count"),
   modifyOverlay: document.getElementById("modify-overlay"),
@@ -162,12 +163,36 @@ export const dom = {
   patternList: document.getElementById("pattern-list"),
   patternType: document.getElementById("pattern-type"),
   patternWeekday: document.getElementById("pattern-weekday"),
+  patternWeekdayField: document.getElementById("pattern-weekday-field"),
+  patternDateField: document.getElementById("pattern-date-field"),
+  patternMonth: document.getElementById("pattern-month"),
+  patternDay: document.getElementById("pattern-day"),
+  patternDatePreview: document.getElementById("pattern-date-preview"),
   patternTime: document.getElementById("pattern-time"),
   patternAdd: document.getElementById("pattern-add"),
   patternClear: document.getElementById("pattern-clear"),
   profileSave: document.getElementById("profile-save"),
   profileBack: document.getElementById("profile-back"),
-  profileNext: document.getElementById("profile-next")
+  profileNext: document.getElementById("profile-next"),
+  // Automation elements
+  automationCard: document.getElementById("automation-card"),
+  automationEnabled: document.getElementById("automation-enabled"),
+  automationSettings: document.getElementById("automation-settings"),
+  automationTimingMode: document.getElementById("automation-timing-mode"),
+  automationOffsetSettings: document.getElementById("automation-offset-settings"),
+  automationTimingInput: document.getElementById("automation-timing-input"),
+  automationOffsetProse: document.getElementById("automation-offset-prose"),
+  automationMonthlyProse: document.getElementById("automation-monthly-prose"),
+  automationMonthlySettings: document.getElementById("automation-monthly-settings"),
+  automationMonthlyDay: document.getElementById("automation-monthly-day"),
+  automationMonthlyTime: document.getElementById("automation-monthly-time"),
+  automationRepeatMode: document.getElementById("automation-repeat-mode"),
+  automationRepeatCountField: document.getElementById("automation-repeat-count-field"),
+  automationRepeatCount: document.getElementById("automation-repeat-count"),
+  // Automation confirm overlay
+  automationConfirmOverlay: document.getElementById("automation-confirm-overlay"),
+  automationConfirmOk: document.getElementById("automation-confirm-ok"),
+  automationConfirmCancel: document.getElementById("automation-confirm-cancel")
 };
 
 export const state = {
@@ -202,8 +227,10 @@ export const state = {
   },
   modify: {
     events: [],
+    pendingEvents: [],
     selectedGroupId: null,
     selectedEvent: null,
+    selectedPendingEvent: null,
     languages: [],
     platforms: [],
     roleIds: [],
@@ -214,7 +241,10 @@ export const state = {
     deletedTombstones: new Map(),
     refreshBackoffUntil: 0,
     refreshBackoffIndex: 0,
-    lastRefreshTime: 0
+    lastRefreshTime: 0,
+    showPending: true,
+    missedCount: 0,
+    selectedImageUrl: ""
   },
   profile: {
     mode: "create",

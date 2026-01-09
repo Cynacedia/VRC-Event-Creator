@@ -51,10 +51,55 @@ function generateDateOptionsFromPatterns(patterns, monthsAhead = 6, timezone = "
     "sunday"
   ];
 
+  // First, handle annual patterns separately (they're year-based, not month-based)
+  for (const pattern of patterns) {
+    if (pattern.type === "annual") {
+      // Check current year and next year for the annual date
+      for (let y = now.year; y <= now.year + 1; y++) {
+        // Handle leap year for Feb 29
+        const maxDay = pattern.month === 2 && pattern.day === 29
+          ? (y % 4 === 0 && (y % 100 !== 0 || y % 400 === 0) ? 29 : 28)
+          : pattern.day;
+        const actualDay = Math.min(pattern.day, maxDay);
+
+        const date = DateTime.fromObject({
+          year: y,
+          month: pattern.month,
+          day: actualDay,
+          hour: pattern.hour,
+          minute: pattern.minute,
+          second: 0,
+          millisecond: 0
+        }, { zone });
+
+        if (!date.isValid) continue;
+        if (date <= now) continue;
+        if (date > now.plus({ months: monthsAhead })) continue;
+
+        const dateKey = date.toISO();
+        if (seenDates.has(dateKey)) continue;
+        seenDates.add(dateKey);
+
+        options.push({
+          iso: date.toISO(),
+          weekday: null,
+          occurrence: null,
+          isLast: false,
+          isAnnual: true,
+          sortKey: date.toMillis()
+        });
+      }
+    }
+  }
+
+  // Handle weekday-based patterns
   for (let m = 0; m <= monthsAhead; m += 1) {
     const targetMonth = now.plus({ months: m });
 
     for (const pattern of patterns) {
+      // Skip annual patterns (already handled above)
+      if (pattern.type === "annual") continue;
+
       const weekdayNum = weekdays.indexOf(pattern.weekday?.toLowerCase()) + 1;
       if (weekdayNum <= 0) {
         continue;
@@ -113,11 +158,12 @@ function generateDateOptionsFromPatterns(patterns, monthsAhead = 6, timezone = "
 
   return options
     .sort((a, b) => a.sortKey - b.sortKey)
-    .map(({ iso, weekday, occurrence, isLast }) => ({
+    .map(({ iso, weekday, occurrence, isLast, isAnnual }) => ({
       iso,
       weekday,
       occurrence,
-      isLast
+      isLast,
+      isAnnual: isAnnual || false
     }));
 }
 

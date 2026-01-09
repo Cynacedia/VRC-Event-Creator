@@ -2,7 +2,7 @@
 import { EVENT_DESCRIPTION_LIMIT, EVENT_NAME_LIMIT, TAG_LIMIT } from "./config.js";
 import { dom, state, setProfileEditConfirmed, getProfileEditConfirmed, getProfileWizard } from "./state.js";
 import { t } from "./i18n/index.js";
-import { enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput, parseDurationInput, formatDurationPreview, enforceGroupAccess } from "./utils.js";
+import { enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput, parseDurationInput, formatDurationPreview, enforceGroupAccess, sanitizeDurationInputValue } from "./utils.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
 
 let roleFetchToken = 0;
@@ -122,6 +122,219 @@ export function setProfileMode(mode) {
   dom.profileGroup.disabled = isEdit;
 }
 
+// Automation form helpers
+function parseAutomationTimingInput(value) {
+  const parsed = parseDurationInput(value);
+  if (!parsed) {
+    return { days: 0, hours: 0, minutes: 0, totalMinutes: 0 };
+  }
+  const totalMinutes = parsed.minutes;
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const minutes = totalMinutes % 60;
+  return { days, hours, minutes, totalMinutes };
+}
+
+function formatAutomationTimingValue(days, hours, minutes) {
+  let totalMinutes = (days * 1440) + (hours * 60) + minutes;
+  const normDays = Math.floor(totalMinutes / 1440);
+  const normHours = Math.floor((totalMinutes % 1440) / 60);
+  const normMinutes = totalMinutes % 60;
+  return `${String(normDays).padStart(2, "0")}:${String(normHours).padStart(2, "0")}:${String(normMinutes).padStart(2, "0")}`;
+}
+
+function resetAutomationForm() {
+  if (dom.automationEnabled) dom.automationEnabled.checked = false;
+  if (dom.automationSettings) dom.automationSettings.classList.add("is-hidden");
+  if (dom.automationTimingMode) dom.automationTimingMode.value = "before";
+  if (dom.automationTimingInput) dom.automationTimingInput.value = "07:00:00";
+  if (dom.automationMonthlyDay) dom.automationMonthlyDay.value = "1";
+  if (dom.automationMonthlyTime) dom.automationMonthlyTime.value = "18:00";
+  if (dom.automationRepeatMode) dom.automationRepeatMode.value = "indefinite";
+  if (dom.automationRepeatCount) dom.automationRepeatCount.value = "10";
+  if (dom.automationOffsetSettings) dom.automationOffsetSettings.classList.remove("is-hidden");
+  if (dom.automationMonthlySettings) dom.automationMonthlySettings.classList.add("is-hidden");
+  if (dom.automationOffsetProse) dom.automationOffsetProse.classList.remove("is-hidden");
+  if (dom.automationMonthlyProse) dom.automationMonthlyProse.classList.add("is-hidden");
+  if (dom.automationRepeatCountField) dom.automationRepeatCountField.classList.add("is-hidden");
+}
+
+function applyAutomationToForm(automation) {
+  if (!automation) {
+    resetAutomationForm();
+    return;
+  }
+
+  if (dom.automationEnabled) dom.automationEnabled.checked = automation.enabled || false;
+  if (dom.automationSettings) dom.automationSettings.classList.toggle("is-hidden", !automation.enabled);
+  if (dom.automationTimingMode) dom.automationTimingMode.value = automation.timingMode || "before";
+
+  // Convert days/hours/minutes to DD:HH:MM format
+  const days = automation.daysOffset ?? 7;
+  const hours = automation.hoursOffset ?? 0;
+  const minutes = automation.minutesOffset ?? 0;
+  if (dom.automationTimingInput) {
+    dom.automationTimingInput.value = formatAutomationTimingValue(days, hours, minutes);
+  }
+
+  if (dom.automationMonthlyDay) dom.automationMonthlyDay.value = String(automation.monthlyDay ?? 1);
+  if (dom.automationMonthlyTime) {
+    const hour = String(automation.monthlyHour ?? 18).padStart(2, "0");
+    const minute = String(automation.monthlyMinute ?? 0).padStart(2, "0");
+    dom.automationMonthlyTime.value = `${hour}:${minute}`;
+  }
+  if (dom.automationRepeatMode) dom.automationRepeatMode.value = automation.repeatMode || "indefinite";
+  if (dom.automationRepeatCount) dom.automationRepeatCount.value = String(automation.repeatCount ?? 10);
+
+  // Update visibility based on settings
+  const isMonthly = automation.timingMode === "monthly";
+  if (dom.automationOffsetSettings) dom.automationOffsetSettings.classList.toggle("is-hidden", isMonthly);
+  if (dom.automationMonthlySettings) dom.automationMonthlySettings.classList.toggle("is-hidden", !isMonthly);
+  if (dom.automationOffsetProse) dom.automationOffsetProse.classList.toggle("is-hidden", isMonthly);
+  if (dom.automationMonthlyProse) dom.automationMonthlyProse.classList.toggle("is-hidden", !isMonthly);
+
+  const isCount = automation.repeatMode === "count";
+  if (dom.automationRepeatCountField) dom.automationRepeatCountField.classList.toggle("is-hidden", !isCount);
+
+  // Update prose display - will be called after form is applied and ready
+  if (window.updateAutomationProse) {
+    window.updateAutomationProse();
+  }
+}
+
+function getAutomationFromForm() {
+  // Parse DD:HH:MM timing input
+  const timing = parseAutomationTimingInput(dom.automationTimingInput?.value);
+
+  // Parse monthly time picker value
+  let monthlyHour = 18;
+  let monthlyMinute = 0;
+  if (dom.automationMonthlyTime?.value) {
+    const [h, m] = dom.automationMonthlyTime.value.split(":").map(Number);
+    if (!isNaN(h) && !isNaN(m)) {
+      monthlyHour = h;
+      monthlyMinute = m;
+    }
+  }
+
+  return {
+    enabled: dom.automationEnabled?.checked || false,
+    timingMode: dom.automationTimingMode?.value || "before",
+    daysOffset: timing.days,
+    hoursOffset: timing.hours,
+    minutesOffset: timing.minutes,
+    monthlyDay: Number(dom.automationMonthlyDay?.value) || 1,
+    monthlyHour,
+    monthlyMinute,
+    repeatMode: dom.automationRepeatMode?.value || "indefinite",
+    repeatCount: Number(dom.automationRepeatCount?.value) || 10
+  };
+}
+
+/**
+ * Get minimum frequency (in days) between events based on patterns
+ * @param {Array} patterns - Array of pattern objects
+ * @returns {number} Minimum days between events, or Infinity if no patterns
+ */
+function getMinPatternFrequencyDays(patterns) {
+  if (!patterns?.length) return Infinity;
+
+  let minDays = Infinity;
+  let hasEvery = false;
+  let hasEveryOther = false;
+  let nthCount = 0;
+
+  for (const p of patterns) {
+    if (p.type === "every") {
+      hasEvery = true;
+      minDays = Math.min(minDays, 7);
+    } else if (p.type === "every-other") {
+      hasEveryOther = true;
+      minDays = Math.min(minDays, 14);
+    } else if (p.type === "nth" || p.type === "last") {
+      nthCount++;
+      // If multiple nth/last patterns exist (e.g., 1st Monday + 3rd Monday),
+      // they could be 7-14 days apart within the same month
+      // Use 14 days as reasonable estimate for multiple occurrences
+      if (nthCount > 1) {
+        minDays = Math.min(minDays, 14);
+      } else {
+        // Single nth/last pattern occurs monthly: ~28 days
+        minDays = Math.min(minDays, 28);
+      }
+    } else if (p.type === "annual") {
+      minDays = Math.min(minDays, 365);
+    }
+  }
+  return minDays;
+}
+
+/**
+ * Validate and auto-correct automation offset settings
+ * If offset exceeds pattern frequency, auto-switch mode and/or cap values
+ */
+export function validateAndCorrectAutomationOffset() {
+  const warningEl = document.getElementById("automation-offset-warning");
+  const enabled = dom.automationEnabled?.checked;
+  const timingMode = dom.automationTimingMode?.value;
+  const minFrequency = getMinPatternFrequencyDays(state.profile.patterns);
+
+  // Hide warning by default
+  if (warningEl) warningEl.classList.add("is-hidden");
+
+  // Skip if disabled, monthly mode, or no patterns
+  if (!enabled || timingMode === "monthly" || minFrequency === Infinity) return;
+
+  // Parse the DD:HH:MM timing input
+  const timing = parseAutomationTimingInput(dom.automationTimingInput?.value);
+  const offsetDays = timing.days + (timing.hours / 24) + (timing.minutes / 1440);
+
+  // For "after" mode: if offset > half the frequency, auto-switch to "before" mode
+  // (Offset > frequency/2 means risk of publishing too close to next event)
+  if (timingMode === "after" && offsetDays > minFrequency / 2) {
+    dom.automationTimingMode.value = "before";
+    // Convert "after" offset to equivalent "before" offset
+    // If offsetting X days after and pattern frequency is Y days, that's (Y - X) days before next event
+    const beforeEquivalent = minFrequency - offsetDays;
+    const cappedDays = Math.max(1, Math.floor(beforeEquivalent));
+    dom.automationTimingInput.value = formatAutomationTimingValue(cappedDays, 0, 0);
+
+    if (warningEl) {
+      warningEl.textContent = t("profiles.automation.offsetCorrected", {
+        oldOffset: Math.round(offsetDays),
+        frequency: minFrequency,
+        newOffset: cappedDays
+      });
+      warningEl.classList.remove("is-hidden");
+    }
+
+    // Update prose after correction
+    if (window.updateAutomationProse) {
+      window.updateAutomationProse();
+    }
+    return;
+  }
+
+  // For "before" mode: if offset >= frequency, cap it to frequency - 1 day
+  if (timingMode === "before" && offsetDays >= minFrequency) {
+    const cappedDays = Math.max(1, minFrequency - 1);
+    dom.automationTimingInput.value = formatAutomationTimingValue(cappedDays, 0, 0);
+
+    if (warningEl) {
+      warningEl.textContent = t("profiles.automation.offsetCapped", {
+        oldOffset: Math.round(offsetDays),
+        newOffset: cappedDays
+      });
+      warningEl.classList.remove("is-hidden");
+    }
+
+    // Update prose after correction
+    if (window.updateAutomationProse) {
+      window.updateAutomationProse();
+    }
+  }
+}
+
 // Reset profile form to defaults
 export function resetProfileForm() {
   setProfileMode("create");
@@ -158,6 +371,14 @@ export function resetProfileForm() {
   state.profile.languages = ["eng"];
   state.profile.platforms = ["standalonewindows", "android"];
   state.profile.patterns = [];
+
+  // Reset pattern type visibility (default is not annual, so show weekday, hide date)
+  if (dom.patternType) dom.patternType.selectedIndex = 0; // Reset to first option
+  if (dom.patternWeekdayField) dom.patternWeekdayField.classList.remove("is-hidden");
+  if (dom.patternDateField) dom.patternDateField.classList.add("is-hidden");
+
+  // Reset automation
+  resetAutomationForm();
 }
 
 // Apply profile data to form
@@ -202,6 +423,9 @@ export function applyProfileToForm(groupId, profileKey) {
   state.profile.languages = profile.languages ? profile.languages.slice() : [];
   state.profile.platforms = profile.platforms ? profile.platforms.slice() : [];
   state.profile.patterns = profile.patterns ? profile.patterns.slice() : [];
+
+  // Apply automation settings
+  applyAutomationToForm(profile.automation);
 }
 
 // Update profile action buttons visibility
@@ -464,7 +688,8 @@ export async function handleProfileSave(api) {
       sendNotification: Boolean(dom.profileSendNotification.checked),
       timezone: dom.profileTimezone.value,
       dateMode: dom.profileDateMode.value,
-      patterns: state.profile.patterns.slice()
+      patterns: state.profile.patterns.slice(),
+      automation: getAutomationFromForm()
     }
   };
 

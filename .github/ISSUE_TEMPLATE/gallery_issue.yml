@@ -1,0 +1,85 @@
+name: Gallery Issue
+description: Report problems with gallery images or uploads
+title: "[GALLERY]: "
+labels: ["gallery", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report issues with gallery image management or uploads.
+
+        Gallery limits: 64 images max, 10MB per image, 64x64 to 2048x2048 pixels.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using the latest version or have verified this exists in the latest
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of gallery issue are you experiencing?
+      options:
+        - Can't upload image
+        - Image not showing in gallery
+        - Cache issues
+        - Gallery not loading
+        - Upload limit reached
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: image_details
+    attributes:
+      label: Image Details
+      description: If applicable, provide details about the image
+      placeholder: |
+        File format: PNG
+        File size: 5.2 MB
+        Dimensions: 1920x1080
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: If you received an error message, paste it here
+      placeholder: |
+        ```
+        Error: Image must be smaller than 10MB...
+        ```
+      render: shell
+
+  - type: input
+    id: gallery_count
+    attributes:
+      label: Current Gallery Count
+      description: How many images are currently in your gallery?
+      placeholder: "45"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide additional details about the issue
+      placeholder: |
+        When I try to upload a new image by dragging it into the gallery...
+    validations:
+      required: true

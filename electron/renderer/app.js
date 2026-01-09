@@ -1,12 +1,12 @@
 // Main application entry point - imports and wires modular components
 
-import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, TAG_LIMIT } from "./config.js";
+import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, MONTHS, TAG_LIMIT } from "./config.js";
 import { dom, state, setEventWizard, setProfileWizard, getProfileEditConfirmed } from "./state.js";
 import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
-import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString } from "./utils.js";
+import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions } from "./profiles.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset } from "./profiles.js";
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
@@ -32,13 +32,11 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     const groups = state.groups || [];
     const groupsWithAccess = groups.filter(g => g.canManageCalendar);
     const groupOptions = groupsWithAccess.map(g => ({ label: g.name, value: g.groupId }));
-    const placeholder = groupOptions.length ? t("events.selectGroupPlaceholder") : t("common.noGroupsAccess");
-    const profilePlaceholder = groupOptions.length ? t("profiles.selectGroupPlaceholder") : t("common.noGroupsAccess");
+    const placeholder = groupOptions.length ? t("common.selectGroupPlaceholder") : t("common.noGroupsAccess");
     renderSelect(dom.eventGroup, groupOptions, placeholder);
-    renderSelect(dom.profileGroup, groupOptions, profilePlaceholder);
+    renderSelect(dom.profileGroup, groupOptions, placeholder);
     if (dom.modifyGroup) {
-      const modifyPlaceholder = groupOptions.length ? t("modify.selectGroupPlaceholder") : t("common.noGroupsAccess");
-      renderSelect(dom.modifyGroup, groupOptions, modifyPlaceholder);
+      renderSelect(dom.modifyGroup, groupOptions, placeholder);
     }
     if (groupsWithAccess.length) {
       if (preserveSelection && currentEventGroup && groupsWithAccess.some(g => g.groupId === currentEventGroup)) {
@@ -265,10 +263,10 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       onChange: next => {
         state.profile.languages = next;
         renderProfileLanguageList();
-        dom.profileLanguageHint.textContent = t("profiles.languagesHint", { count: next.length });
+        dom.profileLanguageHint.textContent = t("common.fields.languagesHint", { count: next.length });
       }
     });
-    dom.profileLanguageHint.textContent = t("profiles.languagesHint", { count: state.profile.languages.length });
+    dom.profileLanguageHint.textContent = t("common.fields.languagesHint", { count: state.profile.languages.length });
   }
 
   function renderProfilePlatformList() {
@@ -309,10 +307,21 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
   }
 
   function formatPatternLabel(pattern) {
+    const time = `${String(pattern.hour).padStart(2, "0")}:${String(pattern.minute).padStart(2, "0")}`;
+
+    // Handle annual pattern type
+    if (pattern.type === "annual") {
+      const monthConfig = MONTHS.find(m => m.value === pattern.month);
+      const monthKey = monthConfig?.labelKey || `common.months.${pattern.month}`;
+      const translatedMonth = t(monthKey);
+      const monthLabel = translatedMonth === monthKey ? (monthConfig?.label || `Month ${pattern.month}`) : translatedMonth;
+      return t("profiles.patterns.format.annual", { month: monthLabel, day: pattern.day, time });
+    }
+
+    // Handle weekday-based patterns
     const weekdayKey = `common.weekdays.${pattern.weekday}`;
     const translatedWeekday = t(weekdayKey);
     const weekdayLabel = translatedWeekday === weekdayKey ? pattern.weekday : translatedWeekday;
-    const time = `${String(pattern.hour).padStart(2, "0")}:${String(pattern.minute).padStart(2, "0")}`;
     if (pattern.type === "every") return t("profiles.patterns.format.every", { weekday: weekdayLabel, time });
     if (pattern.type === "every-other") return t("profiles.patterns.format.everyOther", { weekday: weekdayLabel, time });
     if (pattern.type === "last") return t("profiles.patterns.format.last", { weekday: weekdayLabel, time });
@@ -413,20 +422,386 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     updateModifyDurationPreview();
   }
 
+  function updatePatternDayOptions() {
+    if (!dom.patternMonth || !dom.patternDay) return;
+    const monthValue = Number(dom.patternMonth.value) || 1;
+    const monthConfig = MONTHS.find(m => m.value === monthValue) || MONTHS[0];
+    const maxDays = monthConfig.days;
+    const currentDay = Number(dom.patternDay.value) || 1;
+
+    dom.patternDay.innerHTML = "";
+    for (let d = 1; d <= maxDays; d++) {
+      const option = document.createElement("option");
+      option.value = d;
+      option.textContent = d;
+      dom.patternDay.appendChild(option);
+    }
+    dom.patternDay.value = Math.min(currentDay, maxDays);
+    updatePatternDatePreview();
+  }
+
+  function updatePatternDatePreview() {
+    if (!dom.patternDatePreview || !dom.patternMonth || !dom.patternDay) return;
+    const monthValue = Number(dom.patternMonth.value);
+    const dayValue = Number(dom.patternDay.value);
+    if (!monthValue || !dayValue) {
+      dom.patternDatePreview.textContent = "";
+      return;
+    }
+    // Create a date object for formatting (use 2024 as a leap year to handle Feb 29)
+    const date = new Date(2024, monthValue - 1, dayValue);
+    const locale = getCurrentLanguage() || "en";
+    const formatted = date.toLocaleDateString(locale, { month: "long", day: "numeric" });
+    dom.patternDatePreview.textContent = formatted;
+  }
+
+  function handlePatternTypeChange() {
+    const type = dom.patternType.value;
+    const isAnnual = type === "annual";
+
+    if (dom.patternWeekdayField) {
+      dom.patternWeekdayField.classList.toggle("is-hidden", isAnnual);
+    }
+    if (dom.patternDateField) {
+      dom.patternDateField.classList.toggle("is-hidden", !isAnnual);
+    }
+
+    if (isAnnual) {
+      updatePatternDatePreview();
+    }
+  }
+
+  // Automation handlers
+  function handleAutomationEnabledChange() {
+    const enabled = dom.automationEnabled.checked;
+
+    // If enabling, show confirmation dialog
+    if (enabled) {
+      // Check that patterns exist first
+      if (state.profile.patterns.length === 0) {
+        showToast(t("profiles.automation.patternsRequired") || "At least one pattern is required for automation", true);
+        dom.automationEnabled.checked = false;
+        return;
+      }
+
+      // Show themed confirmation overlay
+      dom.automationConfirmOverlay.classList.remove("is-hidden");
+      // Don't toggle settings yet - wait for user confirmation
+      return;
+    }
+
+    // Toggle settings visibility (when disabling)
+    if (dom.automationSettings) {
+      dom.automationSettings.classList.toggle("is-hidden", !enabled);
+    }
+  }
+
+  function handleAutomationConfirmOk() {
+    dom.automationConfirmOverlay.classList.add("is-hidden");
+    // Show automation settings
+    if (dom.automationSettings) {
+      dom.automationSettings.classList.remove("is-hidden");
+    }
+  }
+
+  function handleAutomationConfirmCancel() {
+    dom.automationConfirmOverlay.classList.add("is-hidden");
+    // Uncheck the checkbox
+    dom.automationEnabled.checked = false;
+  }
+
+  function handleAutomationTimingModeChange() {
+    const mode = dom.automationTimingMode.value;
+    const isMonthly = mode === "monthly";
+
+    // Toggle visibility of offset settings (timing input) vs monthly settings
+    if (dom.automationOffsetSettings) {
+      dom.automationOffsetSettings.classList.toggle("is-hidden", isMonthly);
+    }
+    if (dom.automationMonthlySettings) {
+      dom.automationMonthlySettings.classList.toggle("is-hidden", !isMonthly);
+    }
+
+    // Toggle prose visibility
+    if (dom.automationOffsetProse) {
+      dom.automationOffsetProse.classList.toggle("is-hidden", isMonthly);
+    }
+    if (dom.automationMonthlyProse) {
+      dom.automationMonthlyProse.classList.toggle("is-hidden", !isMonthly);
+    }
+
+    // Update prose for new mode
+    updateAutomationProse();
+  }
+
+  function handleAutomationRepeatModeChange() {
+    const mode = dom.automationRepeatMode.value;
+    const isCount = mode === "count";
+
+    if (dom.automationRepeatCountField) {
+      dom.automationRepeatCountField.classList.toggle("is-hidden", !isCount);
+    }
+  }
+
+  function resetAutomationForm() {
+    if (dom.automationEnabled) dom.automationEnabled.checked = false;
+    if (dom.automationSettings) dom.automationSettings.classList.add("is-hidden");
+    if (dom.automationTimingMode) dom.automationTimingMode.value = "before";
+    if (dom.automationTimingInput) dom.automationTimingInput.value = "07:00:00";
+    if (dom.automationMonthlyDay) dom.automationMonthlyDay.value = "1";
+    if (dom.automationMonthlyTime) dom.automationMonthlyTime.value = "18:00";
+    if (dom.automationRepeatMode) dom.automationRepeatMode.value = "indefinite";
+    if (dom.automationRepeatCount) dom.automationRepeatCount.value = "10";
+    if (dom.automationOffsetSettings) dom.automationOffsetSettings.classList.remove("is-hidden");
+    if (dom.automationMonthlySettings) dom.automationMonthlySettings.classList.add("is-hidden");
+    if (dom.automationOffsetProse) dom.automationOffsetProse.classList.remove("is-hidden");
+    if (dom.automationMonthlyProse) dom.automationMonthlyProse.classList.add("is-hidden");
+    if (dom.automationRepeatCountField) dom.automationRepeatCountField.classList.add("is-hidden");
+  }
+
+  function parseAutomationTimingInput(value) {
+    // Parse DD:HH:MM format (same as duration format)
+    const parsed = parseDurationInput(value);
+    if (!parsed) {
+      return { days: 0, hours: 0, minutes: 0, totalMinutes: 0 };
+    }
+    const totalMinutes = parsed.minutes;
+    const days = Math.floor(totalMinutes / 1440);
+    const hours = Math.floor((totalMinutes % 1440) / 60);
+    const minutes = totalMinutes % 60;
+    return { days, hours, minutes, totalMinutes };
+  }
+
+  function formatAutomationTimingValue(days, hours, minutes) {
+    // Normalize: hours >= 24 overflow to days, minutes >= 60 overflow to hours
+    let totalMinutes = (days * 1440) + (hours * 60) + minutes;
+    const normDays = Math.floor(totalMinutes / 1440);
+    const normHours = Math.floor((totalMinutes % 1440) / 60);
+    const normMinutes = totalMinutes % 60;
+    return `${String(normDays).padStart(2, "0")}:${String(normHours).padStart(2, "0")}:${String(normMinutes).padStart(2, "0")}`;
+  }
+
+  function updateAutomationProse() {
+    const mode = dom.automationTimingMode?.value;
+
+    if (mode === "monthly") {
+      updateMonthlyProse();
+    } else {
+      updateOffsetProse();
+    }
+  }
+
+  function updateOffsetProse() {
+    const proseEl = dom.automationOffsetProse;
+    if (!proseEl) return;
+
+    const mode = dom.automationTimingMode?.value;
+    const timing = parseAutomationTimingInput(dom.automationTimingInput?.value);
+    const { days, hours, minutes } = timing;
+
+    // Build parts array for natural language
+    const parts = [];
+    if (days === 1) {
+      parts.push(t("profiles.automation.prose.day"));
+    } else if (days > 1) {
+      parts.push(t("profiles.automation.prose.days", { count: days }));
+    }
+    if (hours === 1) {
+      parts.push(t("profiles.automation.prose.hour"));
+    } else if (hours > 1) {
+      parts.push(t("profiles.automation.prose.hours", { count: hours }));
+    }
+    if (minutes === 1) {
+      parts.push(t("profiles.automation.prose.minute"));
+    } else if (minutes > 1) {
+      parts.push(t("profiles.automation.prose.minutes", { count: minutes }));
+    }
+
+    // Join parts with commas and "and"
+    let timeStr;
+    if (parts.length === 0) {
+      timeStr = t("profiles.automation.prose.noTime");
+    } else if (parts.length === 1) {
+      timeStr = parts[0];
+    } else if (parts.length === 2) {
+      timeStr = `${parts[0]} ${t("profiles.automation.prose.and")} ${parts[1]}`;
+    } else {
+      const lastPart = parts[parts.length - 1];
+      const middleParts = parts.slice(0, -1).join(", ");
+      timeStr = `${middleParts}, ${t("profiles.automation.prose.and")} ${lastPart}`;
+    }
+
+    // Build final prose based on mode
+    const proseSpan = proseEl.querySelector("span");
+    if (proseSpan) {
+      if (mode === "before") {
+        proseSpan.textContent = t("profiles.automation.prose.before", { time: timeStr });
+      } else if (mode === "after") {
+        proseSpan.textContent = t("profiles.automation.prose.after", { time: timeStr });
+      }
+    }
+  }
+
+  function updateMonthlyProse() {
+    const proseEl = document.getElementById("automation-monthly-prose");
+    if (!proseEl) return;
+
+    const day = parseInt(dom.automationMonthlyDay?.value) || 1;
+    const time = dom.automationMonthlyTime?.value || "18:00";
+
+    // Format time to 12-hour with AM/PM
+    const [hours24, mins] = time.split(":");
+    const hours = parseInt(hours24);
+    const isPM = hours >= 12;
+    const hours12 = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours);
+    const ampm = isPM ? "PM" : "AM";
+
+    // Get timezone abbreviation from selected timezone
+    const selectedTz = dom.profileTimezone?.value || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const tzAbbrev = getTimeZoneAbbr(selectedTz);
+    const timeFormatted = `${hours12}:${mins} ${ampm} ${tzAbbrev}`;
+
+    // Get ordinal suffix for day
+    const ordinal = getOrdinalSuffix(day);
+
+    const proseSpan = proseEl.querySelector("span");
+    if (proseSpan) {
+      proseSpan.textContent = t("profiles.automation.prose.monthly", {
+        day: day,
+        ordinal: ordinal,
+        time: timeFormatted
+      });
+    }
+  }
+
+  function getOrdinalSuffix(num) {
+    const lang = getCurrentLanguage?.() || "en";
+
+    // For English, use st/nd/rd/th
+    if (lang === "en") {
+      if (num % 100 >= 11 && num % 100 <= 13) return "th";
+      switch (num % 10) {
+        case 1: return "st";
+        case 2: return "nd";
+        case 3: return "rd";
+        default: return "th";
+      }
+    }
+
+    // For other languages, return empty (they'll handle in translation)
+    return "";
+  }
+
+  function applyAutomationToForm(automation) {
+    if (!automation) {
+      resetAutomationForm();
+      return;
+    }
+
+    if (dom.automationEnabled) dom.automationEnabled.checked = automation.enabled || false;
+    if (dom.automationSettings) dom.automationSettings.classList.toggle("is-hidden", !automation.enabled);
+    if (dom.automationTimingMode) dom.automationTimingMode.value = automation.timingMode || "before";
+
+    // Convert days/hours/minutes to DD:HH:MM format
+    const days = automation.daysOffset ?? 7;
+    const hours = automation.hoursOffset ?? 0;
+    const minutes = automation.minutesOffset ?? 0;
+    if (dom.automationTimingInput) {
+      dom.automationTimingInput.value = formatAutomationTimingValue(days, hours, minutes);
+    }
+
+    if (dom.automationMonthlyDay) dom.automationMonthlyDay.value = String(automation.monthlyDay ?? 1);
+    if (dom.automationMonthlyTime) {
+      const hour = String(automation.monthlyHour ?? 18).padStart(2, "0");
+      const minute = String(automation.monthlyMinute ?? 0).padStart(2, "0");
+      dom.automationMonthlyTime.value = `${hour}:${minute}`;
+    }
+    if (dom.automationRepeatMode) dom.automationRepeatMode.value = automation.repeatMode || "indefinite";
+    if (dom.automationRepeatCount) dom.automationRepeatCount.value = String(automation.repeatCount ?? 10);
+
+    // Update visibility based on settings
+    const isMonthly = automation.timingMode === "monthly";
+    if (dom.automationOffsetSettings) dom.automationOffsetSettings.classList.toggle("is-hidden", isMonthly);
+    if (dom.automationMonthlySettings) dom.automationMonthlySettings.classList.toggle("is-hidden", !isMonthly);
+    if (dom.automationOffsetProse) dom.automationOffsetProse.classList.toggle("is-hidden", isMonthly);
+    if (dom.automationMonthlyProse) dom.automationMonthlyProse.classList.toggle("is-hidden", !isMonthly);
+
+    const isCount = automation.repeatMode === "count";
+    if (dom.automationRepeatCountField) dom.automationRepeatCountField.classList.toggle("is-hidden", !isCount);
+
+    updateAutomationProse();
+  }
+
+  function getAutomationFromForm() {
+    // Parse DD:HH:MM timing input
+    const timing = parseAutomationTimingInput(dom.automationTimingInput?.value);
+
+    // Parse monthly time picker value
+    let monthlyHour = 18;
+    let monthlyMinute = 0;
+    if (dom.automationMonthlyTime?.value) {
+      const [h, m] = dom.automationMonthlyTime.value.split(":").map(Number);
+      if (!isNaN(h) && !isNaN(m)) {
+        monthlyHour = h;
+        monthlyMinute = m;
+      }
+    }
+
+    return {
+      enabled: dom.automationEnabled?.checked || false,
+      timingMode: dom.automationTimingMode?.value || "before",
+      daysOffset: timing.days,
+      hoursOffset: timing.hours,
+      minutesOffset: timing.minutes,
+      monthlyDay: Number(dom.automationMonthlyDay?.value) || 1,
+      monthlyHour,
+      monthlyMinute,
+      repeatMode: dom.automationRepeatMode?.value || "indefinite",
+      repeatCount: Number(dom.automationRepeatCount?.value) || 10
+    };
+  }
+
   function handlePatternAdd() {
     const type = dom.patternType.value;
-    const weekday = dom.patternWeekday.value;
     const time = dom.patternTime.value;
-    if (!type || !weekday || !time) {
+
+    if (!type || !time) {
       showToast(t("profiles.patterns.selectAll"), true);
       return;
     }
+
     const [hourStr, minuteStr] = time.split(":");
-    const pattern = { type: ["every", "every-other"].includes(type) ? type : "nth", weekday, hour: Number(hourStr), minute: Number(minuteStr) };
+    const hour = Number(hourStr);
+    const minute = Number(minuteStr);
+
+    // Handle annual pattern type
+    if (type === "annual") {
+      const month = Number(dom.patternMonth.value);
+      const day = Number(dom.patternDay.value);
+      if (!month || !day) {
+        showToast(t("profiles.patterns.selectAll"), true);
+        return;
+      }
+      const pattern = { type: "annual", month, day, hour, minute };
+      state.profile.patterns.push(pattern);
+      renderPatternList();
+      validateAndCorrectAutomationOffset();
+      return;
+    }
+
+    // Handle weekday-based patterns
+    const weekday = dom.patternWeekday.value;
+    if (!weekday) {
+      showToast(t("profiles.patterns.selectAll"), true);
+      return;
+    }
+
+    const pattern = { type: ["every", "every-other"].includes(type) ? type : "nth", weekday, hour, minute };
     if (type === "last") pattern.type = "last";
     else if (["1st", "2nd", "3rd", "4th"].includes(type)) pattern.occurrence = Number(type[0]);
     state.profile.patterns.push(pattern);
     renderPatternList();
+    validateAndCorrectAutomationOffset();
   }
 
   function handlePatternClear() {
@@ -434,6 +809,7 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     if (!window.confirm(t("profiles.patterns.confirmClear"))) return;
     state.profile.patterns = [];
     renderPatternList();
+    validateAndCorrectAutomationOffset();
   }
 
   function handleEventWizardStepChange({ current, next }) {
@@ -455,10 +831,10 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     if (next > 2 && current <= 2) {
       const missing = [];
       if (!dom.eventName.value.trim()) {
-        missing.push(t("events.eventName"));
+        missing.push(t("common.fields.eventName"));
       }
       if (!dom.eventDescription.value.trim()) {
-        missing.push(t("events.description"));
+        missing.push(t("common.fields.description"));
       }
       if (missing.length) {
         const key = missing.length === 1 ? "events.requiredSingle" : "events.requiredMultiple";
@@ -524,8 +900,8 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       const description = dom.profileDescription.value.trim();
       const missing = [];
       if (!displayName) missing.push(t("profiles.displayName"));
-      if (!eventName) missing.push(t("profiles.eventName"));
-      if (!description) missing.push(t("profiles.description"));
+      if (!eventName) missing.push(t("common.fields.eventName"));
+      if (!description) missing.push(t("common.fields.description"));
       if (missing.length) {
         const key = missing.length === 1 ? "profiles.requiredSingle" : "profiles.requiredMultiple";
         showToast(t(key, { field: missing[0], fields: missing.join(", ") }), true);
@@ -809,9 +1185,60 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       });
       updateProfileDurationPreview();
     }
-    dom.profileDateMode.addEventListener("change", () => { dom.patternType.disabled = dom.profileDateMode.value === "manual"; dom.patternWeekday.disabled = dom.profileDateMode.value === "manual"; dom.patternTime.disabled = dom.profileDateMode.value === "manual"; dom.patternAdd.disabled = dom.profileDateMode.value === "manual"; dom.patternClear.disabled = dom.profileDateMode.value === "manual"; dom.patternList.classList.toggle("is-disabled", dom.profileDateMode.value === "manual"); });
+    dom.profileDateMode.addEventListener("change", () => { const isManual = dom.profileDateMode.value === "manual"; dom.patternType.disabled = isManual; dom.patternWeekday.disabled = isManual; dom.patternMonth.disabled = isManual; dom.patternDay.disabled = isManual; dom.patternTime.disabled = isManual; dom.patternAdd.disabled = isManual; dom.patternClear.disabled = isManual; dom.patternList.classList.toggle("is-disabled", isManual); });
     dom.patternAdd.addEventListener("click", handlePatternAdd);
     dom.patternClear.addEventListener("click", handlePatternClear);
+    dom.patternType.addEventListener("change", handlePatternTypeChange);
+    dom.patternMonth.addEventListener("change", updatePatternDayOptions);
+    dom.patternDay.addEventListener("change", updatePatternDatePreview);
+
+    // Automation event listeners
+    if (dom.automationEnabled) {
+      dom.automationEnabled.addEventListener("change", handleAutomationEnabledChange);
+    }
+    if (dom.automationTimingMode) {
+      dom.automationTimingMode.addEventListener("change", handleAutomationTimingModeChange);
+    }
+    if (dom.automationRepeatMode) {
+      dom.automationRepeatMode.addEventListener("change", handleAutomationRepeatModeChange);
+    }
+    if (dom.automationConfirmOk) {
+      dom.automationConfirmOk.addEventListener("click", handleAutomationConfirmOk);
+    }
+    if (dom.automationConfirmCancel) {
+      dom.automationConfirmCancel.addEventListener("click", handleAutomationConfirmCancel);
+    }
+    if (dom.automationConfirmOverlay) {
+      dom.automationConfirmOverlay.addEventListener("click", e => {
+        if (e.target === dom.automationConfirmOverlay) {
+          handleAutomationConfirmCancel();
+        }
+      });
+    }
+    // Automation timing input handlers (DD:HH:MM format like duration)
+    if (dom.automationTimingInput) {
+      dom.automationTimingInput.addEventListener("input", () => {
+        dom.automationTimingInput.value = sanitizeDurationInputValue(dom.automationTimingInput.value);
+        updateAutomationProse();
+      });
+      dom.automationTimingInput.addEventListener("blur", () => {
+        // Normalize and validate the timing input
+        const timing = parseAutomationTimingInput(dom.automationTimingInput.value);
+        dom.automationTimingInput.value = formatAutomationTimingValue(timing.days, timing.hours, timing.minutes);
+        updateAutomationProse();
+        validateAndCorrectAutomationOffset();
+      });
+    }
+    if (dom.automationTimingMode) {
+      dom.automationTimingMode.addEventListener("change", validateAndCorrectAutomationOffset);
+    }
+    if (dom.automationMonthlyDay) {
+      dom.automationMonthlyDay.addEventListener("input", updateAutomationProse);
+    }
+    if (dom.automationMonthlyTime) {
+      dom.automationMonthlyTime.addEventListener("input", updateAutomationProse);
+    }
+
     if (dom.profileImagePicker) {
       dom.profileImagePicker.addEventListener("click", () => openGalleryPicker(dom.profileImageId));
     }
@@ -830,6 +1257,8 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     initGalleryPicker(api);
     initModifyEvents(api);
     await loadTheme(api);
+    // Clean stale gallery cache entries on startup (older than 30 days)
+    api.cleanGalleryCache?.(30);
     renderSelect(dom.eventCategory, CATEGORIES);
     renderSelect(dom.profileCategory, CATEGORIES);
     renderSelect(dom.eventAccess, ACCESS_TYPES);
@@ -837,6 +1266,9 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     renderSelect(dom.profileDateMode, DATE_MODES);
     renderSelect(dom.patternType, PATTERN_TYPES, t("profiles.patterns.selectPattern"));
     renderSelect(dom.patternWeekday, WEEKDAYS, t("profiles.patterns.selectWeekday"));
+    renderSelect(dom.patternMonth, MONTHS, t("profiles.patterns.selectMonth"));
+    updatePatternDayOptions();
+    handlePatternTypeChange(); // Set initial field visibility based on default pattern type
     initModifySelects();
     const { list, systemTz } = buildTimezones();
     renderSelect(dom.profileTimezone, list);
@@ -939,6 +1371,9 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
       await startAuthFlow();
     }
   }
+
+  // Expose updateAutomationProse to global scope for use in profiles.js
+  window.updateAutomationProse = updateAutomationProse;
 
   bindEvents();
   init().catch(() => showToast("Failed to initialize app.", true));

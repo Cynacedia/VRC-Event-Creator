@@ -93,11 +93,11 @@
                         </div>
                       </div>
                       <div class="field">
-                        <label for="event-timezone" data-i18n="events.timezone">Timezone</label>
+                        <label for="event-timezone" data-i18n="common.fields.timezone">Timezone</label>
                         <select id="event-timezone"></select>
                       </div>
                       <div class="field">
-                        <label for="event-duration" data-i18n="events.duration">Duration</label>
+                        <label for="event-duration" data-i18n="common.fields.duration">Duration</label>
                         <div class="duration-row">
                           <input id="event-duration" class="duration-input" type="text" inputmode="numeric" placeholder="--:--:--" />
                           <div class="duration-preview" id="event-duration-preview"></div>
@@ -127,43 +127,43 @@
                     <h3 data-i18n="events.section.details">Event Details</h3>
                     <div class="grid two">
                       <div class="field">
-                        <label for="event-name" data-i18n="events.eventName">Event Name</label>
+                        <label for="event-name" data-i18n="common.fields.eventName">Event Name</label>
                         <input id="event-name" type="text" maxlength="64" />
                       </div>
                       <div class="field">
-                        <label for="event-category" data-i18n="events.category">Category</label>
+                        <label for="event-category" data-i18n="common.fields.category">Category</label>
                         <select id="event-category"></select>
                       </div>
                     </div>
                     <div class="field">
-                      <label for="event-description" data-i18n="events.description">Description</label>
+                      <label for="event-description" data-i18n="common.fields.description">Description</label>
                       <textarea id="event-description" rows="4" maxlength="1024"></textarea>
                     </div>
                     <div class="grid two">
                       <div class="field">
-                        <label for="event-image-id" data-i18n="events.imageId">Image ID (optional)</label>
+                        <label for="event-image-id" data-i18n="common.fields.imageId">Image ID (optional)</label>
                         <div class="inline-row">
-                          <input id="event-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="events.imageIdPlaceholder" />
+                          <input id="event-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="common.fields.imageIdPlaceholder" />
                           <button id="event-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
                         </div>
                       </div>
                       <div class="field">
                         <label class="toggle">
                           <input id="event-send-notification" type="checkbox" />
-                          <span data-i18n="events.sendNotification">Send Notification</span>
+                          <span data-i18n="common.fields.sendNotification">Send Notification</span>
                         </label>
                       </div>
                     </div>
                     <div class="grid two">
                       <div class="field">
-                        <label for="event-tags" data-i18n="events.tags">Tags (max 5)</label>
+                        <label for="event-tags" data-i18n="common.fields.tags">Tags (max 5)</label>
                         <div class="tag-input" id="event-tags-input">
                           <div class="tag-chips" id="event-tags-chips"></div>
                           <input id="event-tags" type="text" />
                         </div>
                       </div>
                       <div class="field">
-                        <label for="event-access" data-i18n="events.accessType">Access Type</label>
+                        <label for="event-access" data-i18n="common.fields.accessType">Access Type</label>
                         <select id="event-access"></select>
                       </div>
                     </div>
@@ -179,13 +179,13 @@
                     </div>
                     <div class="grid two">
                       <div class="field">
-                        <label data-i18n="events.languages">Languages (max 3)</label>
-                        <input id="event-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="events.filterLanguages" />
+                        <label data-i18n="common.fields.languages">Languages (max 3)</label>
+                        <input id="event-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="common.fields.filterLanguages" />
                         <div class="multi-list" id="event-language-list"></div>
                         <div class="hint" id="event-language-hint">0 selected</div>
                       </div>
                       <div class="field">
-                        <label data-i18n="events.platforms">Platforms</label>
+                        <label data-i18n="common.fields.platforms">Platforms</label>
                         <div class="multi-list" id="event-platform-list"></div>
                       </div>
                     </div>
@@ -236,7 +236,11 @@
                   <select id="modify-group"></select>
                 </div>
                 <div class="modify-actions">
-                  <button class="ghost compact-button" id="modify-refresh" type="button" data-i18n="modify.refresh">Refresh</button>
+                  <label class="toggle-row compact-toggle">
+                    <input id="modify-show-pending" type="checkbox" checked />
+                    <span data-i18n="modify.showPending">Show Pending</span>
+                  </label>
+                  <button class="ghost compact-button" id="modify-refresh" type="button" data-i18n="common.refresh">Refresh</button>
                 </div>
               </div>
               <p class="hint" id="modify-count" data-i18n="modify.countEmpty">Upcoming events unavailable.</p>
@@ -284,8 +288,8 @@
                         <button id="profile-new" class="ghost" type="button" data-i18n="profiles.buttons.new">New</button>
                         <select id="profile-existing"></select>
                         <div class="profile-actions-right">
-                          <button id="profile-edit" class="ghost is-hidden" type="button" data-i18n="profiles.editButton">Edit</button>
-                          <button id="profile-delete" class="danger is-hidden" type="button" data-i18n="profiles.deleteButton">Delete</button>
+                          <button id="profile-edit" class="ghost is-hidden" type="button" data-i18n="common.edit">Edit</button>
+                          <button id="profile-delete" class="danger is-hidden" type="button" data-i18n="common.delete">Delete</button>
                         </div>
                       </div>
                     </div>
@@ -302,30 +306,30 @@
                         <input id="profile-display-name" type="text" placeholder="Community Hangout Template" data-i18n-placeholder="profiles.displayNamePlaceholder" />
                       </div>
                       <div class="field">
-                        <label for="profile-name" data-i18n="profiles.eventName">Event Name</label>
+                        <label for="profile-name" data-i18n="common.fields.eventName">Event Name</label>
                         <input id="profile-name" type="text" maxlength="64" />
                       </div>
                     </div>
                     <div class="field">
-                      <label for="profile-category" data-i18n="profiles.category">Category</label>
+                      <label for="profile-category" data-i18n="common.fields.category">Category</label>
                       <select id="profile-category"></select>
                     </div>
                     <div class="field">
-                      <label for="profile-description" data-i18n="profiles.description">Description</label>
+                      <label for="profile-description" data-i18n="common.fields.description">Description</label>
                       <textarea id="profile-description" rows="4" maxlength="1024"></textarea>
                     </div>
                     <div class="grid two">
                       <div class="field">
-                        <label for="profile-tags" data-i18n="profiles.tags">Tags (max 5)</label>
+                        <label for="profile-tags" data-i18n="common.fields.tags">Tags (max 5)</label>
                         <div class="tag-input" id="profile-tags-input">
                           <div class="tag-chips" id="profile-tags-chips"></div>
                           <input id="profile-tags" type="text" />
                         </div>
                       </div>
                       <div class="field">
-                        <label for="profile-image-id" data-i18n="profiles.imageId">Image ID (optional)</label>
+                        <label for="profile-image-id" data-i18n="common.fields.imageId">Image ID (optional)</label>
                         <div class="inline-row">
-                          <input id="profile-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="profiles.imageIdPlaceholder" />
+                          <input id="profile-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="common.fields.imageIdPlaceholder" />
                           <button id="profile-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
                         </div>
                       </div>
@@ -351,7 +355,7 @@
                         </div>
                       </div>
                       <div class="field">
-                        <label for="profile-timezone" data-i18n="profiles.timezone">Timezone</label>
+                        <label for="profile-timezone" data-i18n="common.fields.timezone">Timezone</label>
                         <select id="profile-timezone"></select>
                       </div>
                       <div class="field">
@@ -366,9 +370,17 @@
                         <label for="pattern-type" data-i18n="profiles.patterns.patternType">Pattern Type</label>
                         <select id="pattern-type"></select>
                       </div>
-                      <div class="field">
+                      <div class="field" id="pattern-weekday-field">
                         <label for="pattern-weekday" data-i18n="profiles.patterns.weekday">Weekday</label>
                         <select id="pattern-weekday"></select>
+                      </div>
+                      <div class="field is-hidden" id="pattern-date-field">
+                        <label data-i18n="profiles.patterns.date">Date</label>
+                        <div class="input-row">
+                          <select id="pattern-month"></select>
+                          <select id="pattern-day"></select>
+                        </div>
+                        <span class="preview" id="pattern-date-preview"></span>
                       </div>
                       <div class="field">
                         <label for="pattern-time" data-i18n="profiles.patterns.time">Time</label>
@@ -380,13 +392,75 @@
                       <button id="pattern-clear" class="danger" type="button" data-i18n="profiles.patterns.clearButton">Clear Patterns</button>
                     </div>
                   </div>
+
+                  <div class="card" id="automation-card">
+                    <h3 data-i18n="profiles.automation.title">Automation (Experimental)</h3>
+                    <p class="hint" data-i18n="profiles.automation.description">Automatically post events based on your patterns. Events will appear as "Pending" in Modify Events.</p>
+
+                    <div class="field">
+                      <label class="toggle-row automation-toggle-row">
+                        <input id="automation-enabled" type="checkbox" />
+                        <span data-i18n="profiles.automation.enableLabel">Enable Automation</span>
+                      </label>
+                    </div>
+
+                    <div id="automation-settings" class="is-hidden">
+                      <div class="automation-main-row">
+                        <div class="field automation-rule-field">
+                          <label for="automation-timing-mode" data-i18n="profiles.automation.timingLabel">Scheduling Rule</label>
+                          <select id="automation-timing-mode">
+                            <option value="before" data-i18n="profiles.automation.timingModes.before">Before event starts</option>
+                            <option value="after" data-i18n="profiles.automation.timingModes.after">After previous event ends</option>
+                            <option value="monthly" data-i18n="profiles.automation.timingModes.monthly">Monthly on specific day</option>
+                          </select>
+                        </div>
+
+                        <div class="field automation-timing-field" id="automation-offset-settings">
+                          <label for="automation-timing-input" data-i18n="profiles.automation.frequencyLabel">Timing (DD:HH:MM)</label>
+                          <input id="automation-timing-input" class="duration-input" type="text" inputmode="numeric" placeholder="--:--:--" value="07:00:00" />
+                        </div>
+
+                        <div id="automation-monthly-settings" class="automation-monthly-fields is-hidden">
+                          <div class="field automation-monthly-day-field">
+                            <label for="automation-monthly-day" data-i18n="profiles.automation.monthlyDay">Day of Month</label>
+                            <input id="automation-monthly-day" type="number" min="1" max="31" value="1" />
+                          </div>
+                          <div class="field automation-monthly-time-field">
+                            <label for="automation-monthly-time" data-i18n="profiles.automation.monthlyTime">Time</label>
+                            <input id="automation-monthly-time" type="time" value="18:00" />
+                          </div>
+                        </div>
+
+                        <div class="field automation-repeat-field">
+                          <label for="automation-repeat-mode" data-i18n="profiles.automation.repeatMode">Repeat</label>
+                          <select id="automation-repeat-mode" class="automation-repeat-select">
+                            <option value="indefinite" data-i18n="profiles.automation.repeatModes.indefinite">Indefinitely</option>
+                            <option value="count" data-i18n="profiles.automation.repeatModes.count">Fixed count</option>
+                          </select>
+                        </div>
+
+                        <div class="field automation-count-field is-hidden" id="automation-repeat-count-field">
+                          <label for="automation-repeat-count" data-i18n="profiles.automation.repeatCount">Events to Create</label>
+                          <input id="automation-repeat-count" type="number" min="1" max="100" value="10" class="automation-repeat-input" />
+                        </div>
+                      </div>
+
+                      <div class="automation-prose" id="automation-offset-prose">
+                        <span data-i18n="profiles.automation.offsetProse">Post the next event 7 days before it begins.</span>
+                      </div>
+                      <div class="automation-prose is-hidden" id="automation-monthly-prose">
+                        <span data-i18n="profiles.automation.monthlyProse">Every month on the 1st at 6:00 PM</span>
+                      </div>
+                      <p id="automation-offset-warning" class="hint warning is-hidden"></p>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="wizard-step is-hidden" data-step="4">
                   <div class="card">
                       <h3 data-i18n="profiles.section.audience">Audience</h3>
                       <div class="field">
-                        <label for="profile-access" data-i18n="profiles.accessType">Access Type</label>
+                        <label for="profile-access" data-i18n="common.fields.accessType">Access Type</label>
                         <select id="profile-access"></select>
                       </div>
                       <div class="role-restrictions is-hidden" id="profile-role-restrictions">
@@ -401,13 +475,13 @@
                       </div>
                       <div class="grid two">
                         <div class="field">
-                          <label data-i18n="profiles.languages">Languages (max 3)</label>
+                          <label data-i18n="common.fields.languages">Languages (max 3)</label>
                         <input id="profile-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="profiles.filterLanguages" />
                         <div class="multi-list" id="profile-language-list"></div>
                         <div class="hint" id="profile-language-hint">0 selected</div>
                       </div>
                       <div class="field">
-                        <label data-i18n="profiles.platforms">Platforms</label>
+                        <label data-i18n="common.fields.platforms">Platforms</label>
                         <div class="multi-list" id="profile-platform-list"></div>
                       </div>
                     </div>
@@ -418,7 +492,7 @@
               <div class="wizard-nav">
                 <button id="profile-back" class="ghost" type="button" data-i18n="wizard.back">Back</button>
                 <div class="wizard-nav-actions">
-                  <button id="profile-save" class="primary" type="button" data-i18n="profiles.save">Save</button>
+                  <button id="profile-save" class="primary" type="button" data-i18n="common.save">Save</button>
                   <button id="profile-next" class="ghost" type="button" data-i18n="wizard.next">Next</button>
                 </div>
               </div>
@@ -643,12 +717,12 @@
         <div class="gallery-list" id="gallery-list"></div>
         <div class="gallery-footer">
           <div class="gallery-footer-left">
-            <button class="ghost compact-button" id="gallery-refresh" type="button" data-i18n="gallery.refresh">Refresh</button>
+            <button class="ghost compact-button" id="gallery-refresh" type="button" data-i18n="common.refresh">Refresh</button>
             <button class="ghost compact-button" id="gallery-upload" type="button" data-i18n="gallery.uploadButton">Upload</button>
           </div>
           <div class="gallery-actions">
             <button class="ghost compact-button" id="gallery-load-more" type="button" data-i18n="gallery.loadMore">Load more</button>
-            <button class="ghost compact-button" id="gallery-cancel" type="button" data-i18n="gallery.cancel">Cancel</button>
+            <button class="ghost compact-button" id="gallery-cancel" type="button" data-i18n="common.cancel">Cancel</button>
             <button class="primary" id="gallery-use" type="button" data-i18n="gallery.useButton" disabled>Use Image ID</button>
           </div>
         </div>
@@ -710,11 +784,11 @@
 
           <div class="grid two grid-paired">
             <div class="field">
-              <label for="modify-event-timezone" data-i18n="modify.timezone">Timezone</label>
+              <label for="modify-event-timezone" data-i18n="common.fields.timezone">Timezone</label>
               <select id="modify-event-timezone"></select>
             </div>
             <div class="field">
-              <label for="modify-event-duration" data-i18n="modify.duration">Duration</label>
+              <label for="modify-event-duration" data-i18n="common.fields.duration">Duration</label>
               <div class="duration-row">
                 <input id="modify-event-duration" class="duration-input" type="text" inputmode="numeric" placeholder="--:--:--" />
                 <div class="duration-preview" id="modify-event-duration-preview"></div>
@@ -724,38 +798,38 @@
 
           <div class="grid two grid-paired">
             <div class="field">
-              <label for="modify-event-name" data-i18n="modify.eventName">Event Name</label>
+              <label for="modify-event-name" data-i18n="common.fields.eventName">Event Name</label>
               <input id="modify-event-name" type="text" maxlength="64" />
             </div>
             <div class="field">
-              <label for="modify-event-category" data-i18n="modify.category">Category</label>
+              <label for="modify-event-category" data-i18n="common.fields.category">Category</label>
               <select id="modify-event-category"></select>
             </div>
           </div>
 
             <div class="field">
-              <label for="modify-event-description" data-i18n="modify.description">Description</label>
+              <label for="modify-event-description" data-i18n="common.fields.description">Description</label>
               <textarea id="modify-event-description" rows="4" maxlength="1024"></textarea>
             </div>
 
             <div class="field">
-              <label for="modify-event-image-id" data-i18n="modify.imageId">Image ID (optional)</label>
+              <label for="modify-event-image-id" data-i18n="common.fields.imageId">Image ID (optional)</label>
               <div class="inline-row">
-                <input id="modify-event-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="modify.imageIdPlaceholder" />
+                <input id="modify-event-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="common.fields.imageIdPlaceholder" />
                 <button id="modify-event-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
               </div>
             </div>
 
             <div class="grid two grid-paired">
               <div class="field">
-                <label for="modify-event-tags" data-i18n="modify.tags">Tags (max 5)</label>
+                <label for="modify-event-tags" data-i18n="common.fields.tags">Tags (max 5)</label>
                 <div class="tag-input" id="modify-tags-input">
                   <div class="tag-chips" id="modify-tags-chips"></div>
                 <input id="modify-event-tags" type="text" />
               </div>
             </div>
             <div class="field">
-              <label for="modify-event-access" data-i18n="modify.accessType">Access Type</label>
+              <label for="modify-event-access" data-i18n="common.fields.accessType">Access Type</label>
               <select id="modify-event-access"></select>
             </div>
             </div>
@@ -772,13 +846,13 @@
 
           <div class="grid two grid-paired">
             <div class="field">
-              <label data-i18n="modify.languages">Languages (max 3)</label>
-              <input id="modify-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="modify.filterLanguages" />
+              <label data-i18n="common.fields.languages">Languages (max 3)</label>
+              <input id="modify-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="common.fields.filterLanguages" />
               <div class="multi-list" id="modify-language-list"></div>
               <div class="hint" id="modify-language-hint">0 selected</div>
             </div>
             <div class="field">
-              <label data-i18n="modify.platforms">Platforms</label>
+              <label data-i18n="common.fields.platforms">Platforms</label>
               <div class="multi-list" id="modify-platform-list"></div>
             </div>
           </div>
@@ -803,6 +877,19 @@
           </div>
           <button class="primary" type="submit" data-i18n="twoFactor.submit">Submit</button>
         </form>
+      </div>
+    </div>
+
+    <div class="overlay is-hidden" id="automation-confirm-overlay">
+      <div class="panel conflict-panel">
+        <div class="panel-header automation-confirm-header">
+          <span class="panel-title" data-i18n="profiles.automation.confirmTitle">Enable Automation?</span>
+          <span class="panel-sub automation-confirm-message" data-i18n="profiles.automation.confirmEnable">Automations require the app to be running to post events. Missed automations can be handled from the Modify Events tab.</span>
+        </div>
+        <div class="conflict-footer">
+          <button class="ghost" id="automation-confirm-cancel" type="button" data-i18n="common.cancel">Cancel</button>
+          <button class="primary" id="automation-confirm-ok" type="button" data-i18n="common.enable">Enable</button>
+        </div>
       </div>
     </div>
 

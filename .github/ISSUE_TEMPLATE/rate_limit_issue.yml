@@ -1,0 +1,78 @@
+name: Rate Limit Issue
+description: Report problems with API rate limiting or event creation limits
+title: "[RATE LIMIT]: "
+labels: ["rate-limiting", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        VRChat enforces a limit of 10 events per hour per group. This template helps diagnose rate limiting issues.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using the latest version or have verified this exists in the latest
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of rate limiting issue are you experiencing?
+      options:
+        - 429 errors (Too Many Requests)
+        - Event creation blocked
+        - Hourly counter incorrect
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: events_created
+    attributes:
+      label: Events Created This Hour
+      description: How many events have you created in the last hour (approximately)?
+      placeholder: "5"
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: If you received an error message, paste it here
+      placeholder: |
+        ```
+        Error: Rate limit reached for group...
+        ```
+      render: shell
+
+  - type: input
+    id: started
+    attributes:
+      label: When Did This Start?
+      description: When did you first notice this issue?
+      placeholder: "2026-01-09 14:30"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Provide additional details about the issue
+      placeholder: |
+        I was trying to create multiple events for my weekly meetup and after the 5th event...
+    validations:
+      required: true

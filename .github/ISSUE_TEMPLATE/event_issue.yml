@@ -1,0 +1,111 @@
+name: Event Issue
+description: Report problems with creating, modifying, or deleting events
+title: "[EVENT]: "
+labels: ["event-management", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report issues related to event creation, modification, or deletion.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using the latest version or have verified this exists in the latest
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of event issue are you experiencing?
+      options:
+        - Can't create event
+        - Can't modify event
+        - Can't delete event
+        - Event not showing up
+        - Conflict detection issue
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tab
+    attributes:
+      label: Which Tab?
+      description: Where in the app did this issue occur?
+      options:
+        - Create Event
+        - Modify Events
+        - Both
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: If you received an error message, paste it here
+      placeholder: |
+        ```
+        Error: Failed to create event...
+        ```
+      render: shell
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the issue
+      placeholder: |
+        1. Select group
+        2. Fill in event details
+        3. Click Create Event
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened?
+      placeholder: Event should be created and appear in the Modify Events list...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Error message appeared and event was not created...
+    validations:
+      required: true
+
+  - type: textarea
+    id: event_details
+    attributes:
+      label: Event Details (Optional)
+      description: If relevant, provide sanitized event details (remove sensitive information)
+      placeholder: |
+        Event name: Weekly Meetup
+        Date/Time: 2026-01-15 20:00
+        Duration: 2 hours
+        Category: Hangout

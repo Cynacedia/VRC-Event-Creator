@@ -1,0 +1,101 @@
+name: Automation Issue
+description: Report problems with the event automation system (Experimental)
+title: "[AUTOMATION]: "
+labels: ["automation", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report issues with the automated event posting feature.
+
+        The automation system is experimental and requires the app to be running.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using the latest version or have verified this exists in the latest
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of automation issue are you experiencing?
+      options:
+        - Missed automation (event not posted)
+        - Automation not scheduling
+        - Wrong publish time
+        - Retry failures
+        - Settings not saving
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: profile_details
+    attributes:
+      label: Profile Automation Configuration
+      description: Describe your automation settings
+      placeholder: |
+        Timing mode: Before event starts
+        Offset: 7 days before
+        Repeat: Indefinite
+        Patterns: Every Monday at 8:00 PM
+    validations:
+      required: true
+
+  - type: input
+    id: expected_publish_time
+    attributes:
+      label: Expected Publish Time
+      description: When should the event have been published?
+      placeholder: "2026-01-09 13:00"
+
+  - type: textarea
+    id: actual_behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: |
+        The event was marked as "Missed" and never published automatically...
+    validations:
+      required: true
+
+  - type: input
+    id: pending_count
+    attributes:
+      label: Pending Events Count
+      description: How many pending events do you have in the Modify Events tab?
+      placeholder: "5"
+
+  - type: input
+    id: missed_count
+    attributes:
+      label: Missed Events Count
+      description: How many missed events do you see?
+      placeholder: "2"
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Additional Details
+      description: Provide any other relevant information
+      placeholder: |
+        The app was running when the publish time occurred...
+    validations:
+      required: true

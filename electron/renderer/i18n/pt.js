@@ -39,11 +39,9 @@ export const pt = {
   gallery: {
     title: "Galeria",
     subtitle: "Selecione uma imagem da galeria para usar seu ID de arquivo.",
-    refresh: "Atualizar",
     empty: "Nenhuma imagem da galeria encontrada.",
     loading: "Carregando galeria...",
     useButton: "Usar ID da imagem",
-    cancel: "Cancelar",
     chooseButton: "Selecionar",
     uploadButton: "Enviar",
     uploadSuccess: "Imagem da galeria enviada.",
@@ -326,7 +324,22 @@ export const pt = {
     saved: "Evento atualizado.",
     deleteFailed: "Não foi possível excluir o evento.",
     deleted: "Evento excluído.",
-    loadFailed: "Não foi possível carregar os eventos."
+    loadFailed: "Não foi possível carregar os eventos.",
+    missedAutomationNoticeSingular: "1 evento não pôde ser publicado no seu horário automatizado programado.",
+    missedAutomationNoticePlural: "{count} eventos não puderam ser publicados nos seus horários automatizados programados.",
+    pending: {
+      postNow: "Publicar agora",
+      edit: "Editar",
+      cancel: "Cancelar",
+      publishAt: "Publicação em: {time}",
+      missedHint: "Esta automação foi perdida. Publique agora ou exclua.",
+      posted: "Evento publicado com sucesso.",
+      postFailed: "Não foi possível publicar o evento.",
+      cancelled: "Evento pendente cancelado.",
+      cancelFailed: "Não foi possível cancelar o evento pendente.",
+      editSaved: "Evento pendente atualizado.",
+      editFailed: "Não foi possível atualizar o evento pendente."
+    }
   },
   profiles: {
     title: "Gerenciar Perfis",
@@ -418,7 +431,64 @@ export const pt = {
       ordinal1: "1º",
       ordinal2: "2º",
       ordinal3: "3º",
-      ordinal4: "4º"
+      ordinal4: "4º",
+      date: "Data",
+      selectMonth: "Selecionar mês",
+      annual: "Todo ano em [data]"
+    },
+    automation: {
+      title: "Automação (Experimental)",
+      description: "Publicar eventos automaticamente com base em seus padrões. Os eventos aparecerão como \"Pendentes\" em Modificar Eventos.",
+      enableLabel: "Ativar automação",
+      timingLabel: "Regra de agendamento",
+      frequencyLabel: "Temporização (DD:HH:MM)",
+      timingModes: {
+        before: "Antes do início do evento",
+        after: "Após o término do evento anterior",
+        monthly: "Mensalmente em dia específico"
+      },
+      offsetHint: "Quanto tempo antes/depois publicar o evento:",
+      days: "Dias",
+      hours: "Horas",
+      minutes: "Minutos",
+      monthlyHint: "Publicar eventos neste dia todo mês:",
+      monthlyDay: "Dia do mês",
+      monthlyHour: "Hora",
+      monthlyMinute: "Minuto",
+      repeatMode: "Repetir",
+      repeatModes: {
+        indefinite: "Indefinidamente",
+        count: "Contagem fixa"
+      },
+      repeatCount: "Eventos a criar",
+      disclaimer: "A automação requer que o aplicativo esteja em execução. Automações perdidas podem ser gerenciadas na aba Modificar Eventos.",
+      patternsRequired: "Pelo menos um padrão é necessário para automação",
+      confirmTitle: "Ativar automação?",
+      confirmEnable: "A automação requer que o aplicativo esteja em execução para publicar eventos. Automações perdidas podem ser gerenciadas na aba Modificar Eventos.",
+      offsetCorrected: "O deslocamento ({oldOffset} dias) excedeu a frequência do padrão ({frequency} dias). Alterado para o modo \"antes\" com deslocamento de {newOffset} dias.",
+      offsetCapped: "O deslocamento ({oldOffset} dias) excedeu a frequência do padrão. Limitado a {newOffset} dias.",
+      prose: {
+        day: "1 dia",
+        days: "{count} dias",
+        hour: "1 hora",
+        hours: "{count} horas",
+        minute: "1 minuto",
+        minutes: "{count} minutos",
+        and: "e",
+        noTime: "—",
+        before: "Publicar o próximo evento {time} antes de começar.",
+        after: "Publicar o próximo evento {time} após o término do evento anterior.",
+        monthly: "O {day}º de cada mês às {time}"
+      },
+      helpers: {
+        offsetDays: "Define quantos dias antes/depois publicar o evento",
+        offsetHours: "Define quantas horas antes/depois publicar o evento",
+        offsetMinutes: "Define quantos minutos antes/depois publicar o evento",
+        monthlyDay: "Os dias 29-31 usarão o último dia dos meses mais curtos",
+        monthlyTime: "Define a hora em que os eventos serão publicados a cada mês"
+      },
+      offsetProse: "Publicar o próximo evento 7 dias antes de começar.",
+      monthlyProse: "O 1º de cada mês às 6:00 PM"
     },
     created: "Perfil criado.",
     updated: "Perfil atualizado.",
@@ -443,12 +513,18 @@ export const pt = {
     updating: "Atualizando",
     updateReady: "Reiniciar",
     updateDownloading: "Baixando atualização...",
-    save: "Save",
-    cancel: "Cancel",
+    save: "Salvar",
+    cancel: "Cancelar",
+    enable: "Ativar",
     loading: "Carregando...",
+    refresh: "Atualizar",
+    edit: "Editar",
+    delete: "Excluir",
     rateLimitError: "Limite de taxa. Aguarde e tente novamente mais tarde.",
     noMatches: "Nenhuma correspondência.",
     noGroupsAccess: "Nenhum grupo com acesso ao calendário",
+    selectGroup: "Selecionar grupo",
+    selectGroupPlaceholder: "Escolher um grupo",
     accessTypes: {
       public: "Público",
       group: "Grupo"
@@ -466,6 +542,24 @@ export const pt = {
       friday: "Sexta-feira",
       saturday: "Sábado",
       sunday: "Domingo"
+    },
+    fields: {
+      eventName: "Nome do evento",
+      description: "Descrição",
+      category: "Categoria",
+      tags: "Tags (máx. 5)",
+      accessType: "Tipo de acesso",
+      imageId: "ID da imagem (opcional)",
+      imageIdPlaceholder: "ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      sendNotification: "Enviar notificação",
+      timezone: "Fuso horário",
+      duration: "Duração (DD:HH:MM)",
+      languages: "Idiomas (máx. 3)",
+      languagesHint: "{count} selecionados",
+      filterLanguages: "Filtrar idiomas...",
+      platforms: "Plataformas",
+      manualDate: "Data",
+      manualTime: "Hora"
     }
   },
   wizard: {

@@ -101,7 +101,8 @@ export const PATTERN_TYPES = [
   { label: "Every 2nd [weekday] of month", value: "2nd", labelKey: "profiles.patterns.types.nth2" },
   { label: "Every 3rd [weekday] of month", value: "3rd", labelKey: "profiles.patterns.types.nth3" },
   { label: "Every 4th [weekday] of month", value: "4th", labelKey: "profiles.patterns.types.nth4" },
-  { label: "Every last [weekday] of month", value: "last", labelKey: "profiles.patterns.types.last" }
+  { label: "Every last [weekday] of month", value: "last", labelKey: "profiles.patterns.types.last" },
+  { label: "Every year on [date]", value: "annual", labelKey: "profiles.patterns.types.annual" }
 ];
 
 export const WEEKDAYS = [
@@ -112,6 +113,21 @@ export const WEEKDAYS = [
   { label: "Friday", value: "friday", labelKey: "common.weekdays.friday" },
   { label: "Saturday", value: "saturday", labelKey: "common.weekdays.saturday" },
   { label: "Sunday", value: "sunday", labelKey: "common.weekdays.sunday" }
+];
+
+export const MONTHS = [
+  { label: "January", value: 1, labelKey: "common.months.january", days: 31 },
+  { label: "February", value: 2, labelKey: "common.months.february", days: 29 },
+  { label: "March", value: 3, labelKey: "common.months.march", days: 31 },
+  { label: "April", value: 4, labelKey: "common.months.april", days: 30 },
+  { label: "May", value: 5, labelKey: "common.months.may", days: 31 },
+  { label: "June", value: 6, labelKey: "common.months.june", days: 30 },
+  { label: "July", value: 7, labelKey: "common.months.july", days: 31 },
+  { label: "August", value: 8, labelKey: "common.months.august", days: 31 },
+  { label: "September", value: 9, labelKey: "common.months.september", days: 30 },
+  { label: "October", value: 10, labelKey: "common.months.october", days: 31 },
+  { label: "November", value: 11, labelKey: "common.months.november", days: 30 },
+  { label: "December", value: 12, labelKey: "common.months.december", days: 31 }
 ];
 
 export const TAG_LIMIT = 5;

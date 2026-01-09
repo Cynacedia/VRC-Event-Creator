@@ -1,0 +1,84 @@
+name: Translation Issue
+description: Report incorrect or missing translations
+title: "[TRANSLATION]: "
+labels: ["translation", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report translation errors or suggest improvements to existing translations.
+
+        VRC Event Creator supports 9 languages: German, Spanish, French, Japanese, Korean, Portuguese, Russian, and Chinese.
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am a native or fluent speaker of this language
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Language
+      description: Which language has the translation issue?
+      options:
+        - German
+        - Spanish
+        - French
+        - Japanese
+        - Korean
+        - Portuguese
+        - Russian
+        - Chinese
+    validations:
+      required: true
+
+  - type: input
+    id: current_text
+    attributes:
+      label: Current Text
+      description: The current translation that needs correction
+      placeholder: "Beispiel: Ereignis erstellen"
+    validations:
+      required: true
+
+  - type: input
+    id: suggested_correction
+    attributes:
+      label: Suggested Correction
+      description: Your suggested improvement or correction
+      placeholder: "Beispiel: Event erstellen"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context/Explanation
+      description: Explain why this correction is better or more accurate
+      placeholder: |
+        The current translation is too formal. The suggested translation is more commonly used and sounds more natural...
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot
+      description: If possible, provide a screenshot showing where this text appears in the app
+      placeholder: Drag and drop screenshot here

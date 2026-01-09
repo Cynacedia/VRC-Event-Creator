@@ -1,0 +1,91 @@
+name: Authentication Issue
+description: Report problems with login, 2FA, or session management
+title: "[AUTH]: "
+labels: ["authentication", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Report issues related to logging in, two-factor authentication, or session management.
+
+        **Note:** Never share your password or 2FA codes in this issue!
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Prerequisites
+      options:
+        - label: I have searched existing issues and this is not a duplicate
+          required: true
+        - label: I am using the latest version or have verified this exists in the latest
+          required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Version
+      description: Select the version you're using
+      options:
+        - Latest (v0.9.24)
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of authentication issue are you experiencing?
+      options:
+        - Can't login (credentials correct)
+        - 2FA failing
+        - Session expired unexpectedly
+        - Cache errors
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Error Message
+      description: If you received an error message, paste it here (remove any personal information)
+      placeholder: |
+        ```
+        Error: Failed to authenticate...
+        ```
+      render: shell
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps Taken
+      description: What have you tried so far?
+      placeholder: |
+        1. Entered username and password
+        2. Clicked Sign In
+        3. Entered 2FA code
+        4. Error appeared
+    validations:
+      required: true
+
+  - type: dropdown
+    id: cache_exists
+    attributes:
+      label: Cache File Exists
+      description: Do you have a cache.json file in your data directory?
+      options:
+        - "Yes"
+        - "No"
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Additional Details
+      description: Provide any additional context about the authentication issue
+      placeholder: This started happening after I changed my VRChat password...
+    validations:
+      required: true

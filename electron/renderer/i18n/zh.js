@@ -40,11 +40,9 @@ export const zh = {
     gallery: {
     title: "图库",
     subtitle: "选择一张图库图片以使用其文件ID。",
-    refresh: "刷新",
     empty: "未找到图库图片。",
     loading: "正在加载图库...",
     useButton: "使用图片ID",
-    cancel: "取消",
     chooseButton: "选择",
     uploadButton: "上传",
     uploadSuccess: "图库图片已上传。",
@@ -329,7 +327,22 @@ export const zh = {
     saved: "活动已更新。",
     deleteFailed: "无法删除活动。",
     deleted: "活动已删除。",
-    loadFailed: "无法加载活动。"
+    loadFailed: "无法加载活动。",
+    missedAutomationNoticeSingular: "1个活动无法在其预定的自动发布时间发布。",
+    missedAutomationNoticePlural: "{count}个活动无法在其预定的自动发布时间发布。",
+    pending: {
+      postNow: "立即发布",
+      edit: "编辑",
+      cancel: "取消",
+      publishAt: "发布日期: {time}",
+      missedHint: "此自动化已错过。立即发布或删除。",
+      posted: "活动发布成功。",
+      postFailed: "无法发布活动。",
+      cancelled: "待发布活动已取消。",
+      cancelFailed: "无法取消待发布活动。",
+      editSaved: "待发布活动已更新。",
+      editFailed: "无法更新待发布活动。"
+    }
   },
   profiles: {
     title: "管理模板",
@@ -421,7 +434,64 @@ export const zh = {
       ordinal1: "1",
       ordinal2: "2",
       ordinal3: "3",
-      ordinal4: "4"
+      ordinal4: "4",
+      date: "日期",
+      selectMonth: "选择月份",
+      annual: "每年[日期]"
+    },
+    automation: {
+      title: "自动化（实验性）",
+      description: "根据您的模式自动发布活动。活动将在\"修改活动\"中显示为\"待处理\"。",
+      enableLabel: "启用自动化",
+      timingLabel: "计划规则",
+      frequencyLabel: "时间（DD:HH:MM）",
+      timingModes: {
+        before: "活动开始前",
+        after: "上一个活动结束后",
+        monthly: "每月特定日期"
+      },
+      offsetHint: "发布活动的时间（提前/延后）：",
+      days: "天",
+      hours: "小时",
+      minutes: "分钟",
+      monthlyHint: "每月在此日期发布活动：",
+      monthlyDay: "月份日期",
+      monthlyHour: "小时",
+      monthlyMinute: "分钟",
+      repeatMode: "重复",
+      repeatModes: {
+        indefinite: "无限期",
+        count: "固定次数"
+      },
+      repeatCount: "创建数量",
+      disclaimer: "自动化需要应用程序保持运行。可以从\"修改活动\"选项卡处理错过的自动化。",
+      patternsRequired: "自动化至少需要一个模式",
+      confirmTitle: "启用自动化？",
+      confirmEnable: "自动化需要应用程序保持运行以发布活动。可以从\"修改活动\"选项卡处理错过的自动化。",
+      offsetCorrected: "偏移量（{oldOffset}天）超过了模式频率（{frequency}天）。已切换到\"之前\"模式，偏移量设为{newOffset}天。",
+      offsetCapped: "偏移量（{oldOffset}天）超过了模式频率。已限制为{newOffset}天。",
+      prose: {
+        day: "1天",
+        days: "{count}天",
+        hour: "1小时",
+        hours: "{count}小时",
+        minute: "1分钟",
+        minutes: "{count}分钟",
+        and: "和",
+        noTime: "—",
+        before: "在下一个活动开始前{time}发布。",
+        after: "在上一个活动结束后{time}发布。",
+        monthly: "每月{day}日{time}"
+      },
+      helpers: {
+        offsetDays: "设置提前或延后多少天发布活动",
+        offsetHours: "设置提前或延后多少小时发布活动",
+        offsetMinutes: "设置提前或延后多少分钟发布活动",
+        monthlyDay: "第29-31天会使用较短月份的最后一天",
+        monthlyTime: "设置每月发布活动的时间"
+      },
+      offsetProse: "在下一个活动开始前7天发布。",
+      monthlyProse: "每月1日下午6点"
     },
     created: "模板已创建。",
     updated: "模板已更新。",
@@ -448,10 +518,16 @@ export const zh = {
     updateDownloading: "正在下载更新...",
     save: "保存",
     cancel: "取消",
+    enable: "启用",
     loading: "加载中...",
+    refresh: "刷新",
+    edit: "编辑",
+    delete: "删除",
     rateLimitError: "速率限制。请稍候再试。",
     noMatches: "无匹配项。",
     noGroupsAccess: "没有具有日历权限的群组",
+    selectGroup: "选择群组",
+    selectGroupPlaceholder: "选择一个群组",
     accessTypes: {
       public: "公开",
       group: "群组"
@@ -469,6 +545,24 @@ export const zh = {
       friday: "周五",
       saturday: "周六",
       sunday: "周日"
+    },
+    fields: {
+      eventName: "活动名称",
+      description: "描述",
+      category: "类别",
+      tags: "标签（最多5个）",
+      accessType: "访问类型",
+      imageId: "图片ID（可选）",
+      imageIdPlaceholder: "例如：file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      sendNotification: "发送通知",
+      timezone: "时区",
+      duration: "时长（DD:HH:MM）",
+      languages: "语言（最多3种）",
+      languagesHint: "已选择{count}种",
+      filterLanguages: "筛选语言...",
+      platforms: "平台",
+      manualDate: "日期",
+      manualTime: "时间"
     }
   },
   wizard: {

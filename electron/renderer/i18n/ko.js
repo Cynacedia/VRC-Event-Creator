@@ -39,11 +39,9 @@ export const ko = {
   gallery: {
     title: "갤러리",
     subtitle: "갤러리 이미지를 선택해 파일 ID를 사용하세요.",
-    refresh: "새로고침",
     empty: "갤러리 이미지가 없습니다.",
     loading: "갤러리 불러오는 중...",
     useButton: "이미지 ID 사용",
-    cancel: "취소",
     chooseButton: "선택",
     uploadButton: "업로드",
     uploadSuccess: "갤러리 이미지를 업로드했습니다.",
@@ -326,7 +324,22 @@ export const ko = {
     saved: "이벤트가 업데이트되었습니다.",
     deleteFailed: "이벤트를 삭제할 수 없습니다.",
     deleted: "이벤트가 삭제되었습니다.",
-    loadFailed: "이벤트를 불러올 수 없습니다."
+    loadFailed: "이벤트를 불러올 수 없습니다.",
+    missedAutomationNoticeSingular: "1개의 이벤트를 예약된 자동화 시간에 게시할 수 없습니다.",
+    missedAutomationNoticePlural: "{count}개의 이벤트를 예약된 자동화 시간에 게시할 수 없습니다.",
+    pending: {
+      postNow: "지금 게시",
+      edit: "편집",
+      cancel: "취소",
+      publishAt: "게시 예정일: {time}",
+      missedHint: "이 자동화가 누락되었습니다. 지금 게시하거나 삭제하세요.",
+      posted: "이벤트가 성공적으로 게시되었습니다.",
+      postFailed: "이벤트를 게시할 수 없습니다.",
+      cancelled: "예정된 이벤트가 취소되었습니다.",
+      cancelFailed: "예정된 이벤트를 취소할 수 없습니다.",
+      editSaved: "예정된 이벤트가 업데이트되었습니다.",
+      editFailed: "예정된 이벤트를 업데이트할 수 없습니다."
+    }
   },
   profiles: {
     title: "프로필 관리",
@@ -418,7 +431,64 @@ export const ko = {
       ordinal1: "첫째",
       ordinal2: "둘째",
       ordinal3: "셋째",
-      ordinal4: "넷째"
+      ordinal4: "넷째",
+      date: "날짜",
+      selectMonth: "월 선택",
+      annual: "매년 [날짜]"
+    },
+    automation: {
+      title: "자동화 (실험적)",
+      description: "패턴에 따라 이벤트를 자동으로 게시합니다. 이벤트는 이벤트 수정에서 \"보류 중\"으로 표시됩니다.",
+      enableLabel: "자동화 활성화",
+      timingLabel: "일정 규칙",
+      frequencyLabel: "타이밍 (DD:HH:MM)",
+      timingModes: {
+        before: "이벤트 시작 전",
+        after: "이전 이벤트 종료 후",
+        monthly: "매월 특정 날짜"
+      },
+      offsetHint: "이벤트 게시까지의 시간 (전/후):",
+      days: "일",
+      hours: "시간",
+      minutes: "분",
+      monthlyHint: "매월 이 날짜에 이벤트 게시:",
+      monthlyDay: "일",
+      monthlyHour: "시",
+      monthlyMinute: "분",
+      repeatMode: "반복",
+      repeatModes: {
+        indefinite: "무기한",
+        count: "고정 횟수"
+      },
+      repeatCount: "생성 수",
+      disclaimer: "자동화를 사용하려면 앱이 실행 중이어야 합니다. 놓친 자동화는 이벤트 수정 탭에서 처리할 수 있습니다.",
+      patternsRequired: "자동화에는 최소 1개의 패턴이 필요합니다",
+      confirmTitle: "자동화를 활성화하시겠습니까?",
+      confirmEnable: "자동화를 사용하려면 이벤트를 게시하기 위해 앱이 실행 중이어야 합니다. 놓친 자동화는 이벤트 수정 탭에서 처리할 수 있습니다.",
+      offsetCorrected: "오프셋({oldOffset}일)이 패턴 빈도({frequency}일)를 초과했습니다. \"전\" 모드로 전환하고 {newOffset}일 오프셋으로 설정했습니다.",
+      offsetCapped: "오프셋({oldOffset}일)이 패턴 빈도를 초과했습니다. {newOffset}일로 제한되었습니다.",
+      prose: {
+        day: "1일",
+        days: "{count}일",
+        hour: "1시간",
+        hours: "{count}시간",
+        minute: "1분",
+        minutes: "{count}분",
+        and: "그리고",
+        noTime: "—",
+        before: "다음 이벤트 시작 {time} 전에 게시합니다.",
+        after: "이전 이벤트 종료 {time} 후에 게시합니다.",
+        monthly: "매월 {day}일 {time}"
+      },
+      helpers: {
+        offsetDays: "이벤트를 게시할 날짜 수를 설정합니다",
+        offsetHours: "이벤트를 게시할 시간을 설정합니다",
+        offsetMinutes: "이벤트를 게시할 분을 설정합니다",
+        monthlyDay: "29~31일은 더 짧은 달의 마지막 날을 사용합니다",
+        monthlyTime: "매월 이벤트가 게시될 시간을 설정합니다"
+      },
+      offsetProse: "다음 이벤트 시작 7일 전에 게시합니다.",
+      monthlyProse: "매월 1일 오후 6시"
     },
     created: "프로필이 생성되었습니다.",
     updated: "프로필이 업데이트되었습니다.",
@@ -445,10 +515,16 @@ export const ko = {
     updateDownloading: "업데이트 다운로드 중...",
     save: "저장",
     cancel: "취소",
+    enable: "활성화",
     loading: "불러오는 중...",
+    refresh: "새로고침",
+    edit: "편집",
+    delete: "삭제",
     rateLimitError: "속도 제한. 잠시 기다렸다가 다시 시도하세요.",
     noMatches: "일치하는 항목이 없습니다.",
     noGroupsAccess: "캘린더 접근 권한이 있는 그룹이 없습니다",
+    selectGroup: "그룹 선택",
+    selectGroupPlaceholder: "그룹을 선택하세요",
     accessTypes: {
       public: "공개",
       group: "그룹"
@@ -466,6 +542,24 @@ export const ko = {
       friday: "금요일",
       saturday: "토요일",
       sunday: "일요일"
+    },
+    fields: {
+      eventName: "이벤트 이름",
+      description: "설명",
+      category: "카테고리",
+      tags: "태그 (최대 5개)",
+      accessType: "접근 유형",
+      imageId: "이미지 ID (선택사항)",
+      imageIdPlaceholder: "예: file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+      sendNotification: "알림 보내기",
+      timezone: "시간대",
+      duration: "기간 (DD:HH:MM)",
+      languages: "언어 (최대 3개)",
+      languagesHint: "{count}개 선택됨",
+      filterLanguages: "언어 검색...",
+      platforms: "플랫폼",
+      manualDate: "날짜",
+      manualTime: "시간"
     }
   },
   wizard: {

@@ -8,6 +8,38 @@ const GALLERY_RATE_LIMIT_KEY = "gallery:upload";
 
 let galleryApi = null;
 
+// In-memory cache for data URLs to avoid repeated IPC calls
+const imageDataUrlCache = new Map();
+
+async function loadCachedImageForElement(imgElement, imageId, fallbackUrl) {
+  // Check in-memory cache first
+  if (imageDataUrlCache.has(imageId)) {
+    imgElement.src = imageDataUrlCache.get(imageId);
+    return;
+  }
+
+  // Try to get from disk cache
+  try {
+    const dataUrl = await galleryApi?.getCachedImage(imageId);
+    if (dataUrl) {
+      imageDataUrlCache.set(imageId, dataUrl);
+      imgElement.src = dataUrl;
+    }
+  } catch {
+    // Silently fail - image will continue using remote URL
+  }
+}
+
+async function triggerBackgroundCaching(files) {
+  if (!galleryApi?.triggerBackgroundCache || !files?.length) return;
+  const imagesToCache = files
+    .filter(f => f.previewUrl && f.mimeType?.startsWith("image/"))
+    .map(f => ({ id: f.id, previewUrl: f.previewUrl, mimeType: f.mimeType }));
+  if (imagesToCache.length > 0) {
+    await galleryApi.triggerBackgroundCache(imagesToCache);
+  }
+}
+
 function hasGalleryDom() {
   return dom.galleryOverlay && dom.galleryList;
 }
@@ -89,7 +121,15 @@ function renderGalleryList() {
       img.src = file.previewUrl;
       img.alt = file.name || file.id;
       img.loading = "lazy";
+      // Add error handler to fall back to remote URL if cache fails
+      img.onerror = () => {
+        if (img.src !== file.previewUrl) {
+          img.src = file.previewUrl;
+        }
+      };
       preview.appendChild(img);
+      // Async: try to use cached version after initial render
+      loadCachedImageForElement(img, file.id, file.previewUrl);
     } else {
       const placeholder = document.createElement("div");
       placeholder.className = "gallery-placeholder";
@@ -205,6 +245,8 @@ async function loadGalleryFiles(options = {}) {
     state.gallery.files = sortGalleryFiles(nextFiles);
     state.gallery.offset = offset + files.length;
     state.gallery.hasMore = files.length >= PAGE_SIZE;
+    // Trigger background caching for fetched images
+    triggerBackgroundCaching(files);
   } catch (err) {
     showToast(t("gallery.loadFailed"), true);
   } finally {
@@ -228,6 +270,11 @@ function applyGallerySelection() {
     return;
   }
   state.gallery.targetInput.value = selected.id;
+  // Dispatch event with both id and url for pending event image preview
+  state.gallery.targetInput.dispatchEvent(new CustomEvent("gallerySelect", {
+    bubbles: true,
+    detail: { id: selected.id, url: selected.previewUrl || "" }
+  }));
   closeGalleryPicker();
 }
 
