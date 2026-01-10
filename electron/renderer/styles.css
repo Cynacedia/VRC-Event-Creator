@@ -875,6 +875,10 @@ a:visited {
   gap: var(--space-1);
 }
 
+.field.mt-1 {
+  margin-top: 1rem;
+}
+
 .field label {
   font-size: var(--text-12);
   text-transform: uppercase;
@@ -2551,7 +2555,7 @@ input[type="color"]::-moz-color-swatch {
   box-shadow: var(--glow);
 }
 
-/* Missed badge */
+/* Status badges */
 .pending-missed-badge {
   position: absolute;
   top: var(--space-2);
@@ -2571,12 +2575,39 @@ input[type="color"]::-moz-color-swatch {
   z-index: 2;
 }
 
+.pending-queued-badge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--warning);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: var(--text-14);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(255, 193, 7, 0.5);
+  z-index: 2;
+}
+
 .event-card.is-missed {
   border-color: var(--danger);
 }
 
 .event-card.is-missed:hover {
   box-shadow: 0 0 12px rgba(224, 106, 94, 0.4);
+}
+
+.event-card.is-queued {
+  border-color: var(--warning);
+}
+
+.event-card.is-queued:hover {
+  box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
 }
 
 /* Nav badge for missed events */

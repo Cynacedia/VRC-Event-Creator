@@ -2,6 +2,11 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.27] - 2026-01-09
+
+### Fixed
+- Better rate limit handling and helper text for edge cases where pending/scheduled automations are queued and waiting for rate limits to lift. 
+
 ## [0.9.26] - 2026-01-09
 
 ### Security

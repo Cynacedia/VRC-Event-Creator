@@ -353,6 +353,16 @@ function renderModifyCount() {
     countText += ` <strong>${missedText}</strong>`;
   }
 
+  // Append queued automation text if count > 0
+  const queuedCount = state.modify.queuedCount || 0;
+  if (queuedCount > 0) {
+    const queuedKey = queuedCount === 1
+      ? "modify.queuedAutomationNoticeSingular"
+      : "modify.queuedAutomationNoticePlural";
+    const queuedText = t(queuedKey, { count: queuedCount });
+    countText += ` <strong>${queuedText}</strong>`;
+  }
+
   dom.modifyCount.innerHTML = countText; // Use innerHTML to support <strong> tags
 }
 
@@ -493,6 +503,8 @@ function renderPendingCard(pendingEvent) {
   card.className = "event-card is-pending";
   if (pendingEvent.status === "missed") {
     card.classList.add("is-missed");
+  } else if (pendingEvent.status === "queued") {
+    card.classList.add("is-queued");
   }
   card.dataset.pendingId = pendingEvent.id;
   card.setAttribute("role", "button");
@@ -537,6 +549,11 @@ function renderPendingCard(pendingEvent) {
   postNowBtn.type = "button";
   postNowBtn.className = "pending-action-btn pending-post-now";
   postNowBtn.textContent = t("modify.pending.postNow");
+  // Disable Post Now for queued events
+  if (pendingEvent.status === "queued") {
+    postNowBtn.disabled = true;
+    postNowBtn.title = t("modify.pending.queuedDisabled");
+  }
   postNowBtn.addEventListener("click", evt => {
     evt.stopPropagation();
     handlePendingPostNow(pendingEvent);
@@ -555,13 +572,21 @@ function renderPendingCard(pendingEvent) {
   hoverActions.appendChild(editBtn);
   thumb.appendChild(hoverActions);
 
-  // Missed badge (exclamation mark)
+  // Status badge
   if (pendingEvent.status === "missed") {
+    // Missed badge (exclamation mark)
     const missedBadge = document.createElement("div");
     missedBadge.className = "pending-missed-badge";
     missedBadge.textContent = "!";
     missedBadge.title = t("modify.pending.missedHint");
     thumb.appendChild(missedBadge);
+  } else if (pendingEvent.status === "queued") {
+    // Queued badge (clock icon)
+    const queuedBadge = document.createElement("div");
+    queuedBadge.className = "pending-queued-badge";
+    queuedBadge.textContent = "⏱";
+    queuedBadge.title = t("modify.pending.queuedHint");
+    thumb.appendChild(queuedBadge);
   }
 
   const title = document.createElement("h4");
@@ -1334,6 +1359,7 @@ async function performRefresh(api, options = {}) {
 
     state.modify.pendingEvents = pendingEvents;
     state.modify.missedCount = pendingResult?.missedCount || 0;
+    state.modify.queuedCount = pendingResult?.queuedCount || 0;
 
     // Success - clear any refresh backoff
     if (options.bypassCache) {

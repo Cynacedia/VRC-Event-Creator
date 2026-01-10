@@ -293,6 +293,8 @@ export const en = {
     loadFailed: "Could not load events.",
     missedAutomationNoticeSingular: "1 event could not be posted at its scheduled automated time.",
     missedAutomationNoticePlural: "{count} events could not be posted at their scheduled automated time.",
+    queuedAutomationNoticeSingular: "Rate Limited: 1 pending event is queued, waiting on rate limits to lift.",
+    queuedAutomationNoticePlural: "Rate Limited: {count} pending events are queued, waiting on rate limits to lift.",
     pending: {
       postNow: "Post Now",
       edit: "Edit",

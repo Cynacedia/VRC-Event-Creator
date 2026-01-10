@@ -293,6 +293,8 @@ export const ko = {
     loadFailed: "이벤트를 불러올 수 없습니다.",
     missedAutomationNoticeSingular: "1개의 이벤트를 예약된 자동화 시간에 게시할 수 없습니다.",
     missedAutomationNoticePlural: "{count}개의 이벤트를 예약된 자동화 시간에 게시할 수 없습니다.",
+    queuedAutomationNoticeSingular: "속도 제한: 1개의 대기 중인 이벤트가 대기열에 있으며 속도 제한이 해제되기를 기다리고 있습니다.",
+    queuedAutomationNoticePlural: "속도 제한: {count}개의 대기 중인 이벤트가 대기열에 있으며 속도 제한이 해제되기를 기다리고 있습니다.",
     pending: {
       postNow: "지금 게시",
       edit: "편집",

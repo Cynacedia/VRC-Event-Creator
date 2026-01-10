@@ -24,6 +24,23 @@ let onEventCreated = null;
 let debugLogFn = () => {};
 let profilesRef = null;
 
+// Rate limiting constants
+const EVENT_HOURLY_LIMIT = 10;
+const EVENT_HOURLY_WINDOW_MS = 60 * 60 * 1000;
+const BACKOFF_SEQUENCE = [2, 4, 8, 16, 32, 60]; // minutes, caps at 60
+
+// Rate limit tracking per group
+const rateLimitState = {
+  // groupId -> { history: [timestamps], backoffIndex: 0, lockUntil: null }
+  groups: {},
+  // Queue of pending posts: { pendingEventId, groupId, priority }
+  queue: [],
+  // Currently processing flag
+  processing: false,
+  // Processing timeout
+  processTimeout: null
+};
+
 /**
  * Check if automation engine is initialized
  * @returns {boolean}
@@ -383,6 +400,9 @@ function cancelJob(pendingEventId) {
     clearTimeout(timeoutId);
     scheduledJobs.delete(pendingEventId);
   }
+
+  // Also remove from rate limit queue
+  dequeueEventPost(pendingEventId);
 }
 
 /**
@@ -393,6 +413,14 @@ function cancelAllJobs() {
     clearTimeout(timeoutId);
   }
   scheduledJobs.clear();
+
+  // Clear rate limit queue
+  rateLimitState.queue = [];
+  if (rateLimitState.processTimeout) {
+    clearTimeout(rateLimitState.processTimeout);
+    rateLimitState.processTimeout = null;
+  }
+  rateLimitState.processing = false;
 }
 
 /**
@@ -471,10 +499,240 @@ function resolveEventDetails(pendingEventId, profiles = null) {
 }
 
 /**
- * Execute an automated event post
+ * Get or initialize rate limit state for a group
+ * @param {string} groupId - Group ID
+ * @returns {object} Rate limit state for the group
+ */
+function getRateLimitState(groupId) {
+  if (!rateLimitState.groups[groupId]) {
+    rateLimitState.groups[groupId] = {
+      history: [],
+      backoffIndex: 0,
+      lockUntil: null
+    };
+  }
+  return rateLimitState.groups[groupId];
+}
+
+/**
+ * Prune old timestamps from rate limit history
+ * @param {string} groupId - Group ID
+ */
+function pruneRateLimitHistory(groupId) {
+  const state = getRateLimitState(groupId);
+  const cutoff = Date.now() - EVENT_HOURLY_WINDOW_MS;
+  state.history = state.history.filter(ts => ts >= cutoff);
+}
+
+/**
+ * Check if group is currently rate limited
+ * @param {string} groupId - Group ID
+ * @returns {boolean} True if rate limited
+ */
+function isGroupRateLimited(groupId) {
+  const state = getRateLimitState(groupId);
+
+  // Check explicit lock
+  if (state.lockUntil && Date.now() < state.lockUntil) {
+    return true;
+  }
+
+  // Clear expired lock
+  if (state.lockUntil && Date.now() >= state.lockUntil) {
+    state.lockUntil = null;
+    state.backoffIndex = 0; // Reset backoff on lock expiry
+  }
+
+  // Check hourly limit
+  pruneRateLimitHistory(groupId);
+  return state.history.length >= EVENT_HOURLY_LIMIT;
+}
+
+/**
+ * Get remaining time until rate limit expires
+ * @param {string} groupId - Group ID
+ * @returns {number} Milliseconds until rate limit expires, or 0
+ */
+function getRateLimitWaitMs(groupId) {
+  const state = getRateLimitState(groupId);
+
+  // Check explicit lock
+  if (state.lockUntil) {
+    const waitMs = state.lockUntil - Date.now();
+    return Math.max(0, waitMs);
+  }
+
+  // Check hourly limit
+  pruneRateLimitHistory(groupId);
+  if (state.history.length >= EVENT_HOURLY_LIMIT) {
+    // Wait until oldest entry expires
+    const oldest = Math.min(...state.history);
+    const expiresAt = oldest + EVENT_HOURLY_WINDOW_MS;
+    const waitMs = expiresAt - Date.now();
+    return Math.max(0, waitMs);
+  }
+
+  return 0;
+}
+
+/**
+ * Record successful event creation for rate limiting
+ * @param {string} groupId - Group ID
+ */
+function recordEventCreation(groupId) {
+  const state = getRateLimitState(groupId);
+  state.history.push(Date.now());
+  pruneRateLimitHistory(groupId);
+
+  // Reset backoff on success
+  state.backoffIndex = 0;
+
+  debugLogFn("Automation", `Recorded event for ${groupId}, count: ${state.history.length}/${EVENT_HOURLY_LIMIT}`);
+}
+
+/**
+ * Handle rate limit error (429 response)
+ * @param {string} groupId - Group ID
+ */
+function handleRateLimitError(groupId) {
+  const state = getRateLimitState(groupId);
+
+  // Check if we've already hit the known 10/hour limit
+  pruneRateLimitHistory(groupId);
+  if (state.history.length >= EVENT_HOURLY_LIMIT) {
+    // Lock until oldest entry expires
+    const oldest = Math.min(...state.history);
+    state.lockUntil = oldest + EVENT_HOURLY_WINDOW_MS;
+    debugLogFn("Automation", `Hit 10/hour limit for ${groupId}, locked until ${new Date(state.lockUntil).toISOString()}`);
+  } else {
+    // Cross-platform or unknown limit - use exponential backoff
+    const backoffMinutes = BACKOFF_SEQUENCE[state.backoffIndex];
+    state.backoffIndex = Math.min(state.backoffIndex + 1, BACKOFF_SEQUENCE.length - 1);
+    state.lockUntil = Date.now() + (backoffMinutes * 60 * 1000);
+    debugLogFn("Automation", `Rate limit error for ${groupId}, backoff ${backoffMinutes}min until ${new Date(state.lockUntil).toISOString()}`);
+  }
+}
+
+/**
+ * Add event to queue for rate-limited posting
+ * @param {string} pendingEventId - Pending event ID
+ * @param {string} groupId - Group ID
+ * @param {number} priority - Priority (timestamp of event start, lower = sooner)
+ */
+function queueEventPost(pendingEventId, groupId, priority) {
+  // Check if already in queue
+  if (rateLimitState.queue.some(item => item.pendingEventId === pendingEventId)) {
+    return;
+  }
+
+  rateLimitState.queue.push({ pendingEventId, groupId, priority });
+
+  // Sort by priority (soonest event start times first)
+  rateLimitState.queue.sort((a, b) => a.priority - b.priority);
+
+  debugLogFn("Automation", `Queued ${pendingEventId} for ${groupId}, queue length: ${rateLimitState.queue.length}`);
+
+  // Start processing if not already running
+  processQueue();
+}
+
+/**
+ * Remove event from queue
+ * @param {string} pendingEventId - Pending event ID
+ */
+function dequeueEventPost(pendingEventId) {
+  const index = rateLimitState.queue.findIndex(item => item.pendingEventId === pendingEventId);
+  if (index !== -1) {
+    rateLimitState.queue.splice(index, 1);
+    debugLogFn("Automation", `Removed ${pendingEventId} from queue, remaining: ${rateLimitState.queue.length}`);
+  }
+}
+
+/**
+ * Process the queue of pending event posts
+ */
+async function processQueue() {
+  // Already processing
+  if (rateLimitState.processing) {
+    return;
+  }
+
+  // Queue is empty
+  if (rateLimitState.queue.length === 0) {
+    return;
+  }
+
+  rateLimitState.processing = true;
+
+  try {
+    while (rateLimitState.queue.length > 0) {
+      const item = rateLimitState.queue[0]; // Peek at next item
+
+      // Check if group is rate limited
+      if (isGroupRateLimited(item.groupId)) {
+        const waitMs = getRateLimitWaitMs(item.groupId);
+        debugLogFn("Automation", `Group ${item.groupId} rate limited, waiting ${Math.round(waitMs / 1000)}s`);
+
+        // Schedule retry
+        if (rateLimitState.processTimeout) {
+          clearTimeout(rateLimitState.processTimeout);
+        }
+        rateLimitState.processTimeout = setTimeout(() => {
+          rateLimitState.processTimeout = null;
+          processQueue();
+        }, waitMs + 100);
+
+        break; // Stop processing, will resume after wait
+      }
+
+      // Remove from queue (we're processing it now)
+      rateLimitState.queue.shift();
+
+      // Find the pending event
+      const pendingEvent = pendingEvents.find(e => e.id === item.pendingEventId);
+      if (!pendingEvent) {
+        debugLogFn("Automation", `Pending event ${item.pendingEventId} not found, skipping`);
+        continue;
+      }
+
+      // Check if it's still scheduled (not cancelled/published)
+      if (pendingEvent.status !== "scheduled" && pendingEvent.status !== "missed" && pendingEvent.status !== "queued") {
+        debugLogFn("Automation", `Pending event ${item.pendingEventId} status is ${pendingEvent.status}, skipping`);
+        continue;
+      }
+
+      // Mark as scheduled before execution (in case it was queued)
+      if (pendingEvent.status === "queued") {
+        pendingEvent.status = "scheduled";
+      }
+
+      // Execute the post
+      await executeAutomatedPostInternal(pendingEvent);
+
+      // Small delay between posts (100ms)
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  } finally {
+    rateLimitState.processing = false;
+  }
+
+  // If queue still has items, schedule another processing run
+  if (rateLimitState.queue.length > 0) {
+    if (rateLimitState.processTimeout) {
+      clearTimeout(rateLimitState.processTimeout);
+    }
+    rateLimitState.processTimeout = setTimeout(() => {
+      rateLimitState.processTimeout = null;
+      processQueue();
+    }, 1000);
+  }
+}
+
+/**
+ * Internal function to execute automated post (called by queue processor)
  * @param {object} pendingEvent - Pending event object
  */
-async function executeAutomatedPost(pendingEvent) {
+async function executeAutomatedPostInternal(pendingEvent) {
   debugLogFn("Automation", `Executing automated post for ${pendingEvent.id}`);
 
   try {
@@ -501,6 +759,9 @@ async function executeAutomatedPost(pendingEvent) {
     );
 
     if (result.ok) {
+      // Record successful creation for rate limiting
+      recordEventCreation(pendingEvent.groupId);
+
       // Update pending event status
       pendingEvent.status = "published";
 
@@ -519,14 +780,43 @@ async function executeAutomatedPost(pendingEvent) {
       debugLogFn("Automation", `Successfully created event for ${pendingEvent.id}`);
       onEventCreated(pendingEvent, result.eventId);
     } else {
-      // Handle failure - schedule retry
-      debugLogFn("Automation", `Failed to create event: ${result.error?.message || "Unknown error"}`);
-      scheduleRetry(pendingEvent);
+      // Check if it's a rate limit error
+      const isRateLimit = result.error?.code === "UPCOMING_LIMIT" ||
+                          result.error?.status === 429 ||
+                          (result.error?.message && result.error.message.toLowerCase().includes("rate limit"));
+
+      if (isRateLimit) {
+        debugLogFn("Automation", `Rate limit hit for ${pendingEvent.id}`);
+        handleRateLimitError(pendingEvent.groupId);
+
+        // Mark as queued (distinct from "missed")
+        pendingEvent.status = "queued";
+        pendingEvent.queuedAt = new Date().toISOString();
+        savePendingEvents();
+
+        // Re-queue this event
+        const priority = new Date(pendingEvent.eventStartsAt).getTime();
+        queueEventPost(pendingEvent.id, pendingEvent.groupId, priority);
+      } else {
+        // Non-rate-limit failure - schedule retry with 15min delay
+        debugLogFn("Automation", `Failed to create event: ${result.error?.message || "Unknown error"}`);
+        scheduleRetry(pendingEvent);
+      }
     }
   } catch (err) {
     debugLogFn("Automation", `Error executing automated post: ${err.message}`);
     scheduleRetry(pendingEvent);
   }
+}
+
+/**
+ * Execute an automated event post (public wrapper that uses queue)
+ * @param {object} pendingEvent - Pending event object
+ */
+async function executeAutomatedPost(pendingEvent) {
+  // Queue the event for rate-limited posting
+  const priority = new Date(pendingEvent.eventStartsAt).getTime();
+  queueEventPost(pendingEvent.id, pendingEvent.groupId, priority);
 }
 
 /**
@@ -558,6 +848,11 @@ async function handleMissedEvent(pendingEventId, action) {
   const pendingEvent = pendingEvents[eventIndex];
 
   if (action === "postNow") {
+    // Prevent posting if event is queued (waiting for rate limits)
+    if (pendingEvent.status === "queued") {
+      return { ok: false, error: { message: "Event is queued waiting for rate limits to clear. Please wait." } };
+    }
+
     // Execute immediately
     pendingEvent.status = "scheduled"; // Reset status for execution
     await executeAutomatedPost(pendingEvent);
@@ -624,7 +919,7 @@ function getPendingEvents(groupId = null) {
 }
 
 /**
- * Get missed events count
+ * Get missed events count (truly missed, not queued)
  * @param {string} groupId - Optional group ID to filter by
  * @returns {number} Count of missed pending events
  */
@@ -633,6 +928,18 @@ function getMissedCount(groupId = null) {
     return pendingEvents.filter(e => e.groupId === groupId && e.status === "missed").length;
   }
   return pendingEvents.filter(e => e.status === "missed").length;
+}
+
+/**
+ * Get queued events count (waiting for rate limits)
+ * @param {string} groupId - Optional group ID to filter by
+ * @returns {number} Count of queued pending events
+ */
+function getQueuedCount(groupId = null) {
+  if (groupId) {
+    return pendingEvents.filter(e => e.groupId === groupId && e.status === "queued").length;
+  }
+  return pendingEvents.filter(e => e.status === "queued").length;
 }
 
 /**
@@ -771,7 +1078,8 @@ function getAutomationStatus(groupId, profileKey) {
   return {
     ...state,
     pendingCount: profilePendingEvents.filter(e => e.status === "scheduled").length,
-    missedCount: profilePendingEvents.filter(e => e.status === "missed").length
+    missedCount: profilePendingEvents.filter(e => e.status === "missed").length,
+    queuedCount: profilePendingEvents.filter(e => e.status === "queued").length
   };
 }
 
@@ -802,6 +1110,7 @@ module.exports = {
   handleMissedEvent,
   getPendingEvents,
   getMissedCount,
+  getQueuedCount,
   getPendingSettings,
   updatePendingSettings,
   updatePendingEventsForProfile,

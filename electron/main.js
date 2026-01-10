@@ -2252,11 +2252,12 @@ ipcMain.handle("gallery:triggerBackgroundCache", async (_, payload) => {
 
 ipcMain.handle("pending:list", async (_, payload) => {
   if (!automationEngine.isInitialized()) {
-    return { events: [], missedCount: 0 };
+    return { events: [], missedCount: 0, queuedCount: 0 };
   }
   const { groupId, limit } = payload || {};
   const rawEvents = automationEngine.getPendingEvents(groupId, limit);
   const missedCount = automationEngine.getMissedCount(groupId);
+  const queuedCount = automationEngine.getQueuedCount(groupId);
 
   // Resolve event details for each pending event for display
   const events = rawEvents.map(event => {
@@ -2267,7 +2268,7 @@ ipcMain.handle("pending:list", async (_, payload) => {
     };
   });
 
-  return { events, missedCount };
+  return { events, missedCount, queuedCount };
 });
 
 ipcMain.handle("pending:action", async (_, payload) => {

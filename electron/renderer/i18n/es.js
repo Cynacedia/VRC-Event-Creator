@@ -293,6 +293,8 @@ export const es = {
     loadFailed: "No se pudieron cargar los eventos.",
     missedAutomationNoticeSingular: "1 evento no pudo ser publicado a su hora automatizada programada.",
     missedAutomationNoticePlural: "{count} eventos no pudieron ser publicados a sus horas automatizadas programadas.",
+    queuedAutomationNoticeSingular: "Límite de tasa: 1 evento pendiente está en cola, esperando que se levanten los límites de tasa.",
+    queuedAutomationNoticePlural: "Límite de tasa: {count} eventos pendientes están en cola, esperando que se levanten los límites de tasa.",
     pending: {
       postNow: "Publicar ahora",
       edit: "Editar",

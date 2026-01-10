@@ -293,6 +293,8 @@ export const ja = {
     loadFailed: "イベントを読み込めませんでした。",
     missedAutomationNoticeSingular: "1つのイベントは予定された自動化時刻に投稿できませんでした。",
     missedAutomationNoticePlural: "{count}つのイベントは予定された自動化時刻に投稿できませんでした。",
+    queuedAutomationNoticeSingular: "レート制限: 1つの保留中のイベントがキューに入っており、レート制限が解除されるのを待っています。",
+    queuedAutomationNoticePlural: "レート制限: {count}つの保留中のイベントがキューに入っており、レート制限が解除されるのを待っています。",
     pending: {
       postNow: "今すぐ投稿",
       edit: "編集",

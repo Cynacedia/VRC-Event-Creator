@@ -293,6 +293,8 @@ export const fr = {
     loadFailed: "Impossible de charger les événements.",
     missedAutomationNoticeSingular: "1 événement n'a pas pu être publié à son heure automatisée programmée.",
     missedAutomationNoticePlural: "{count} événements n'ont pas pu être publiés à leurs heures automatisées programmées.",
+    queuedAutomationNoticeSingular: "Limite de taux: 1 événement en attente est en file d'attente, attendant que les limites de taux soient levées.",
+    queuedAutomationNoticePlural: "Limite de taux: {count} événements en attente sont en file d'attente, attendant que les limites de taux soient levées.",
     pending: {
       postNow: "Publier maintenant",
       edit: "Modifier",

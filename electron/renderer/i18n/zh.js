@@ -293,6 +293,8 @@ export const zh = {
     loadFailed: "无法加载活动。",
     missedAutomationNoticeSingular: "1个活动无法在其预定的自动发布时间发布。",
     missedAutomationNoticePlural: "{count}个活动无法在其预定的自动发布时间发布。",
+    queuedAutomationNoticeSingular: "速率限制：1个待处理活动已排队，正在等待速率限制解除。",
+    queuedAutomationNoticePlural: "速率限制：{count}个待处理活动已排队，正在等待速率限制解除。",
     pending: {
       postNow: "立即发布",
       edit: "编辑",

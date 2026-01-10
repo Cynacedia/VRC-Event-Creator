@@ -295,6 +295,8 @@ export const de = {
     loadFailed: "Events konnten nicht geladen werden.",
     missedAutomationNoticeSingular: "1 Event konnte zur geplanten automatisierten Zeit nicht gepostet werden.",
     missedAutomationNoticePlural: "{count} Events konnten zu ihren geplanten automatisierten Zeiten nicht gepostet werden.",
+    queuedAutomationNoticeSingular: "Ratenlimit: 1 ausstehende Event ist in der Warteschlange und wartet darauf, dass die Ratenlimits aufgehoben werden.",
+    queuedAutomationNoticePlural: "Ratenlimit: {count} ausstehende Events sind in der Warteschlange und warten darauf, dass die Ratenlimits aufgehoben werden.",
     pending: {
       postNow: "Jetzt posten",
       edit: "Bearbeiten",
