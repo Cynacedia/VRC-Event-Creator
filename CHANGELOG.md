@@ -2,6 +2,13 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.28] - 2026-01-10
+
+### Added
+- Dutch (Nederlands) language support (Thanks Soupercore)
+- nl_NL installer language option
+
+
 ## [0.9.27] - 2026-01-09
 
 ### Fixed

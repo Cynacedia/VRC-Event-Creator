@@ -15,7 +15,8 @@
   <a href="README/README.zh.md">中文（简体）</a> |
   <a href="README/README.pt.md">Português</a> |
   <a href="README/README.ko.md">한국어</a> |
-  <a href="README/README.ru.md">Русский</a>
+  <a href="README/README.ru.md">Русский</a> |
+  <a href="README/README.nl.md">Nederlands</a>
 </p>
 
 An all-in-one event creation tool for VRChat that eliminates repetitive setup.
@@ -36,7 +37,7 @@ Create and save per-group event templates, generate upcoming event dates from si
 - Theme Studio with presets and full UI color control (supports #RRGGBBAA).
 - Gallery picker and upload for image IDs.
 - Minimize to system tray.
-- Localization with first-run language selection (en, fr, es, de, ja, zh, pt, ko, ru).
+- Localization with first-run language selection (en, fr, es, de, ja, zh, pt, ko, ru, nl).
 
 ## Download
 - Releases: https://github.com/Cynacedia/VRC-Event-Creator/releases

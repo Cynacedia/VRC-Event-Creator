@@ -24,6 +24,7 @@ Thumbs.db
 .claude/
 .vscode/
 .idea/
+.vs/
 
 # Local dev config
 dev-app-update.yml

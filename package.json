@@ -1,6 +1,6 @@
 {
   "name": "VRCEventCreator",
-  "version": "0.9.27",
+  "version": "0.9.28",
   "main": "electron/main.js",
   "scripts": {
     "start:gui": "electron .",
@@ -46,7 +46,7 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "installerLanguages": ["en_US", "de_DE", "fr_FR", "es_ES", "ja_JP", "ko_KR", "pt_BR", "ru_RU", "zh_CN"]
+      "installerLanguages": ["en_US", "de_DE", "fr_FR", "es_ES", "ja_JP", "ko_KR", "pt_BR", "ru_RU", "zh_CN", "nl_NL"]
     },
     "linux": {
       "target": "AppImage",

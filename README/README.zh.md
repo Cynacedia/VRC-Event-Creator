@@ -15,7 +15,8 @@
   <a href="README.zh.md">中文（简体）</a> |
   <a href="README.pt.md">Português</a> |
   <a href="README.ko.md">한국어</a> |
-  <a href="README.ru.md">Русский</a>
+  <a href="README.ru.md">Русский</a> |
+  <a href="README.nl.md">Nederlands</a>
 </p>
 一款一体化的 VRChat 活动创建工具，告别重复配置。
 为每个群组创建并保存活动模板，通过简单的周期规则生成即将到来的活动日期列表，并一键自动填充详情——适合快速安排每周聚会、观影会和社区活动。

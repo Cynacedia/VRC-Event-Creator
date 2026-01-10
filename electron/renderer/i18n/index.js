@@ -10,6 +10,7 @@ import { zh } from "./zh.js";
 import { pt } from "./pt.js";
 import { ko } from "./ko.js";
 import { ru } from "./ru.js";
+import { nl } from "./nl.js";
 
 // Available languages
 const languages = {
@@ -21,7 +22,8 @@ const languages = {
   zh,
   pt,
   ko,
-  ru
+  ru,
+  nl
 };
 
 const LANGUAGE_OPTIONS = [
@@ -33,7 +35,8 @@ const LANGUAGE_OPTIONS = [
   { value: "zh", label: "中文（简体）", flag: "cn" },
   { value: "pt", label: "Português", flag: "pt" },
   { value: "ko", label: "한국어", flag: "kr" },
-  { value: "ru", label: "Русский", flag: "ru" }
+  { value: "ru", label: "Русский", flag: "ru" },
+  { value: "nl", label: "Nederlands", flag: "nl" }
 ];
 
 function normalizeLanguageCode(value) {
@@ -50,6 +53,7 @@ function normalizeLanguageCode(value) {
   if (lower.startsWith("pt")) return "pt";
   if (lower.startsWith("ko")) return "ko";
   if (lower.startsWith("ru")) return "ru";
+  if (lower.startsWith("nl")) return "nl";
   return null;
 }
 

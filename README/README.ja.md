@@ -15,7 +15,8 @@
   <a href="README.zh.md">中文（简体）</a> |
   <a href="README.pt.md">Português</a> |
   <a href="README.ko.md">한국어</a> |
-  <a href="README.ru.md">Русский</a>
+  <a href="README.ru.md">Русский</a> |
+  <a href="README.nl.md">Nederlands</a>
 </p>
 VRChat向けのオールインワンなイベント作成ツールで、繰り返しの設定作業をなくします。
 グループごとのイベントテンプレートを作成・保存し、シンプルな繰り返しパターンから今後の日程を生成して詳細を即時に自動入力 - 週次の集まり、視聴会、コミュニティイベントを素早くスケジュールするのに最適です。

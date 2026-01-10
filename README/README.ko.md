@@ -15,7 +15,8 @@
   <a href="README.zh.md">中文（简体）</a> |
   <a href="README.pt.md">Português</a> |
   <a href="README.ko.md">한국어</a> |
-  <a href="README.ru.md">Русский</a>
+  <a href="README.ru.md">Русский</a> |
+  <a href="README.nl.md">Nederlands</a>
 </p>
 반복적인 설정을 줄여주는 VRChat용 올인원 이벤트 생성 도구입니다.
 그룹별 이벤트 템플릿을 만들고 저장하며, 간단한 반복 패턴에서 다가오는 날짜를 생성해 세부 정보를 즉시 자동으로 채워 줍니다 - 주간 모임, 시청 파티, 커뮤니티 이벤트를 빠르게 일정 잡기에 적합합니다.

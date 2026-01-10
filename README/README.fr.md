@@ -15,7 +15,8 @@
   <a href="README.zh.md">中文（简体）</a> |
   <a href="README.pt.md">Português</a> |
   <a href="README.ko.md">한국어</a> |
-  <a href="README.ru.md">Русский</a>
+  <a href="README.ru.md">Русский</a> |
+  <a href="README.nl.md">Nederlands</a>
 </p>
 Un outil tout-en-un de création d'événements pour VRChat qui élimine la configuration répétitive.
 Créez et enregistrez des modèles d'événements par groupe, générez des dates à venir à partir de motifs récurrents simples et préremplissez instantanément les détails - parfait pour planifier rapidement des rencontres hebdomadaires, des soirées de visionnage et des événements communautaires.

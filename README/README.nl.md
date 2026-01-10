@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="electron/app.ico" alt="VRChat Event Creator" width="96" height="96" align="middle" />&nbsp;VRChat Event Creator
+  <img src="../electron/app.ico" alt="VRChat Event Creator" width="96" height="96" align="middle" />&nbsp;VRChat Event Creator
 </h1>
 <p align="center">
   <a href="https://github.com/Cynacedia/VRC-Event-Creator/releases">
@@ -23,7 +23,7 @@ Een alles-in-één tool voor VRChat-evenementen die tijdrovend instelwerk overbo
 Maak en bewaar per-groep event-sjablonen, genereer aankomende eventdatums op basis van eenvoudige herhalingspatronen, en vul details automatisch in — ideaal om snel wekelijkse meetups, watch parties en community-evenementen te plannen.
 
 <p align="center">
-  <img src=".imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (profile to publish)" />
+  <img src="../README/.imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (profile to publish)" />
 </p>
 
 ## Functies

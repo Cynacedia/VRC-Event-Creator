@@ -15,7 +15,8 @@
   <a href="README.zh.md">中文（简体）</a> |
   <a href="README.pt.md">Português</a> |
   <a href="README.ko.md">한국어</a> |
-  <a href="README.ru.md">Русский</a>
+  <a href="README.ru.md">Русский</a> |
+  <a href="README.nl.md">Nederlands</a>
 </p>
 Ein All-in-one-Tool zur Event-Erstellung für VRChat, das wiederkehrende Einrichtungsschritte eliminiert.
 Erstelle und speichere gruppenbezogene Event-Vorlagen, generiere kommende Termine aus einfachen Wiederholungsmustern und fülle Details sofort automatisch aus - ideal, um wöchentliche Treffen, Watch-Partys und Community-Events schnell zu planen.
