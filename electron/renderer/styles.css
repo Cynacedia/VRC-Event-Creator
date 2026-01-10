@@ -1990,6 +1990,10 @@ textarea::-webkit-scrollbar {
   background: linear-gradient(#ffffff 0 33%, #0039a6 33% 66%, #d52b1e 66% 100%);
 }
 
+.flag-nl {
+  background: linear-gradient(#ae1c28 0 33%, #ffffff 33% 66%, #21468b 66% 100%);
+}
+
 .button-row {
   display: flex;
   gap: var(--space-3);
