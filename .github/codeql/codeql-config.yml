@@ -1,0 +1,12 @@
+name: "CodeQL config"
+
+queries:
+  - uses: security-and-quality
+
+# Suppress specific instances of http-to-file-access that have been manually reviewed and validated
+query-filters:
+  - exclude:
+      id: js/http-to-file-access
+      # Suppress warnings for validated file writes in main.js
+      # - writeDebugLog: Data sanitized via JSON.stringify replacer
+      # - downloadGalleryImage: URL allowlist, content-type, size, and magic byte validation

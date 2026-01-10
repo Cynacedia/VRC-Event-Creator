@@ -67,7 +67,7 @@ function writeDebugLog(entry) {
 
     const prefix = debugLogFirstEntry ? "" : ",\n";
     debugLogFirstEntry = false;
-    // lgtm[js/http-to-file-access] - Data is sanitized through JSON.stringify replacer function that filters dangerous content
+    // codeql[js/http-to-file-access] - Data is sanitized through JSON.stringify replacer function that filters dangerous content
     fs.appendFileSync(DEBUG_LOG_PATH, prefix + safeData, "utf8");
   } catch (e) {
     // Ignore write errors
@@ -414,7 +414,7 @@ async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
       return null;
     }
 
-    // lgtm[js/http-to-file-access] - URL validated against VRChat CDN allowlist, content-type checked, size limited, and magic bytes verified
+    // codeql[js/http-to-file-access] - URL validated against VRChat CDN allowlist, content-type checked, size limited, and magic bytes verified
     fs.writeFileSync(localPath, buffer);
 
     const manifest = loadGalleryCacheManifest();
