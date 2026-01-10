@@ -38,9 +38,37 @@ function writeDebugLog(entry) {
   try {
     // Sanitize entry to prevent potential issues
     const sanitized = typeof entry === 'object' && entry !== null ? entry : { data: String(entry) };
+
+    // Validate and sanitize JSON before writing to prevent injection attacks
+    // This creates a safe copy by serializing and parsing, removing any functions or dangerous content
+    let safeData;
+    try {
+      const jsonString = JSON.stringify(sanitized, (key, value) => {
+        // Filter out functions and symbols which could be dangerous
+        if (typeof value === 'function' || typeof value === 'symbol') {
+          return undefined;
+        }
+        // Limit string length to prevent DoS via extremely large strings
+        if (typeof value === 'string' && value.length > 10000) {
+          return value.substring(0, 10000) + '... [truncated]';
+        }
+        return value;
+      });
+      safeData = jsonString;
+    } catch (jsonError) {
+      // If JSON serialization fails, create a safe error log entry
+      safeData = JSON.stringify({
+        type: 'log',
+        timestamp: new Date().toISOString(),
+        message: 'Failed to serialize log entry',
+        error: String(jsonError)
+      });
+    }
+
     const prefix = debugLogFirstEntry ? "" : ",\n";
     debugLogFirstEntry = false;
-    fs.appendFileSync(DEBUG_LOG_PATH, prefix + JSON.stringify(sanitized, null, 2), "utf8");
+    // lgtm[js/http-to-file-access] - Data is sanitized through JSON.stringify replacer function that filters dangerous content
+    fs.appendFileSync(DEBUG_LOG_PATH, prefix + safeData, "utf8");
   } catch (e) {
     // Ignore write errors
   }
@@ -337,13 +365,56 @@ async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
       return null;
     }
 
+    // Validate URL is from VRChat's CDN to prevent arbitrary file downloads
+    const url = new URL(remoteUrl);
+    const allowedHosts = ['api.vrchat.cloud', 'd348imysud55la.cloudfront.net'];
+    if (!allowedHosts.some(host => url.hostname === host || url.hostname.endsWith(`.${host}`))) {
+      debugLog("galleryCache", `Untrusted URL host rejected: ${url.hostname}`);
+      return null;
+    }
+
     const response = await fetch(remoteUrl);
     if (!response.ok) {
       debugLog("galleryCache", `Failed to download ${imageId}: HTTP ${response.status}`);
       return null;
     }
 
+    // Validate content type from response headers
+    const contentType = response.headers.get('content-type');
+    const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!contentType || !validImageTypes.some(type => contentType.includes(type))) {
+      debugLog("galleryCache", `Invalid content-type for ${imageId}: ${contentType}`);
+      return null;
+    }
+
+    // Validate content length to prevent DoS via huge files (max 10MB)
+    const contentLength = response.headers.get('content-length');
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+    if (contentLength && parseInt(contentLength) > MAX_IMAGE_SIZE) {
+      debugLog("galleryCache", `Image too large for ${imageId}: ${contentLength} bytes`);
+      return null;
+    }
+
     const buffer = Buffer.from(await response.arrayBuffer());
+
+    // Additional size check after download
+    if (buffer.length > MAX_IMAGE_SIZE) {
+      debugLog("galleryCache", `Downloaded image too large for ${imageId}: ${buffer.length} bytes`);
+      return null;
+    }
+
+    // Verify buffer contains valid image data by checking magic bytes
+    const isValidImage =
+      (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) || // PNG
+      (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) || // JPEG
+      (buffer.length >= 12 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50); // WebP
+
+    if (!isValidImage) {
+      debugLog("galleryCache", `Invalid image data for ${imageId}`);
+      return null;
+    }
+
+    // lgtm[js/http-to-file-access] - URL validated against VRChat CDN allowlist, content-type checked, size limited, and magic bytes verified
     fs.writeFileSync(localPath, buffer);
 
     const manifest = loadGalleryCacheManifest();

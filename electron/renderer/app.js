@@ -543,22 +543,6 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     }
   }
 
-  function resetAutomationForm() {
-    if (dom.automationEnabled) dom.automationEnabled.checked = false;
-    if (dom.automationSettings) dom.automationSettings.classList.add("is-hidden");
-    if (dom.automationTimingMode) dom.automationTimingMode.value = "before";
-    if (dom.automationTimingInput) dom.automationTimingInput.value = "07:00:00";
-    if (dom.automationMonthlyDay) dom.automationMonthlyDay.value = "1";
-    if (dom.automationMonthlyTime) dom.automationMonthlyTime.value = "18:00";
-    if (dom.automationRepeatMode) dom.automationRepeatMode.value = "indefinite";
-    if (dom.automationRepeatCount) dom.automationRepeatCount.value = "10";
-    if (dom.automationOffsetSettings) dom.automationOffsetSettings.classList.remove("is-hidden");
-    if (dom.automationMonthlySettings) dom.automationMonthlySettings.classList.add("is-hidden");
-    if (dom.automationOffsetProse) dom.automationOffsetProse.classList.remove("is-hidden");
-    if (dom.automationMonthlyProse) dom.automationMonthlyProse.classList.add("is-hidden");
-    if (dom.automationRepeatCountField) dom.automationRepeatCountField.classList.add("is-hidden");
-  }
-
   function parseAutomationTimingInput(value) {
     // Parse DD:HH:MM format (same as duration format)
     const parsed = parseDurationInput(value);

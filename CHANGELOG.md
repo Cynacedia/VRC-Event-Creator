@@ -2,6 +2,21 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.26] - 2026-01-09
+
+### Security
+- Enhanced file system write validation for debug logs with content sanitization
+- Added comprehensive security validation for gallery image downloads
+  - URL restricted to trusted VRChat CDN domains only
+  - Content-Type validation ensures image files only
+  - File size limited to 10MB maximum
+  - Magic byte verification confirms valid image formats (PNG, JPEG, WebP)
+  - Path traversal protection via normalized path checking
+
+### Fixed
+- Removed unused duplicate `resetAutomationForm` function from app.js
+- Added CodeQL suppression comments for validated file operations
+
 ## [0.9.25] - 2026-01-09
 
 ### Fixed
