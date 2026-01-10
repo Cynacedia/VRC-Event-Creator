@@ -61,7 +61,7 @@ __**Deel geen cachebestanden of applicatiedatamappen.**__
 - Privégroepen kunnen alleen Toegangstype = Groep gebruiken.
 - Tijdsduur gebruikt **DD:HH:MM** en heeft een maximum van 31 dagen.
 - Tags zijn beperkt tot 5 en talen zijn beperkt tot 3.
-- Gallery-uploads zijn beperkt tot PNG/JPG, 64–2048 px, onder 10 MB, en 64 afbeeldingen per account.
+- Gallerij-uploads zijn beperkt tot PNG/JPG, 64–2048 px, onder 10 MB, en 64 afbeeldingen per account.
 - VRChat beperkt het aanmaken van events tot 10 events per uur per persoon per groep.
 - Event-automatisering vereist dat de app draait. Gemiste automations kun je beheren in Evenementen wijzigen.
 
@@ -72,7 +72,7 @@ __**Deel geen cachebestanden of applicatiedatamappen.**__
 - Updates: Sommige functies zijn geblokkeerd wanneer er updates klaarstaan. Download en start de nieuwste release.
 
 ## Disclaimer
-- Dit project is niet gelieerd aan of onderschreven door VRChat. Gebruik op eigen risico.
+- Dit project is niet verbonden met of goedgekeurd door VRChat. Gebruik op eigen risico.
 - Talen zijn machinaal vertaald en kunnen onnauwkeurig zijn; draag gerust correcties bij.
 
 ## Vereisten (bouwen vanaf broncode)
