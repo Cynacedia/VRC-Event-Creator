@@ -147,6 +147,13 @@ export const fr = {
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "Réduire dans la barre d'état système ?",
     message: "Vous pouvez modifier cela plus tard dans les paramètres.",
@@ -301,6 +308,8 @@ export const fr = {
       cancel: "Annuler",
       publishAt: "Publication le: {time}",
       missedHint: "Cette automatisation a été manquée. Publiez maintenant ou supprimez.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Événement publié avec succès.",
       postFailed: "Impossible de publier l'événement.",
       cancelled: "Événement en attente annulé.",

@@ -147,6 +147,13 @@ export const es = {
     saveButton: "Guardar configuración",
     saved: "Configuración guardada."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "¿Minimizar a la bandeja del sistema?",
     message: "Puedes cambiar esto más tarde en Configuración.",
@@ -301,6 +308,8 @@ export const es = {
       cancel: "Cancelar",
       publishAt: "Publicación el: {time}",
       missedHint: "Esta automatización fue omitida. Publica ahora o elimina.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Evento publicado exitosamente.",
       postFailed: "No se pudo publicar el evento.",
       cancelled: "Evento pendiente cancelado.",

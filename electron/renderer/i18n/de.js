@@ -54,8 +54,6 @@ export const de = {
     loadMore: "Mehr laden",
     loadFailed: "Galerie konnte nicht geladen werden."
   },
-
-
   settings: {
     title: "Einstellungen",
     theme: {
@@ -148,6 +146,13 @@ export const de = {
     },
     saveButton: "Einstellungen speichern",
     saved: "Einstellungen gespeichert."
+  },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
   },
   trayPrompt: {
     title: "In Systemleiste minimieren?",
@@ -303,6 +308,8 @@ export const de = {
       cancel: "Abbrechen",
       publishAt: "Veröffentlichung am: {time}",
       missedHint: "Diese Automatisierung wurde verpasst. Jetzt posten oder löschen.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Event erfolgreich gepostet.",
       postFailed: "Event konnte nicht gepostet werden.",
       cancelled: "Geplantes Event abgebrochen.",

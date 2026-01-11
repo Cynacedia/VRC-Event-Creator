@@ -147,6 +147,13 @@ export const ru = {
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "Свернуть в системный трей?",
     message: "Вы можете изменить это позже в настройках.",
@@ -301,6 +308,8 @@ export const ru = {
       cancel: "Отмена",
       publishAt: "Дата публикации: {time}",
       missedHint: "Эта автоматизация была пропущена. Опубликуйте сейчас или удалите.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Событие успешно опубликовано.",
       postFailed: "Не удалось опубликовать событие.",
       cancelled: "Ожидающее событие отменено.",

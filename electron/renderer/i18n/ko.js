@@ -147,6 +147,13 @@ export const ko = {
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "시스템 트레이로 최소화하시겠습니까?",
     message: "나중에 설정에서 변경할 수 있습니다.",
@@ -301,6 +308,8 @@ export const ko = {
       cancel: "취소",
       publishAt: "게시 예정일: {time}",
       missedHint: "이 자동화가 누락되었습니다. 지금 게시하거나 삭제하세요.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "이벤트가 성공적으로 게시되었습니다.",
       postFailed: "이벤트를 게시할 수 없습니다.",
       cancelled: "예정된 이벤트가 취소되었습니다.",

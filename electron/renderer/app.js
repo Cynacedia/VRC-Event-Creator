@@ -10,6 +10,7 @@ import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileA
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
+import { initDemoControls } from "./demo.js";
 
 (() => {
   const api = window.vrcEvent;
@@ -1168,9 +1169,16 @@ import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLoc
     applyTranslations();
     setAuthState(false);
     renderUpcomingEventCountLabel();
+    if (api?.isDemo && api.demoInitError) {
+      console.error("Demo preload error:", api.demoInitError);
+      showToast("Demo data failed to initialize. Check the terminal logs.", true, { duration: 8000 });
+    }
     initThemeControls();
     initGalleryPicker(api);
     initModifyEvents(api);
+    if (api.isDemo) {
+      initDemoControls(api, checkForUpdates);
+    }
     await loadTheme(api);
     // Clean stale gallery cache entries on startup (older than 30 days)
     api.cleanGalleryCache?.(30);
