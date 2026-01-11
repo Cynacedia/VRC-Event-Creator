@@ -1,11 +1,13 @@
 {
   "name": "VRCEventCreator",
-  "version": "0.9.28",
+  "version": "0.9.29",
   "main": "electron/main.js",
   "scripts": {
     "start:gui": "electron .",
+    "start:demo": "electron extra/demo/main.js",
     "dist:gui": "electron-builder --win",
     "dist:gui:all": "electron-builder",
+    "dist:demo": "electron-builder --win --config extra/demo/demo-builder.json --publish never",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

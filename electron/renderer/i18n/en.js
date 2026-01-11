@@ -147,6 +147,13 @@ export const en = {
     saveButton: "Save Settings",
     saved: "Settings saved."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "Minimize to System Tray?",
     message: "You can change this later in Settings.",
@@ -301,6 +308,8 @@ export const en = {
       cancel: "Cancel",
       publishAt: "Publishes on: {time}",
       missedHint: "This automation was missed. Post now or delete.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Event posted successfully.",
       postFailed: "Could not post event.",
       cancelled: "Pending event cancelled.",

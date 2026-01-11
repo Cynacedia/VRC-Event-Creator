@@ -147,6 +147,13 @@ export const ja = {
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "システムトレイに最小化しますか？",
     message: "これは後で設定で変更できます。",
@@ -301,6 +308,8 @@ export const ja = {
       cancel: "キャンセル",
       publishAt: "公開日: {time}",
       missedHint: "この自動化は見逃されました。今すぐ投稿するか削除してください。",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "イベントが正常に投稿されました。",
       postFailed: "イベントを投稿できませんでした。",
       cancelled: "予定イベントがキャンセルされました。",

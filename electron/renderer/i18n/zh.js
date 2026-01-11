@@ -4,7 +4,7 @@ export const zh = {
   nav: {
     create: "创建活动",
     modify: "编辑活动",
-    profiles: "管理模板",
+    profiles: "管理个人资料",
     settings: "设置"
   },
   auth: {
@@ -106,7 +106,7 @@ export const zh = {
         bgDeep: "背景 2",
         backdrop: "背景 3",
         panel: "面板",
-        panelAlt: "面板 Alt",
+        panelAlt: "通知面板",
         headerBg: "页眉",
         overlay: "叠加层",
         text: "文本",
@@ -146,6 +146,13 @@ export const zh = {
     },
     saveButton: "保存设置",
     saved: "设置已保存。"
+  },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
   },
   trayPrompt: {
     title: "最小化到系统托盘？",
@@ -301,6 +308,8 @@ export const zh = {
       cancel: "取消",
       publishAt: "发布日期: {time}",
       missedHint: "此自动化已错过。立即发布或删除。",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "活动发布成功。",
       postFailed: "无法发布活动。",
       cancelled: "待发布活动已取消。",

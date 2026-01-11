@@ -2,6 +2,18 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.29] - 2026-01-10
+
+### Changed
+- Demo mode test data improvements for better translation testing and automation visualization
+- Default Showcase pending events now accurately match hangout profile (category, languages, platforms, image, duration)
+- Automation group profiles renamed to include timing info ("Weekly Session - 3 Days Before", "Bi-Weekly Session - 3 Days After", "Weekly Spotlight - Monthly on 11th")
+- Automation groups now include 2-4 published events showing automation history and context
+- Automation pending events expanded from 1 to 4 cards per group demonstrating repeating patterns
+- Monthly automation fixed to show batch publishing: 4 weekly events per month all publishing on the same day (11th)
+- Monthly automation pattern changed from "1st Saturday" to "every Saturday" for accurate weekly demonstration
+- Demo build configuration changed from NSIS installer to portable standalone executable
+
 ## [0.9.28] - 2026-01-10
 
 ### Added

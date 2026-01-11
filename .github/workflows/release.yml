@@ -50,6 +50,10 @@ jobs:
       - name: Build Electron app
         run: npx electron-builder --publish never
 
+      - name: Build Demo app (Windows)
+        if: matrix.os == 'windows-latest'
+        run: npm run dist:demo
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -59,6 +63,7 @@ jobs:
             dist/*.AppImage
             dist/latest*.yml
             dist/*.blockmap
+            dist-demo/*.exe
           if-no-files-found: ignore
 
   release:

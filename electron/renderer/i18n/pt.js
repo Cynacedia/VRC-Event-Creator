@@ -147,6 +147,13 @@ export const pt = {
     saveButton: "Salvar configurações",
     saved: "Configurações salvas."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "Minimizar para a bandeja do sistema?",
     message: "Você pode alterar isso mais tarde nas Configurações.",
@@ -301,6 +308,8 @@ export const pt = {
       cancel: "Cancelar",
       publishAt: "Publicação em: {time}",
       missedHint: "Esta automação foi perdida. Publique agora ou exclua.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Evento publicado com sucesso.",
       postFailed: "Não foi possível publicar o evento.",
       cancelled: "Evento pendente cancelado.",

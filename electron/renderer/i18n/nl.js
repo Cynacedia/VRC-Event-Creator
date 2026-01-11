@@ -147,6 +147,13 @@ export const nl = {
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
   },
+  demo: {
+    controls: {
+      title: "Demo Controls",
+      updateGateLabel: "Force Update Required",
+      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+    }
+  },
   trayPrompt: {
     title: "Minimaliseren naar systeemvak?",
     message: "Je kunt dit later wijzigen in Instellingen.",
@@ -301,6 +308,8 @@ export const nl = {
       cancel: "Annuleren",
       publishAt: "Wordt gepubliceerd op: {time}",
       missedHint: "Deze automatisering is gemist. Plaats nu of verwijder.",
+      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
+      queuedHint: "Queued by rate limits. Waiting to publish.",
       posted: "Evenement succesvol geplaatst.",
       postFailed: "Kon evenement niet plaatsen.",
       cancelled: "Evenement in afwachting geannuleerd.",

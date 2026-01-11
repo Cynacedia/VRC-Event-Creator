@@ -1,0 +1,25 @@
+{
+  "appId": "com.vrceventcreator.demo",
+  "productName": "VRChat Event Creator DEMO",
+  "asar": true,
+  "files": [
+    "electron/**/*",
+    "extra/demo/**/*",
+    "package.json"
+  ],
+  "directories": {
+    "output": "dist-demo"
+  },
+  "extraMetadata": {
+    "main": "extra/demo/main.js",
+    "name": "VRCEventCreatorDemo"
+  },
+  "win": {
+    "target": "portable",
+    "icon": "electron/app.ico",
+    "artifactName": "VRChat-Event-Creator-DEMO-${version}.${ext}"
+  },
+  "portable": {
+    "artifactName": "VRChat-Event-Creator-DEMO-${version}.exe"
+  }
+}
