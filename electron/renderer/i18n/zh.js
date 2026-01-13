@@ -9,18 +9,18 @@ export const zh = {
   },
   auth: {
     title: "登录",
-    subtitle: "需要 VRChat 凭据",
+    subtitle: "需要 VRChat 登录凭据",
     username: "用户名",
     password: "密码",
     signIn: "登录",
     logout: "退出登录",
-    sessionHint: "会话会缓存在本地。请妥善保管缓存文件。",
+    sessionHint: "会话已缓存到本地。请妥善保管缓存文件。",
     loggingIn: "正在登录...",
     loginFailed: "登录失败。",
     sessionChecking: "正在检查会话...",
     sessionCheckFailed: "会话检查失败。",
     loginRequired: "需要登录。",
-    loggedInAs: "已以 {name} 登录。",
+    loggedInAs: "已登录为 {name}。",
     logoutFailed: "退出登录失败。",
     loggedOut: "已退出登录。"
   },
@@ -32,16 +32,16 @@ export const zh = {
   },
   languageSetup: {
     title: "选择语言",
-    subtitle: "选择你的语言以开始。",
+    subtitle: "请选择语言以开始使用。",
     hint: "你可以随时在设置中更改。",
     continue: "继续"
   },
   gallery: {
     title: "图库",
-    subtitle: "选择一张图库图片以使用其文件ID。",
+    subtitle: "选择一张图库图片以使用其图片 ID。",
     empty: "未找到图库图片。",
     loading: "正在加载图库...",
-    useButton: "使用图片ID",
+    useButton: "使用图片 ID",
     chooseButton: "选择",
     uploadButton: "上传",
     uploadSuccess: "图库图片已上传。",
@@ -58,7 +58,7 @@ export const zh = {
     title: "设置",
     theme: {
       title: "主题",
-      description: "自定义应用外观。选择预设或手动调整。",
+      description: "自定义应用外观。选择预设主题或手动调整。",
       label: "颜色主题",
       default: "默认（青绿色）",
       blue: "海洋蓝",
@@ -97,7 +97,7 @@ export const zh = {
         dropdownOptionC: "下拉选项 C",
         dropdownOptionD: "下拉选项 D",
         previewLink: "预览链接",
-        toastPreview: "提示预览使用 Panel Alt",
+        toastPreview: "提示预览使用通知面板",
         previewHint: "调整颜色时预览会实时更新。"
       },
       fields: {
@@ -156,7 +156,7 @@ export const zh = {
   },
   trayPrompt: {
     title: "最小化到系统托盘？",
-    message: "您可以稍后在设置中更改此选项。",
+    message: "你可以稍后在设置中更改此选项。",
     yes: "是",
     no: "否"
   },
@@ -176,8 +176,8 @@ export const zh = {
     other: "其他"
   },
   platforms: {
-    pcWindows: "PC (Windows)",
-    android: "Android (Quest、移动端等)",
+    pcWindows: "PC（Windows）",
+    android: "Android（Quest、移动端等）",
     ios: "iOS"
   },
   events: {
@@ -206,17 +206,17 @@ export const zh = {
       manualTime: "手动时间"
     },
     hints: {
-      profileDefaults: "选择模板作为默认值，或留空手动创建。"
+      profileDefaults: "选择模板以填充默认值，或留空手动创建。"
     },
     dateHints: {
       default: "手动模式已就绪。带模式的模板会提供日期选项。",
       noProfile: "未选择模板。请使用手动日期/时间。",
       manualReady: "手动模式就绪。",
-      chooseGenerated: "选择生成的日期或使用手动。",
+      chooseGenerated: "选择生成的日期或手动输入。",
       noUpcoming: "未找到即将到来的日期。",
       loadFailed: "无法加载模式日期。"
     },
-    profileHint: "模板可选。可用于默认值，或全部手动创建。",
+    profileHint: "模板为可选项，可用于填充默认值，也可完全手动创建。",
     loadProfile: "加载模板（可选）",
     loadProfilePlaceholder: "选择一个模板",
     clearProfile: "清除模板",
@@ -225,11 +225,11 @@ export const zh = {
     dateSourcePattern: "来自模板模式",
     dateOption: "选择日期",
     patternDateLabel: "{label} - {date}",
-    access: "访问",
+    access: "访问权限",
     roleRestrictions: {
       title: "角色限制",
-      hint: "可选 - 启用后，仅所选的群组角色可以加入。",
-      optional: "对于实例管理员，所选最低管理员角色及以上的所有角色都可加入。",
+      hint: "可选：启用后，仅所选群组角色可加入。",
+      optional: "对于实例管理员，所选最低管理员角色及以上的角色均可加入。",
       allAccess: "无（所有人都可加入）",
       managementRoles: "管理角色",
       roles: "角色",
@@ -238,19 +238,19 @@ export const zh = {
     manualProfileOption: "手动（无模板）",
     pastDateError: "不能选择过去的日期。",
     futureDateError: "活动最多只能提前 1 年安排。",
-    upcomingLimitNotice: "VRChat 当前将每个群组的即将到来活动限制为 10 个。",
+    upcomingLimitNotice: "VRChat 当前将每个群组的即将到来的活动限制为 10 个。",
     upcomingCountGroupFallback: "该群组",
-    upcomingCountStatus: "{group} 的即将到来活动：{count}/{limit}。",
-    upcomingCountUnknown: "无法获取即将到来活动数量。",
-    upcomingCountToast: "{group} 现在有 {count}/{limit} 个即将到来活动。",
-    upcomingLimitReached: "已达上限：{group} 已有 {limit} 个即将到来活动。请删除或改期一个。",
-    upcomingLimitError: "已达上限：{group} 已有 {limit} 个即将到来活动。请删除或改期一个。",
-    crossPlatformRateLimit: "速率限制。在其他平台上创建的未跟踪活动可能计入您的限制。请在{minutes}分钟后重试。",
+    upcomingCountStatus: "{group} 的即将到来的活动：{count}/{limit}。",
+    upcomingCountUnknown: "无法获取即将到来的活动数量。",
+    upcomingCountToast: "{group} 现在有 {count}/{limit} 个即将到来的活动。",
+    upcomingLimitReached: "已达上限：{group} 已有 {limit} 个即将到来的活动。请删除或改期一个。",
+    upcomingLimitError: "已达上限：{group} 已有 {limit} 个即将到来的活动。请删除或改期一个。",
+    crossPlatformRateLimit: "速率限制。在其他平台上创建的未跟踪活动可能计入你的限制。请在 {minutes} 分钟后重试。",
     unknownRateLimit: "速率限制。请稍后重试。",
     upcomingCountRefresh: "刷新",
     createButton: "创建活动",
     create: {
-      warnConflicts: "警告冲突的活动",
+      warnConflicts: "提醒冲突的活动",
       alreadyCreating: "正在创建活动，请稍候..."
     },
     created: "活动已创建。",
@@ -267,9 +267,9 @@ export const zh = {
     subtitle: "编辑或删除群组即将到来的活动。",
     groupLabel: "群组",
     showPending: "显示待处理",
-    countEmpty: "无法获取即将到来活动。",
+    countEmpty: "无法获取即将到来的活动。",
     countGroupFallback: "该群组",
-    countStatus: "{group} 的即将到来活动：{count}。",
+    countStatus: "{group} 的即将到来的活动：{count}。",
     empty: "没有即将到来的活动。",
     dateUnknown: "日期不可用",
     eventImage: "活动图片",
@@ -285,7 +285,7 @@ export const zh = {
     manualTime: "更改时间",
     modal: {
       title: "编辑活动",
-      subtitle: "只有点击“保存”时更改才会生效。"
+      subtitle: "只有点击「保存」时更改才会生效。"
     },
     updateRequired: "有可用更新。请先更新再修改活动。",
     selectEventError: "请选择要编辑的活动。",
@@ -298,15 +298,15 @@ export const zh = {
     deleteFailed: "无法删除活动。",
     deleted: "活动已删除。",
     loadFailed: "无法加载活动。",
-    missedAutomationNoticeSingular: "1个活动无法在其预定的自动发布时间发布。",
-    missedAutomationNoticePlural: "{count}个活动无法在其预定的自动发布时间发布。",
-    queuedAutomationNoticeSingular: "速率限制：1个待处理活动已排队，正在等待速率限制解除。",
-    queuedAutomationNoticePlural: "速率限制：{count}个待处理活动已排队，正在等待速率限制解除。",
+    missedAutomationNoticeSingular: "1 个活动未能在预定的自动发布时间发布。",
+    missedAutomationNoticePlural: "{count} 个活动未能在预定的自动发布时间发布。",
+    queuedAutomationNoticeSingular: "速率限制：1 个待处理活动已排队，正在等待速率限制解除。",
+    queuedAutomationNoticePlural: "速率限制：{count} 个待处理活动已排队，正在等待速率限制解除。",
     pending: {
       postNow: "立即发布",
       edit: "编辑",
       cancel: "取消",
-      publishAt: "发布日期: {time}",
+      publishAt: "发布时间：{time}",
       missedHint: "此自动化已错过。立即发布或删除。",
       queuedDisabled: "Queued by rate limits. Post Now is disabled.",
       queuedHint: "Queued by rate limits. Waiting to publish.",
@@ -320,7 +320,7 @@ export const zh = {
   },
   profiles: {
     title: "管理模板",
-    subtitle: "为每个群组创建可复用模板。",
+    subtitle: "为每个群组创建可复用的模板。",
     steps: {
       select: "选择",
       basics: "基础",
@@ -342,7 +342,7 @@ export const zh = {
     },
     hints: {
       groupAccess: "选择具有日历权限的群组。",
-      patternsInfo: "模式用于预生成未来日期。"
+      patternsInfo: "模式用于预生成即将到来的日期。"
     },
     existingProfile: "已有模板",
     existingProfilePlaceholder: "选择一个模板",
@@ -351,8 +351,8 @@ export const zh = {
     saveButton: "保存模板",
     displayName: "模板名称",
     displayNamePlaceholder: "社区聚会模板",
-    access: "访问",
-    durationDefault: "默认时长 (DD:HH:MM)",
+    access: "访问权限",
+    durationDefault: "默认时长（DD:HH:MM）",
     dateMode: "日期模式",
     dateModePattern: "基于模式",
     dateModeManual: "仅手动",
@@ -374,10 +374,10 @@ export const zh = {
       types: {
         every: "每周 [weekday]",
         everyOther: "每隔一周 [weekday]",
-        nth1: "每月第1个[weekday]",
-        nth2: "每月第2个[weekday]",
-        nth3: "每月第3个[weekday]",
-        nth4: "每月第4个[weekday]",
+        nth1: "每月第 1 个[weekday]",
+        nth2: "每月第 2 个[weekday]",
+        nth3: "每月第 3 个[weekday]",
+        nth4: "每月第 4 个[weekday]",
         last: "每月最后一个[weekday]",
         annual: "每年[日期]"
       },
@@ -397,7 +397,7 @@ export const zh = {
     },
     automation: {
       title: "自动化（实验性）",
-      description: "根据您的模式自动发布活动。活动将在\"修改活动\"中显示为\"待处理\"。",
+      description: "根据你的模式自动发布活动。活动将在「编辑活动」中显示为「待处理」。",
       enableLabel: "启用自动化",
       timingLabel: "计划规则",
       frequencyLabel: "时间（DD:HH:MM）",
@@ -406,33 +406,33 @@ export const zh = {
         after: "上一个活动结束后",
         monthly: "每月特定日期"
       },
-      offsetHint: "发布活动的时间（提前/延后）：",
+      offsetHint: "提前/延后多长时间发布活动：",
       days: "天",
       hours: "小时",
       minutes: "分钟",
       monthlyHint: "每月在此日期发布活动：",
       monthlyDay: "月份日期",
-      monthlyDayHint: "29-31日将使用较短月份的最后一天",
+      monthlyDayHint: "29-31 日将使用较短月份的最后一天",
       monthlyTime: "时间",
       repeatMode: "重复",
       repeatModes: {
         indefinite: "无限期",
         count: "固定次数"
       },
-      repeatCount: "创建数量",
-      disclaimer: "自动化需要应用程序保持运行。可以从\"修改活动\"选项卡处理错过的自动化。",
+      repeatCount: "要创建的活动数",
+      disclaimer: "自动化需要应用保持运行。可在「编辑活动」选项卡处理错过的自动化。",
       patternsRequired: "自动化至少需要一个模式",
       confirmTitle: "启用自动化？",
-      confirmEnable: "自动化需要应用程序保持运行以发布活动。可以从\"修改活动\"选项卡处理错过的自动化。",
-      offsetCorrected: "偏移量（{oldOffset}天）超过了模式频率（{frequency}天）。已切换到\"之前\"模式，偏移量设为{newOffset}天。",
-      offsetCapped: "偏移量（{oldOffset}天）超过了模式频率。已限制为{newOffset}天。",
+      confirmEnable: "自动化需要应用保持运行才能发布活动。可在「编辑活动」选项卡处理错过的自动化。",
+      offsetCorrected: "偏移量（{oldOffset} 天）超过了模式频率（{frequency} 天）。已切换到「之前」模式，偏移量设为 {newOffset} 天。",
+      offsetCapped: "偏移量（{oldOffset} 天）超过了模式频率。已限制为 {newOffset} 天。",
       prose: {
-        day: "1天",
-        days: "{count}天",
-        hour: "1小时",
-        hours: "{count}小时",
-        minute: "1分钟",
-        minutes: "{count}分钟",
+        day: "1 天",
+        days: "{count} 天",
+        hour: "1 小时",
+        hours: "{count} 小时",
+        minute: "1 分钟",
+        minutes: "{count} 分钟",
         and: "和",
         noTime: "—",
         before: "在下一个活动开始前{time}发布。",
@@ -443,27 +443,27 @@ export const zh = {
         offsetDays: "设置提前或延后多少天发布活动",
         offsetHours: "设置提前或延后多少小时发布活动",
         offsetMinutes: "设置提前或延后多少分钟发布活动",
-        monthlyDay: "第29-31天会使用较短月份的最后一天",
+        monthlyDay: "第 29-31 天将使用较短月份的最后一天",
         monthlyTime: "设置每月发布活动的时间"
       },
-      offsetProse: "在下一个活动开始前7天发布。",
-      monthlyProse: "每月1日下午6点"
+      offsetProse: "在下一个活动开始前 7 天发布。",
+      monthlyProse: "每月 1 日下午 6 点"
     },
     created: "模板已创建。",
     updated: "模板已更新。",
     deleted: "模板已删除。",
-    confirmDelete: "删除模板 \"{name}\"？",
+    confirmDelete: "删除模板「{name}」？",
     selectGroupError: "请选择群组。",
     selectGroupFirst: "请先选择群组。",
     selectProfileError: "请选择要编辑的模板。",
-    maxLanguages: "最多选择3种语言。",
+    maxLanguages: "最多选择 3 种语言。",
     durationError: "时长必须为正数。",
     required: "{fields} 为必填。",
     requiredSingle: "{field} 为必填。",
     requiredMultiple: "{fields} 为必填。"
   },
   common: {
-    syncing: "正在同步...",
+    syncing: "正在同步数据...",
     ready: "就绪",
     error: "错误",
     offline: "离线",
@@ -481,7 +481,7 @@ export const zh = {
     delete: "删除",
     rateLimitError: "速率限制。请稍候再试。",
     noMatches: "无匹配项。",
-    noGroupsAccess: "没有具有日历权限的群组",
+    noGroupsAccess: "没有具备日历权限的群组",
     selectGroup: "选择群组",
     selectGroupPlaceholder: "选择一个群组",
     accessTypes: {
@@ -491,7 +491,7 @@ export const zh = {
     durationUnits: {
       day: "天",
       hour: "小时",
-      minute: "分"
+      minute: "分钟"
     },
     weekdays: {
       monday: "周一",
@@ -520,15 +520,15 @@ export const zh = {
       eventName: "活动名称",
       description: "描述",
       category: "类别",
-      tags: "标签（最多5个）",
+      tags: "标签（最多 5 个）",
       accessType: "访问类型",
-      imageId: "图片ID（可选）",
+      imageId: "图片 ID（可选）",
       imageIdPlaceholder: "例如：file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
       sendNotification: "发送通知",
       timezone: "时区",
       duration: "时长（DD:HH:MM）",
-      languages: "语言（最多3种）",
-      languagesHint: "已选择{count}种",
+      languages: "语言（最多 3 种）",
+      languagesHint: "已选择 {count} 种",
       filterLanguages: "筛选语言...",
       platforms: "平台",
       manualDate: "日期",
@@ -541,7 +541,7 @@ export const zh = {
   },
   conflict: {
     title: "活动冲突",
-    message: "活动\"{title}\"已在此时间安排。",
+    message: "活动「{title}」已在此时间安排。",
     changeTime: "重新选择时间",
     continue: "仍然创建"
   }
