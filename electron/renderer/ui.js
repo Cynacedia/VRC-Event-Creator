@@ -414,11 +414,15 @@ export function applyTheme(colors) {
   const fallbackUpdateBg = "#FF6B35";
   const fallbackRestartBg = "#22C55E";
   const updateBg = contrastRatio >= 4.5 ? accentBase : fallbackUpdateBg;
-  const updateText = getLuminance(updateBg) > 0.5 ? "#000000" : "#FFFFFF";
+  const updateText = getContrastColor(updateBg);
+  const updateBgLuminance = getLuminance(updateBg);
+  const updateFill = updateBgLuminance > 0.5 ? adjustColor(updateBg, -80) : adjustColor(updateBg, 80);
   root.style.setProperty("--update-pill-bg", updateBg);
   root.style.setProperty("--update-pill-text", updateText);
+  root.style.setProperty("--update-pill-fill", updateFill);
   root.style.setProperty("--restart-pill-bg", fallbackRestartBg);
   root.style.setProperty("--restart-pill-text", "#FFFFFF");
+  root.style.setProperty("--warning", "#FFC107");
 
   root.style.setProperty("--accent-soft", rgbaFromHex(normalized.accent, 0.2));
   root.style.setProperty("--glow", `0 0 12px ${rgbaFromHex(normalized.accent, 0.4)}`);
