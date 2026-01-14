@@ -1669,6 +1669,31 @@ ipcMain.handle("themePresets:export", async (_, payload) => {
   return exportThemePreset(payload);
 });
 
+ipcMain.handle("events:importJson", async () => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openFile"],
+    title: "Import Event JSON",
+    filters: [{ name: "Event JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false, cancelled: true };
+  }
+  const filePath = result.filePaths[0];
+  let raw = null;
+  try {
+    raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (err) {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Could not parse JSON file." } };
+  }
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Invalid JSON structure." } };
+  }
+  return { ok: true, data: raw };
+});
+
 ipcMain.handle("auth:getCurrentUser", async () => {
   return getCurrentUser();
 });

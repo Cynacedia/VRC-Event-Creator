@@ -95,6 +95,7 @@ export const dom = {
   eventLanguageHint: document.getElementById("event-language-hint"),
   eventPlatformList: document.getElementById("event-platform-list"),
   eventCreate: document.getElementById("event-create"),
+  eventImportJson: document.getElementById("event-import-json"),
   eventBack: document.getElementById("event-back"),
   eventNext: document.getElementById("event-next"),
   eventLimitNotice: document.getElementById("event-limit-notice"),

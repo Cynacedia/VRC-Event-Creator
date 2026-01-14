@@ -745,6 +745,9 @@ export async function handleEventGroupChange(api) {
   renderEventProfileOptions(api);
   enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
   void renderEventRoleRestrictions(api);
+  if (dom.eventImportJson) {
+    dom.eventImportJson.disabled = !dom.eventGroup.value;
+  }
   await refreshUpcomingEventCount(api);
 }
 
@@ -1074,6 +1077,146 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
 function getProfileLabel(profileKey, profile) {
   const label = (profile?.displayName || "").trim();
   return label || profileKey;
+}
+
+const VALID_CATEGORIES = ["hangout", "exploration", "roleplaying", "film_media", "gaming", "music", "dance", "performance", "arts", "avatars", "education", "wellness", "other"];
+const VALID_ACCESS_TYPES = ["public", "group"];
+
+export function applyImportedJsonToEventForm(data, api) {
+  if (!data || typeof data !== "object") {
+    return { success: false, message: "Invalid JSON data." };
+  }
+
+  // Apply title (eventName)
+  if (data.title && typeof data.title === "string") {
+    dom.eventName.value = sanitizeText(data.title, {
+      maxLength: EVENT_NAME_LIMIT,
+      allowNewlines: false,
+      trim: true
+    });
+  }
+
+  // Apply description
+  if (data.description && typeof data.description === "string") {
+    dom.eventDescription.value = sanitizeText(data.description, {
+      maxLength: EVENT_DESCRIPTION_LIMIT,
+      allowNewlines: true,
+      trim: true
+    });
+  }
+
+  // Apply category
+  if (data.category && typeof data.category === "string") {
+    if (VALID_CATEGORIES.includes(data.category)) {
+      dom.eventCategory.value = data.category;
+    }
+  }
+
+  // Apply tags
+  if (Array.isArray(data.tags)) {
+    const tags = data.tags.filter(t => typeof t === "string").slice(0, TAG_LIMIT);
+    if (state.event.tagInput) {
+      state.event.tagInput.setTags(tags);
+    } else {
+      dom.eventTags.value = tags.join(", ");
+    }
+  }
+
+  // Apply access type
+  if (data.accessType && typeof data.accessType === "string") {
+    if (VALID_ACCESS_TYPES.includes(data.accessType)) {
+      dom.eventAccess.value = data.accessType;
+      const groupId = dom.eventGroup.value;
+      if (groupId) {
+        enforceGroupAccess(dom.eventAccess, groupId);
+      }
+    }
+  }
+
+  // Apply role IDs (for group access)
+  if (Array.isArray(data.roleIds)) {
+    state.event.roleIds = data.roleIds.filter(id => typeof id === "string" && id.trim());
+  }
+
+  // Apply image ID
+  if (data.imageId && typeof data.imageId === "string") {
+    dom.eventImageId.value = data.imageId.trim();
+  }
+
+  // Apply send notification
+  if (typeof data.sendNotification === "boolean") {
+    dom.eventSendNotification.checked = data.sendNotification;
+  }
+
+  // Apply duration (in minutes)
+  if (typeof data.duration === "number" && data.duration > 0) {
+    dom.eventDuration.value = formatDuration(data.duration);
+    updateEventDurationPreview();
+  }
+
+  // Apply timezone
+  if (data.timezone && typeof data.timezone === "string") {
+    ensureTimezoneOption(dom.eventTimezone, data.timezone);
+    dom.eventTimezone.value = data.timezone;
+  }
+
+  // Apply languages (max 3)
+  if (Array.isArray(data.languages)) {
+    const validLanguages = data.languages.filter(l => typeof l === "string").slice(0, 3);
+    if (validLanguages.length) {
+      state.event.languages = validLanguages;
+      renderEventLanguageList();
+    }
+  }
+
+  // Apply platforms
+  if (Array.isArray(data.platforms)) {
+    const validPlatforms = data.platforms.filter(p => typeof p === "string");
+    if (validPlatforms.length) {
+      state.event.platforms = validPlatforms;
+      renderEventPlatformList();
+    }
+  }
+
+  // Apply date (optional, format YYYY-MM-DD)
+  if (data.date && typeof data.date === "string") {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (dateRegex.test(data.date)) {
+      dom.eventManualDate.value = data.date;
+    }
+  }
+
+  // Apply time (optional, format HH:MM)
+  if (data.time && typeof data.time === "string") {
+    const timeRegex = /^\d{2}:\d{2}$/;
+    if (timeRegex.test(data.time)) {
+      dom.eventManualTime.value = data.time;
+    }
+  }
+
+  // Re-render role restrictions if needed
+  void renderEventRoleRestrictions(api);
+
+  return { success: true };
+}
+
+export async function handleEventImportJson(api) {
+  try {
+    const result = await api.importEventJson();
+    if (!result) {
+      return { success: false, message: "Import failed." };
+    }
+    if (result.cancelled) {
+      return { success: false, cancelled: true };
+    }
+    if (!result.ok) {
+      const errorMessage = result.error?.message || "Could not import JSON file.";
+      return { success: false, message: errorMessage };
+    }
+    return applyImportedJsonToEventForm(result.data, api);
+  } catch (err) {
+    return { success: false, message: err.message || "Import failed." };
+  }
 }
 
 // Bind conflict modal event handlers

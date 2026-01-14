@@ -198,6 +198,7 @@ export const en = {
     labels: {
       groupRequired: "Group (required)",
       profileOptional: "Profile (optional)",
+      importJson: "Import from JSON",
       dateSource: "Use",
       dateSourcePattern: "Pattern",
       dateSourceManual: "Manual",
@@ -206,7 +207,8 @@ export const en = {
       manualTime: "Manual Time"
     },
     hints: {
-      profileDefaults: "Pick a profile for defaults, or leave blank to create manually."
+      profileDefaults: "Pick a profile for defaults, or leave blank to create manually.",
+      importJson: "Import event details from a JSON file."
     },
     dateHints: {
       default: "Manual mode is ready. Profiles with patterns unlock date options.",
@@ -220,6 +222,8 @@ export const en = {
     loadProfile: "Load Profile (optional)",
     loadProfilePlaceholder: "Select a profile",
     clearProfile: "Clear Profile",
+    importJsonButton: "Import JSON",
+    importSuccess: "Event data imported from JSON.",
     dateSource: "Date & Time",
     dateSourceManual: "Manual",
     dateSourcePattern: "From profile pattern",

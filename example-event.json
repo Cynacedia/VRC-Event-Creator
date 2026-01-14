@@ -1,0 +1,14 @@
+{
+  "title": "Weekly Movie Night",
+  "description": "Join us for our weekly movie night! We'll be watching a community-voted film together. Bring your friends and cozy avatars!\n\nRules:\n- Be respectful\n- No spoilers\n- Have fun!",
+  "category": "film_media",
+  "accessType": "public",
+  "languages": ["eng"],
+  "platforms": ["standalonewindows", "android"],
+  "tags": ["movie", "social", "weekly"],
+  "sendNotification": true,
+  "duration": 180,
+  "timezone": "America/New_York",
+  "date": "2026-01-20",
+  "time": "19:00"
+}

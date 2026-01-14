@@ -21,6 +21,7 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   listGroupEvents: payload => ipcRenderer.invoke("events:listGroup", payload),
   updateEvent: payload => ipcRenderer.invoke("events:update", payload),
   deleteEvent: payload => ipcRenderer.invoke("events:delete", payload),
+  importEventJson: () => ipcRenderer.invoke("events:importJson"),
   getGalleryFiles: payload => ipcRenderer.invoke("files:listGallery", payload),
   uploadGalleryImage: () => ipcRenderer.invoke("files:uploadGallery"),
   getCachedImage: imageId => ipcRenderer.invoke("gallery:getCachedImage", { imageId }),
