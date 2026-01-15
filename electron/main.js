@@ -2614,6 +2614,28 @@ ipcMain.handle("automation:resolveEvent", async (_, payload) => {
   return { ok: true, eventDetails: resolved };
 });
 
+ipcMain.handle("automation:restore", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { ok: false, error: { message: "Automation not initialized" } };
+  }
+  const { groupId, profileKey } = payload || {};
+  if (!groupId || !profileKey) {
+    return { ok: false, error: { message: "Missing groupId or profileKey" } };
+  }
+  return automationEngine.restoreDeletedEvents(groupId, profileKey);
+});
+
+ipcMain.handle("automation:getRestorableCount", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return 0;
+  }
+  const { groupId, profileKey } = payload || {};
+  if (!groupId || !profileKey) {
+    return 0;
+  }
+  return automationEngine.getRestorableCount(groupId, profileKey);
+});
+
 app.whenReady().then(() => {
   initDebugLog();
   initializePaths();

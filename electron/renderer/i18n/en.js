@@ -463,7 +463,13 @@ export const en = {
         monthlyTime: "Set the time when events will be posted each month"
       },
       offsetProse: "Post the next event 7 days before it begins.",
-      monthlyProse: "Every month on the 1st at 6:00 PM"
+      monthlyProse: "Every month on the 1st at 6:00 PM",
+      restoreButton: "Restore Deleted Events",
+      restoreSuccess: "Restored {count} event(s)",
+      restoreNone: "No events to restore",
+      restoreFailed: "Failed to restore events",
+      restoreNoProfile: "No profile selected",
+      restorableCount: "{count} deleted event(s) can be restored"
     },
     created: "Profile created.",
     updated: "Profile updated.",

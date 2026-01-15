@@ -200,6 +200,8 @@ export const dom = {
   automationRepeatMode: document.getElementById("automation-repeat-mode"),
   automationRepeatCountField: document.getElementById("automation-repeat-count-field"),
   automationRepeatCount: document.getElementById("automation-repeat-count"),
+  automationRestore: document.getElementById("automation-restore"),
+  automationRestoreCount: document.getElementById("automation-restore-count"),
   // Automation confirm overlay
   automationConfirmOverlay: document.getElementById("automation-confirm-overlay"),
   automationConfirmOk: document.getElementById("automation-confirm-ok"),
