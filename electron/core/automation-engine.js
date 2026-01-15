@@ -789,11 +789,20 @@ async function executeAutomatedPostInternal(pendingEvent) {
       // Update automation state
       const profileStateKey = `${pendingEvent.groupId}::${pendingEvent.profileKey}`;
       if (!automationState.profiles[profileStateKey]) {
-        automationState.profiles[profileStateKey] = { eventsCreated: 0 };
+        automationState.profiles[profileStateKey] = { eventsCreated: 0, publishedEventTimes: [] };
+      }
+      if (!automationState.profiles[profileStateKey].publishedEventTimes) {
+        automationState.profiles[profileStateKey].publishedEventTimes = [];
       }
       automationState.profiles[profileStateKey].eventsCreated += 1;
       automationState.profiles[profileStateKey].lastSuccess = new Date().toISOString();
       automationState.profiles[profileStateKey].lastEventId = result.eventId;
+
+      // Track published event time to prevent duplicate pending events
+      const eventTime = new Date(pendingEvent.eventStartsAt).getTime();
+      if (!automationState.profiles[profileStateKey].publishedEventTimes.includes(eventTime)) {
+        automationState.profiles[profileStateKey].publishedEventTimes.push(eventTime);
+      }
 
       saveAutomationState();
       savePendingEvents();
