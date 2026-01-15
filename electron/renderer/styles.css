@@ -1215,6 +1215,20 @@ textarea::-webkit-scrollbar {
   display: none;
 }
 
+.automation-restore-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.automation-restore-row .hint {
+  margin: 0;
+  font-style: italic;
+}
+
 /* Monthly day and time fields - uniform styling */
 .automation-monthly-day-field,
 .automation-monthly-time-field {

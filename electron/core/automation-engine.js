@@ -9,6 +9,7 @@ const { generateDateOptionsFromPatterns } = require("./date-utils");
 // In-memory job storage
 const scheduledJobs = new Map(); // pendingEventId -> timeoutId
 let pendingEvents = [];
+let deletedEvents = []; // Soft-deleted events that can be restored
 let pendingSettings = { displayLimit: 10 };
 let automationState = { profiles: {} };
 let initialized = false;
@@ -123,15 +124,22 @@ function loadPendingEvents() {
     if (fs.existsSync(PENDING_EVENTS_PATH)) {
       const data = JSON.parse(fs.readFileSync(PENDING_EVENTS_PATH, "utf8"));
       pendingEvents = Array.isArray(data.events) ? data.events : [];
+      deletedEvents = Array.isArray(data.deletedEvents) ? data.deletedEvents : [];
       if (data.settings && typeof data.settings === "object") {
         pendingSettings = { displayLimit: 10, ...data.settings };
       }
+
+      // Clean up deleted events where eventStartsAt has passed (can never be restored)
+      const now = new Date();
+      deletedEvents = deletedEvents.filter(e => new Date(e.eventStartsAt) > now);
     } else {
       pendingEvents = [];
+      deletedEvents = [];
     }
   } catch (err) {
     debugLogFn("Automation", "Failed to load pending events:", err);
     pendingEvents = [];
+    deletedEvents = [];
   }
 }
 
@@ -142,6 +150,7 @@ function savePendingEvents() {
   try {
     const data = {
       events: pendingEvents,
+      deletedEvents: deletedEvents,
       settings: pendingSettings
     };
     fs.writeFileSync(PENDING_EVENTS_PATH, JSON.stringify(data, null, 2));
@@ -332,8 +341,10 @@ function calculatePendingEvents(groupId, profileKey, profile, maxEvents = 10) {
     }
 
     // Create pending event object (dynamic - only store references, not full details)
+    // Use deterministic ID based on groupId + profileKey + eventStartTime
+    // This ensures the same pattern-slot always generates the same ID
     const pendingEvent = {
-      id: `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `pending_${groupId}_${profileKey}_${eventStartTime.getTime()}`,
       groupId,
       profileKey,
       scheduledPublishTime: publishTime.toISOString(),
@@ -904,9 +915,12 @@ async function handleMissedEvent(pendingEventId, action) {
 
     return { ok: true };
   } else if (action === "cancel") {
-    // Remove the pending event
+    // Soft-delete: move to deletedEvents array instead of permanently removing
     cancelJob(pendingEventId);
-    pendingEvents.splice(eventIndex, 1);
+    const deletedEvent = pendingEvents.splice(eventIndex, 1)[0];
+    deletedEvent.status = "deleted";
+    deletedEvent.deletedAt = new Date().toISOString();
+    deletedEvents.push(deletedEvent);
     savePendingEvents();
     return { ok: true };
   }
@@ -965,17 +979,34 @@ function updatePendingEventsForProfile(groupId, profileKey, profile) {
     profilesRef[groupId].profiles[profileKey] = profile;
   }
 
-  // Cancel existing jobs for this profile
-  cancelJobsForProfile(groupId, profileKey);
+  // Get existing events for this profile
+  const existingEvents = pendingEvents.filter(e =>
+    e.groupId === groupId && e.profileKey === profileKey
+  );
 
-  // Remove existing pending events for this profile (except ones with manual overrides)
-  pendingEvents = pendingEvents.filter(e => {
-    if (e.groupId === groupId && e.profileKey === profileKey) {
-      // Keep events with manual overrides
-      return e.manualOverrides !== null;
+  // Get IDs of manually modified events (these should NEVER be recreated)
+  const modifiedEventIds = new Set(
+    existingEvents.filter(e => e.manualOverrides).map(e => e.id)
+  );
+
+  // Get IDs of deleted events (these should not be recreated)
+  const deletedEventIds = new Set(
+    deletedEvents
+      .filter(e => e.groupId === groupId && e.profileKey === profileKey)
+      .map(e => e.id)
+  );
+
+  // Cancel existing jobs for this profile (only non-modified ones will be replaced)
+  for (const event of existingEvents) {
+    if (!event.manualOverrides) {
+      cancelJob(event.id);
     }
-    return true;
-  });
+  }
+
+  // Remove only auto-generated events (keep manually modified ones)
+  pendingEvents = pendingEvents.filter(e =>
+    !(e.groupId === groupId && e.profileKey === profileKey && !e.manualOverrides)
+  );
 
   // If automation is disabled, just save and return
   if (!profile?.automation?.enabled) {
@@ -984,19 +1015,42 @@ function updatePendingEventsForProfile(groupId, profileKey, profile) {
     return;
   }
 
-  // Calculate new pending events
+  // Check if we should generate pending events
+  // Only generate if: profile has created events before OR there are existing pending events
+  const profileStateKey = `${groupId}::${profileKey}`;
+  const profileState = automationState.profiles[profileStateKey] || { eventsCreated: 0 };
+  const hasExistingPending = existingEvents.length > 0;
+  const hasCreatedBefore = profileState.eventsCreated > 0;
+
+  if (!hasExistingPending && !hasCreatedBefore) {
+    // Don't generate pending events until first manual event is created
+    savePendingEvents();
+    debugLogFn("Automation", `No pending events generated for ${groupId}::${profileKey} - waiting for first manual event`);
+    return;
+  }
+
+  // Calculate new pending events (with deterministic IDs)
   const newEvents = calculatePendingEvents(groupId, profileKey, profile);
 
-  // Add new events
-  pendingEvents.push(...newEvents);
+  // Filter out events whose ID matches:
+  // 1. A modified event (already exists, user customized it)
+  // 2. A deleted event (user explicitly removed it)
+  const filteredNewEvents = newEvents.filter(e =>
+    !modifiedEventIds.has(e.id) &&
+    !deletedEventIds.has(e.id)
+  );
+
+  // Add new events (modified events remain untouched in pendingEvents)
+  pendingEvents.push(...filteredNewEvents);
   savePendingEvents();
 
   // Schedule jobs for new events
-  for (const event of newEvents) {
+  for (const event of filteredNewEvents) {
     scheduleJob(event);
   }
 
-  debugLogFn("Automation", `Updated pending events for ${groupId}::${profileKey}, now ${newEvents.length} pending`);
+  const modifiedCount = existingEvents.filter(e => e.manualOverrides).length;
+  debugLogFn("Automation", `Updated pending events for ${groupId}::${profileKey}, ${filteredNewEvents.length} new + ${modifiedCount} modified preserved`);
 }
 
 /**
@@ -1102,6 +1156,142 @@ function resetAutomationState(groupId, profileKey) {
   saveAutomationState();
 }
 
+/**
+ * Calculate publish time for an event based on profile automation settings
+ * @param {string} eventStartsAt - ISO string of event start time
+ * @param {object} profile - Profile data with automation settings
+ * @returns {Date} Calculated publish time
+ */
+function calculatePublishTime(eventStartsAt, profile) {
+  const automation = profile?.automation;
+  if (!automation?.enabled) {
+    return null;
+  }
+
+  const eventStartTime = new Date(eventStartsAt);
+  let publishTime;
+
+  if (automation.timingMode === "before") {
+    const offsetMs = (
+      (automation.daysOffset || 0) * 24 * 60 * 60 * 1000 +
+      (automation.hoursOffset || 0) * 60 * 60 * 1000 +
+      (automation.minutesOffset || 0) * 60 * 1000
+    );
+    publishTime = new Date(eventStartTime.getTime() - offsetMs);
+  } else if (automation.timingMode === "monthly") {
+    const eventMonth = eventStartTime.getMonth();
+    const eventYear = eventStartTime.getFullYear();
+    let targetDay = automation.monthlyDay || 1;
+    const lastDayOfMonth = new Date(eventYear, eventMonth + 1, 0).getDate();
+    const publishDay = Math.min(targetDay, lastDayOfMonth);
+
+    publishTime = new Date(
+      eventYear,
+      eventMonth,
+      publishDay,
+      automation.monthlyHour || 12,
+      automation.monthlyMinute || 0,
+      0,
+      0
+    );
+
+    if (publishTime >= eventStartTime) {
+      publishTime.setMonth(publishTime.getMonth() - 1);
+      const prevMonthLastDay = new Date(publishTime.getFullYear(), publishTime.getMonth() + 1, 0).getDate();
+      publishTime.setDate(Math.min(targetDay, prevMonthLastDay));
+    }
+  } else {
+    // Default to "before" behavior for "after" mode during restore
+    const offsetMs = (
+      (automation.daysOffset || 0) * 24 * 60 * 60 * 1000 +
+      (automation.hoursOffset || 0) * 60 * 60 * 1000 +
+      (automation.minutesOffset || 0) * 60 * 1000
+    );
+    publishTime = new Date(eventStartTime.getTime() - offsetMs);
+  }
+
+  // Hard cap: publish time must be at least 30 minutes before event start
+  const MIN_BUFFER_MS = 30 * 60 * 1000;
+  const maxPublishTime = eventStartTime.getTime() - MIN_BUFFER_MS;
+  if (publishTime.getTime() > maxPublishTime) {
+    publishTime = new Date(maxPublishTime);
+  }
+
+  return publishTime;
+}
+
+/**
+ * Restore deleted pending events for a profile
+ * @param {string} groupId - Group ID
+ * @param {string} profileKey - Profile key
+ * @returns {object} Result with restoredCount
+ */
+function restoreDeletedEvents(groupId, profileKey) {
+  const deletedForProfile = deletedEvents.filter(e =>
+    e.groupId === groupId && e.profileKey === profileKey
+  );
+
+  if (deletedForProfile.length === 0) {
+    return { ok: true, restoredCount: 0 };
+  }
+
+  const profile = profilesRef?.[groupId]?.profiles?.[profileKey];
+  if (!profile) {
+    return { ok: false, error: { message: "Profile not found" } };
+  }
+
+  const now = new Date();
+  let restoredCount = 0;
+  const toRemoveFromDeleted = [];
+
+  for (const event of deletedForProfile) {
+    // Only restore events whose event date hasn't passed yet
+    if (new Date(event.eventStartsAt) > now) {
+      // Recalculate publish time based on current profile settings
+      const newPublishTime = calculatePublishTime(event.eventStartsAt, profile);
+
+      // Only restore if publish time calculation succeeded and is in the future
+      if (newPublishTime && newPublishTime > now) {
+        event.scheduledPublishTime = newPublishTime.toISOString();
+        event.status = "scheduled";
+        delete event.deletedAt;
+        pendingEvents.push(event);
+        scheduleJob(event);
+        restoredCount++;
+        toRemoveFromDeleted.push(event);
+      }
+    }
+  }
+
+  // Remove restored events from deletedEvents
+  for (const event of toRemoveFromDeleted) {
+    const idx = deletedEvents.indexOf(event);
+    if (idx !== -1) {
+      deletedEvents.splice(idx, 1);
+    }
+  }
+
+  savePendingEvents();
+  debugLogFn("Automation", `Restored ${restoredCount} deleted events for ${groupId}::${profileKey}`);
+
+  return { ok: true, restoredCount };
+}
+
+/**
+ * Get count of restorable deleted events for a profile
+ * @param {string} groupId - Group ID
+ * @param {string} profileKey - Profile key
+ * @returns {number} Count of restorable events
+ */
+function getRestorableCount(groupId, profileKey) {
+  const now = new Date();
+  return deletedEvents.filter(e =>
+    e.groupId === groupId &&
+    e.profileKey === profileKey &&
+    new Date(e.eventStartsAt) > now
+  ).length;
+}
+
 module.exports = {
   isInitialized,
   initializeAutomation,
@@ -1125,5 +1315,7 @@ module.exports = {
   updatePendingEventOverrides,
   getAutomationStatus,
   resetAutomationState,
-  resolveEventDetails
+  resolveEventDetails,
+  restoreDeletedEvents,
+  getRestorableCount
 };

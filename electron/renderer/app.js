@@ -513,6 +513,58 @@ import { initDemoControls } from "./demo.js";
     dom.automationEnabled.checked = false;
   }
 
+  async function handleAutomationRestore() {
+    const groupId = state.profile.groupId;
+    const profileKey = state.profile.key;
+    if (!groupId || !profileKey) {
+      showToast(t("profiles.automation.restoreNoProfile") || "No profile selected", true);
+      return;
+    }
+
+    try {
+      dom.automationRestore.disabled = true;
+      const result = await window.vrcEvent.restoreDeletedEvents({ groupId, profileKey });
+      if (result.ok) {
+        const count = result.restoredCount || 0;
+        if (count > 0) {
+          showToast(t("profiles.automation.restoreSuccess", { count }) || `Restored ${count} event(s)`);
+        } else {
+          showToast(t("profiles.automation.restoreNone") || "No events to restore");
+        }
+        // Update the restorable count display
+        await updateRestorableCount();
+      } else {
+        showToast(result.error?.message || t("profiles.automation.restoreFailed") || "Failed to restore events", true);
+      }
+    } catch (err) {
+      showToast(err.message || t("profiles.automation.restoreFailed") || "Failed to restore events", true);
+    } finally {
+      dom.automationRestore.disabled = false;
+    }
+  }
+
+  async function updateRestorableCount() {
+    const groupId = state.profile.groupId;
+    const profileKey = state.profile.key;
+    if (!groupId || !profileKey || !dom.automationRestoreCount) {
+      return;
+    }
+
+    try {
+      const count = await window.vrcEvent.getRestorableCount({ groupId, profileKey });
+      if (count > 0) {
+        dom.automationRestoreCount.textContent = t("profiles.automation.restorableCount", { count }) || `${count} deleted event(s) can be restored`;
+        dom.automationRestore.disabled = false;
+      } else {
+        dom.automationRestoreCount.textContent = "";
+        dom.automationRestore.disabled = true;
+      }
+    } catch (err) {
+      dom.automationRestoreCount.textContent = "";
+      dom.automationRestore.disabled = true;
+    }
+  }
+
   function handleAutomationTimingModeChange() {
     const mode = dom.automationTimingMode.value;
     const isMonthly = mode === "monthly";
@@ -1220,6 +1272,9 @@ import { initDemoControls } from "./demo.js";
     if (dom.automationMonthlyTime) {
       dom.automationMonthlyTime.addEventListener("input", updateAutomationProse);
     }
+    if (dom.automationRestore) {
+      dom.automationRestore.addEventListener("click", handleAutomationRestore);
+    }
 
     if (dom.profileImagePicker) {
       dom.profileImagePicker.addEventListener("click", () => openGalleryPicker(dom.profileImageId));
@@ -1392,8 +1447,9 @@ import { initDemoControls } from "./demo.js";
     }
   }
 
-  // Expose updateAutomationProse to global scope for use in profiles.js
+  // Expose updateAutomationProse and updateRestorableCount to global scope for use in profiles.js
   window.updateAutomationProse = updateAutomationProse;
+  window.updateRestorableCount = updateRestorableCount;
 
   bindEvents();
   init().catch(() => showToast("Failed to initialize app.", true));

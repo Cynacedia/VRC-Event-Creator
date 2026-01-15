@@ -219,6 +219,11 @@ function applyAutomationToForm(automation) {
   if (window.updateAutomationProse) {
     window.updateAutomationProse();
   }
+
+  // Update restorable count for the selected profile
+  if (window.updateRestorableCount) {
+    window.updateRestorableCount();
+  }
 }
 
 function getAutomationFromForm() {
