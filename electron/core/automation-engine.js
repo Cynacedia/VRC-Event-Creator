@@ -222,6 +222,8 @@ function calculatePendingEvents(groupId, profileKey, profile, maxEvents = 10) {
   // Generate date options from patterns (3 months ahead max)
   const dateOptions = generateDateOptionsFromPatterns(profile.patterns, 3, timezone);
 
+  debugLogFn("Automation", `Pattern dates generated: ${dateOptions.map(d => d.iso).join(", ")}`);
+
   if (!dateOptions.length) {
     return [];
   }
@@ -979,6 +981,10 @@ function updatePendingEventsForProfile(groupId, profileKey, profile) {
     profilesRef[groupId].profiles[profileKey] = profile;
   }
 
+  // Get profile state (needed for checking eventsCreated and publishedEventTimes)
+  const profileStateKey = `${groupId}::${profileKey}`;
+  const profileState = automationState.profiles[profileStateKey] || { eventsCreated: 0, publishedEventTimes: [] };
+
   // Get existing events for this profile
   const existingEvents = pendingEvents.filter(e =>
     e.groupId === groupId && e.profileKey === profileKey
@@ -994,6 +1000,11 @@ function updatePendingEventsForProfile(groupId, profileKey, profile) {
     deletedEvents
       .filter(e => e.groupId === groupId && e.profileKey === profileKey)
       .map(e => e.id)
+  );
+
+  // Get timestamps of published events (these should not be recreated as pending)
+  const publishedEventTimes = new Set(
+    profileState.publishedEventTimes || []
   );
 
   // Cancel existing jobs for this profile (only non-modified ones will be replaced)
@@ -1017,8 +1028,6 @@ function updatePendingEventsForProfile(groupId, profileKey, profile) {
 
   // Check if we should generate pending events
   // Only generate if: profile has created events before OR there are existing pending events
-  const profileStateKey = `${groupId}::${profileKey}`;
-  const profileState = automationState.profiles[profileStateKey] || { eventsCreated: 0 };
   const hasExistingPending = existingEvents.length > 0;
   const hasCreatedBefore = profileState.eventsCreated > 0;
 
@@ -1032,13 +1041,22 @@ function updatePendingEventsForProfile(groupId, profileKey, profile) {
   // Calculate new pending events (with deterministic IDs)
   const newEvents = calculatePendingEvents(groupId, profileKey, profile);
 
+  debugLogFn("Automation", `Generated ${newEvents.length} potential events, publishedEventTimes: ${JSON.stringify([...publishedEventTimes])}`);
+
   // Filter out events whose ID matches:
   // 1. A modified event (already exists, user customized it)
   // 2. A deleted event (user explicitly removed it)
-  const filteredNewEvents = newEvents.filter(e =>
-    !modifiedEventIds.has(e.id) &&
-    !deletedEventIds.has(e.id)
-  );
+  // 3. A published event (already created manually or by automation)
+  const filteredNewEvents = newEvents.filter(e => {
+    const eventTime = new Date(e.eventStartsAt).getTime();
+    const isModified = modifiedEventIds.has(e.id);
+    const isDeleted = deletedEventIds.has(e.id);
+    const isPublished = publishedEventTimes.has(eventTime);
+    if (isModified || isDeleted || isPublished) {
+      debugLogFn("Automation", `Filtering out event ${e.id} (time: ${eventTime}): modified=${isModified}, deleted=${isDeleted}, published=${isPublished}`);
+    }
+    return !isModified && !isDeleted && !isPublished;
+  });
 
   // Add new events (modified events remain untouched in pendingEvents)
   pendingEvents.push(...filteredNewEvents);
@@ -1154,6 +1172,44 @@ function resetAutomationState(groupId, profileKey) {
   const profileStateKey = `${groupId}::${profileKey}`;
   automationState.profiles[profileStateKey] = { eventsCreated: 0 };
   saveAutomationState();
+}
+
+/**
+ * Increment eventsCreated count for a profile (when manual event is created)
+ * @param {string} groupId - Group ID
+ * @param {string} profileKey - Profile key
+ */
+function incrementEventsCreated(groupId, profileKey) {
+  const profileStateKey = `${groupId}::${profileKey}`;
+  if (!automationState.profiles[profileStateKey]) {
+    automationState.profiles[profileStateKey] = { eventsCreated: 0, publishedEventTimes: [] };
+  }
+  automationState.profiles[profileStateKey].eventsCreated++;
+  saveAutomationState();
+  debugLogFn("Automation", `Incremented eventsCreated for ${profileStateKey} to ${automationState.profiles[profileStateKey].eventsCreated}`);
+}
+
+/**
+ * Track a published event time so it won't be recreated as a pending event
+ * @param {string} groupId - Group ID
+ * @param {string} profileKey - Profile key
+ * @param {string} eventStartsAt - ISO string of event start time
+ */
+function trackPublishedEventTime(groupId, profileKey, eventStartsAt) {
+  const profileStateKey = `${groupId}::${profileKey}`;
+  if (!automationState.profiles[profileStateKey]) {
+    automationState.profiles[profileStateKey] = { eventsCreated: 0, publishedEventTimes: [] };
+  }
+  if (!automationState.profiles[profileStateKey].publishedEventTimes) {
+    automationState.profiles[profileStateKey].publishedEventTimes = [];
+  }
+  // Store the timestamp for matching
+  const eventTime = new Date(eventStartsAt).getTime();
+  if (!automationState.profiles[profileStateKey].publishedEventTimes.includes(eventTime)) {
+    automationState.profiles[profileStateKey].publishedEventTimes.push(eventTime);
+    saveAutomationState();
+    debugLogFn("Automation", `Tracked published event time for ${profileStateKey}: ${eventStartsAt}`);
+  }
 }
 
 /**
@@ -1315,6 +1371,8 @@ module.exports = {
   updatePendingEventOverrides,
   getAutomationStatus,
   resetAutomationState,
+  incrementEventsCreated,
+  trackPublishedEventTime,
   resolveEventDetails,
   restoreDeletedEvents,
   getRestorableCount

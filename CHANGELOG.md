@@ -2,6 +2,31 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.31] - 2026-01-16
+
+### Added
+- **Pending Events Restore Feature** - Recover deleted pending events with one click
+  - Soft delete: cancelled pending events are now preserved instead of permanently removed
+  - Restore button in profile automation settings shows count of restorable events
+  - Events are restorable as long as the event date hasn't passed
+  - Restore recalculates publish times based on current profile settings
+  - Profile-scoped restore: only affects events from the selected profile
+
+### Changed
+- Pending events now use deterministic UIDs based on profile + event time
+  - Same pattern-slot always generates the same ID within a profile
+  - Prevents duplicate events when editing profiles
+  - Modified events keep their original UID even when date is changed
+- Pending events only generated after first manual event creation (not on profile creation)
+- Profile edits now preserve manually modified pending events (with `manualOverrides`)
+- Deleted event UIDs are tracked to prevent recreation during profile updates
+
+### Fixed
+- Profile edits no longer overwrite manually modified pending events
+- Changing a pending event's date no longer creates duplicates for the original time slot
+- Published events are tracked to prevent duplicate pending events for same time slot
+- Restore button now correctly reads profile key and group ID
+
 ## [0.9.30] - 2026-01-15
 
 ### Fixed

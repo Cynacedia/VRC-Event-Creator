@@ -1938,7 +1938,7 @@ ipcMain.handle("events:prepare", async (_, payload) => {
 
 ipcMain.handle("events:create", async (_, payload) => {
   try {
-    const { groupId, startsAtUtc, endsAtUtc, eventData } = payload || {};
+    const { groupId, profileKey, startsAtUtc, endsAtUtc, eventData } = payload || {};
     if (!groupId || !startsAtUtc || !endsAtUtc || !eventData) {
       throw new Error("Missing event data.");
     }
@@ -1970,6 +1970,22 @@ ipcMain.handle("events:create", async (_, payload) => {
     const eventId = getEventId(response.data);
     // Track locally created event for conflict detection (VRChat API has delay)
     trackCreatedEvent(groupId, startsAtUtc, eventData.title);
+
+    // If a profile with automation was used, trigger pending event generation
+    if (profileKey && automationEngine.isInitialized()) {
+      const groupProfiles = profiles[groupId];
+      const profile = groupProfiles?.profiles?.[profileKey];
+      if (profile?.automation?.enabled) {
+        debugLog("Automation", `First manual event created for ${groupId}::${profileKey}, triggering pending event generation`);
+        // Track this event time as published so it won't be created as pending
+        automationEngine.trackPublishedEventTime(groupId, profileKey, startsAtUtc);
+        // Increment eventsCreated to mark that this profile has been used
+        automationEngine.incrementEventsCreated(groupId, profileKey);
+        // Generate pending events for this profile
+        automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
+      }
+    }
+
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);

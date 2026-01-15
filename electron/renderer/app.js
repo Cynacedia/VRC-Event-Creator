@@ -514,8 +514,8 @@ import { initDemoControls } from "./demo.js";
   }
 
   async function handleAutomationRestore() {
-    const groupId = state.profile.groupId;
-    const profileKey = state.profile.key;
+    const groupId = dom.profileGroup.value;
+    const profileKey = state.profile.currentKey;
     if (!groupId || !profileKey) {
       showToast(t("profiles.automation.restoreNoProfile") || "No profile selected", true);
       return;
@@ -544,8 +544,8 @@ import { initDemoControls } from "./demo.js";
   }
 
   async function updateRestorableCount() {
-    const groupId = state.profile.groupId;
-    const profileKey = state.profile.key;
+    const groupId = dom.profileGroup.value;
+    const profileKey = state.profile.currentKey;
     if (!groupId || !profileKey || !dom.automationRestoreCount) {
       return;
     }

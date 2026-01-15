@@ -964,6 +964,7 @@ export async function handleEventCreate(api) {
     }
     const result = await api.createEvent({
       groupId,
+      profileKey: profileKey && profileKey !== "__manual__" ? profileKey : null,
       startsAtUtc: prep.startsAtUtc,
       endsAtUtc: prep.endsAtUtc,
       eventData
