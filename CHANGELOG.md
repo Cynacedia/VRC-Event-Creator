@@ -2,6 +2,14 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.30] - 2026-01-15
+
+### Fixed
+- Update pill progress bar now adapts colors to match any theme (uses lighter/darker shade of theme color)
+- Resync button disabled until initial sync completes
+- Resync button disabled while update is downloading
+- Updated Chinese Translations (Thank you Omoyx)
+
 ## [0.9.29] - 2026-01-10
 
 ### Changed

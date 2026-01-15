@@ -328,11 +328,12 @@ a:visited {
 .status-pill.is-update.is-downloading {
   background: linear-gradient(
     to right,
-    var(--accent) 0%,
-    var(--accent) var(--update-progress),
+    var(--update-pill-fill) 0%,
+    var(--update-pill-fill) var(--update-progress),
     var(--update-pill-bg) var(--update-progress),
     var(--update-pill-bg) 100%
   );
+  color: var(--update-pill-text);
   font-weight: 600;
   animation: none;
 }

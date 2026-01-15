@@ -23,6 +23,7 @@ import { initDemoControls } from "./demo.js";
   const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000;
   let updateInfo = { available: false, downloaded: false, url: UPDATE_REPO_URL };
   let resyncInProgress = false;
+  let initialSyncComplete = false;
 
   // Core app functions
   function renderGroupSelects(config = {}) {
@@ -226,6 +227,7 @@ import { initDemoControls } from "./demo.js";
       void renderProfileRoleRestrictions(api);
       await refreshUpcomingEventCount(api);
       setFootMeta(t("common.ready"));
+      initialSyncComplete = true;
       return true;
     } catch (err) {
       showToast("Failed to load profiles or groups.", true);
@@ -897,19 +899,19 @@ import { initDemoControls } from "./demo.js";
     }
     if (dom.statusPill) {
       dom.statusPill.addEventListener("mouseenter", () => {
-        if (!updateInfo.available && state.user && !resyncInProgress) {
+        if (!updateInfo.available && !updateInfo.downloading && state.user && !resyncInProgress && initialSyncComplete) {
           dom.statusPill.dataset.hover = "resync";
           dom.statusPill.textContent = "Resync";
         }
       });
       dom.statusPill.addEventListener("mouseleave", () => {
-        if (!updateInfo.available && state.user && !resyncInProgress) {
+        if (!updateInfo.available && !updateInfo.downloading && state.user && !resyncInProgress && initialSyncComplete) {
           delete dom.statusPill.dataset.hover;
           refreshStatusPill();
         }
       });
       dom.statusPill.addEventListener("click", async () => {
-        if (!updateInfo.available) {
+        if (!updateInfo.available && !updateInfo.downloading && initialSyncComplete) {
           await resyncUserData();
           return;
         }
