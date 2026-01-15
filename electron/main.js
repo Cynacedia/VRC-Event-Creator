@@ -303,13 +303,19 @@ function normalizeSettings(raw) {
     return {
       warnConflicts: false,
       minimizeToTray: false,
-      trayPromptShown: false
+      trayPromptShown: false,
+      enableAdvanced: false,
+      enableImportExport: false,
+      autoUploadImages: false
     };
   }
   return {
     warnConflicts: typeof raw.warnConflicts === "boolean" ? raw.warnConflicts : false,
     minimizeToTray: typeof raw.minimizeToTray === "boolean" ? raw.minimizeToTray : false,
-    trayPromptShown: typeof raw.trayPromptShown === "boolean" ? raw.trayPromptShown : false
+    trayPromptShown: typeof raw.trayPromptShown === "boolean" ? raw.trayPromptShown : false,
+    enableAdvanced: typeof raw.enableAdvanced === "boolean" ? raw.enableAdvanced : false,
+    enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
+    autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false
   };
 }
 
@@ -350,7 +356,7 @@ function saveGalleryCacheManifest(manifest) {
   }
 }
 
-async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
+async function downloadGalleryImage(imageId, _remoteUrl, mimeType) {
   try {
     ensureGalleryCacheDir();
     const ext = mimeType === "image/png" ? ".png" : ".jpg";
@@ -365,39 +371,38 @@ async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
       return null;
     }
 
-    // Validate URL is from VRChat's CDN to prevent arbitrary file downloads
-    const url = new URL(remoteUrl);
-    const allowedHosts = ['api.vrchat.cloud', 'd348imysud55la.cloudfront.net'];
-    if (!allowedHosts.some(host => url.hostname === host || url.hostname.endsWith(`.${host}`))) {
-      debugLog("galleryCache", `Untrusted URL host rejected: ${url.hostname}`);
+    // Use SDK's authenticated downloadFileVersion method
+    // First get file info to determine version
+    const fileRes = await vrchat.getFile({
+      path: { fileId: imageId },
+      throwOnError: false
+    });
+    const file = fileRes?.data;
+    if (!file || !file.versions?.length) {
+      debugLog("galleryCache", `No file data or versions for ${imageId}`);
       return null;
     }
 
-    const response = await fetch(remoteUrl);
-    if (!response.ok) {
-      debugLog("galleryCache", `Failed to download ${imageId}: HTTP ${response.status}`);
+    const lastVersion = file.versions[file.versions.length - 1];
+    const versionNum = lastVersion?.version ?? 1;
+
+    debugLog("galleryCache", `Downloading ${imageId} version ${versionNum} via SDK`);
+
+    const downloadRes = await vrchat.downloadFileVersion({
+      path: { fileId: imageId, versionId: versionNum },
+      throwOnError: false
+    });
+
+    const blob = downloadRes?.data;
+    if (!blob) {
+      debugLog("galleryCache", `Failed to download ${imageId}: no blob data`);
       return null;
     }
 
-    // Validate content type from response headers
-    const contentType = response.headers.get('content-type');
-    const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!contentType || !validImageTypes.some(type => contentType.includes(type))) {
-      debugLog("galleryCache", `Invalid content-type for ${imageId}: ${contentType}`);
-      return null;
-    }
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Validate content length to prevent DoS via huge files (max 10MB)
-    const contentLength = response.headers.get('content-length');
     const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-    if (contentLength && parseInt(contentLength) > MAX_IMAGE_SIZE) {
-      debugLog("galleryCache", `Image too large for ${imageId}: ${contentLength} bytes`);
-      return null;
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    // Additional size check after download
     if (buffer.length > MAX_IMAGE_SIZE) {
       debugLog("galleryCache", `Downloaded image too large for ${imageId}: ${buffer.length} bytes`);
       return null;
@@ -414,7 +419,6 @@ async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
       return null;
     }
 
-    // codeql[js/http-to-file-access] - URL validated against VRChat CDN allowlist, content-type checked, size limited, and magic bytes verified
     fs.writeFileSync(localPath, buffer);
 
     const manifest = loadGalleryCacheManifest();
@@ -1694,6 +1698,71 @@ ipcMain.handle("events:importJson", async () => {
   return { ok: true, data: raw };
 });
 
+ipcMain.handle("events:exportJson", async (_, data) => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Export Event JSON",
+    defaultPath: `event-${Date.now()}.json`,
+    filters: [{ name: "Event JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePath) {
+    return { ok: false, cancelled: true };
+  }
+  try {
+    fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2), "utf8");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: { code: "WRITE_FAILED", message: "Could not write JSON file." } };
+  }
+});
+
+ipcMain.handle("profiles:importJson", async () => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openFile"],
+    title: "Import Profile JSON",
+    filters: [{ name: "Profile JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false, cancelled: true };
+  }
+  const filePath = result.filePaths[0];
+  let raw = null;
+  try {
+    raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (err) {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Could not parse JSON file." } };
+  }
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Invalid JSON structure." } };
+  }
+  return { ok: true, data: raw };
+});
+
+ipcMain.handle("profiles:exportJson", async (_, data) => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Export Profile JSON",
+    defaultPath: `profile-${Date.now()}.json`,
+    filters: [{ name: "Profile JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePath) {
+    return { ok: false, cancelled: true };
+  }
+  try {
+    fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2), "utf8");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: { code: "WRITE_FAILED", message: "Could not write JSON file." } };
+  }
+});
+
 ipcMain.handle("auth:getCurrentUser", async () => {
   return getCurrentUser();
 });
@@ -2226,6 +2295,71 @@ ipcMain.handle("files:uploadGallery", async () => {
   }
 });
 
+ipcMain.handle("files:uploadGalleryBase64", async (_, payload) => {
+  const { base64Data } = payload || {};
+  if (!base64Data || typeof base64Data !== "string") {
+    return { ok: false, error: { code: "INVALID_DATA", message: "No base64 data provided." } };
+  }
+
+  try {
+    // Parse data URL format: data:image/png;base64,iVBOR...
+    const match = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+    if (!match) {
+      return { ok: false, error: { code: "INVALID_FORMAT", message: "Invalid base64 data URL format." } };
+    }
+
+    const mimeType = match[1];
+    const base64Content = match[2];
+    const buffer = Buffer.from(base64Content, "base64");
+
+    // Validate file size (max 10MB)
+    const maxBytes = 10 * 1024 * 1024;
+    if (buffer.length >= maxBytes) {
+      return { ok: false, error: { code: "FILE_TOO_LARGE" } };
+    }
+
+    // Validate image
+    const image = nativeImage.createFromBuffer(buffer);
+    if (image.isEmpty()) {
+      return { ok: false, error: { code: "FILE_TYPE", message: "Invalid image data." } };
+    }
+    const { width, height } = image.getSize();
+    if (width <= 64 || height <= 64) {
+      return { ok: false, error: { code: "DIMENSIONS_TOO_SMALL" } };
+    }
+    if (width >= 2048 || height >= 2048) {
+      return { ok: false, error: { code: "DIMENSIONS_TOO_LARGE" } };
+    }
+
+    // Determine file extension
+    const extMap = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" };
+    const ext = extMap[mimeType] || "png";
+    const fileName = `imported-${Date.now()}.${ext}`;
+
+    const uploadFile = typeof File === "function"
+      ? new File([buffer], fileName, { type: mimeType })
+      : new Blob([buffer], { type: mimeType });
+
+    debugApiCall("uploadGalleryImage (base64)", { fileName, mimeType, size: buffer.length, width, height });
+    const res = await vrchat.uploadGalleryImage({
+      body: { file: uploadFile },
+      throwOnError: true
+    });
+    debugApiResponse("uploadGalleryImage (base64)", res);
+
+    return { ok: true, data: res?.data || null };
+  } catch (err) {
+    debugApiResponse("uploadGalleryImage (base64)", null, err);
+    return {
+      ok: false,
+      error: {
+        status: err?.response?.status || null,
+        message: err?.message || "Could not upload image."
+      }
+    };
+  }
+});
+
 // ============================================
 // Gallery Cache IPC Handlers
 // ============================================
@@ -2234,6 +2368,114 @@ ipcMain.handle("gallery:getCachedImage", async (_, payload) => {
   const { imageId } = payload || {};
   if (!imageId) return null;
   return getCachedImageAsDataUrl(imageId);
+});
+
+ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
+  const { imageId } = payload || {};
+  if (!imageId) return null;
+
+  // First check if already cached
+  let dataUrl = getCachedImageAsDataUrl(imageId);
+  if (dataUrl) return dataUrl;
+
+  // Not cached, try to download using authenticated SDK method
+  try {
+    // Get file info to determine version and mime type
+    debugLog("gallery", `Fetching file info for ${imageId}`);
+    const fileRes = await vrchat.getFile({
+      path: { fileId: imageId },
+      throwOnError: true
+    });
+    const file = fileRes?.data;
+    if (!file) {
+      debugLog("gallery", `No file data returned for ${imageId}`);
+      return null;
+    }
+
+    // Get the latest version - use the version field from the last entry
+    const lastVersion = file.versions?.[file.versions.length - 1];
+    const versionNum = lastVersion?.version ?? 1;
+    const mimeType = file.mimeType || "image/png";
+
+    debugLog("gallery", `Downloading ${imageId} version ${versionNum} via SDK (versions array length: ${file.versions?.length})`);
+
+    // Use SDK's downloadFileVersion which handles authentication
+    const downloadRes = await vrchat.downloadFileVersion({
+      path: { fileId: imageId, versionId: versionNum },
+      throwOnError: true
+    });
+
+    const blob = downloadRes?.data;
+    if (!blob) {
+      debugLog("gallery", `No blob data returned for ${imageId}`);
+      return null;
+    }
+
+    // Convert Blob to Buffer
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    debugLog("gallery", `Downloaded ${imageId}: ${buffer.length} bytes`);
+
+    // Validate image data by checking magic bytes
+    const isValidImage =
+      (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) || // PNG
+      (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) || // JPEG
+      (buffer.length >= 12 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50); // WebP
+
+    if (!isValidImage) {
+      debugLog("gallery", `Invalid image magic bytes for ${imageId}`);
+      return null;
+    }
+
+    // Save to cache
+    ensureGalleryCacheDir();
+    const ext = mimeType === "image/png" ? ".png" : ".jpg";
+    const localFileName = `${imageId}${ext}`;
+    const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
+
+    // Validate path is within cache directory
+    const normalizedPath = path.normalize(localPath);
+    const normalizedCacheDir = path.normalize(GALLERY_CACHE_DIR);
+    if (!normalizedPath.startsWith(normalizedCacheDir)) {
+      debugLog("gallery", `Invalid path detected for ${imageId}`);
+      return null;
+    }
+
+    fs.writeFileSync(localPath, buffer);
+
+    // Update manifest
+    const manifest = loadGalleryCacheManifest();
+    manifest.images[imageId] = {
+      localPath: localFileName,
+      mimeType,
+      cachedAt: new Date().toISOString()
+    };
+    saveGalleryCacheManifest(manifest);
+
+    debugLog("gallery", `Cached ${imageId} successfully`);
+    return getCachedImageAsDataUrl(imageId);
+  } catch (err) {
+    debugLog("gallery", `Failed to fetch image ${imageId}:`, err.message);
+    return null;
+  }
+});
+
+ipcMain.handle("gallery:checkImageExists", async (_, payload) => {
+  const { imageId } = payload || {};
+  if (!imageId) return false;
+
+  try {
+    // Try to get file info - if it succeeds, the image exists in user's gallery
+    const fileRes = await vrchat.getFile({
+      path: { fileId: imageId },
+      throwOnError: false
+    });
+    return !!(fileRes?.data?.id);
+  } catch (err) {
+    debugLog("gallery", `Image ${imageId} does not exist or is not accessible:`, err.message);
+    return false;
+  }
 });
 
 ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {

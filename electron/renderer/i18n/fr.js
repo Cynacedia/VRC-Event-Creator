@@ -142,7 +142,10 @@ export const fr = {
     },
     general: {
       title: "Général",
-      minimizeToTray: "Réduire dans la barre d'état système"
+      minimizeToTray: "Réduire dans la barre d'état système",
+      enableAdvanced: "Activer les paramètres avancés",
+      enableImportExport: "Importer/Exporter des événements",
+      autoUploadImages: "Télécharger automatiquement les images de galerie depuis les événements/profils importés"
     },
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
@@ -198,6 +201,7 @@ export const fr = {
     labels: {
       groupRequired: "Groupe (obligatoire)",
       profileOptional: "Profil (facultatif)",
+      advanced: "Avancé",
       dateSource: "Utiliser",
       dateSourcePattern: "Modèle",
       dateSourceManual: "Manuel",

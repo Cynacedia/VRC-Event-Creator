@@ -142,7 +142,10 @@ export const zh = {
     },
     general: {
       title: "常规",
-      minimizeToTray: "最小化到系统托盘"
+      minimizeToTray: "最小化到系统托盘",
+      enableAdvanced: "启用高级设置",
+      enableImportExport: "导入/导出活动",
+      autoUploadImages: "自动上传导入活动/配置文件中的图库图片"
     },
     saveButton: "保存设置",
     saved: "设置已保存。"
@@ -198,6 +201,7 @@ export const zh = {
     labels: {
       groupRequired: "群组（必填）",
       profileOptional: "模板（可选）",
+      advanced: "高级",
       dateSource: "使用",
       dateSourcePattern: "模式",
       dateSourceManual: "手动",

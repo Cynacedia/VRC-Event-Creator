@@ -142,7 +142,10 @@ export const es = {
     },
     general: {
       title: "General",
-      minimizeToTray: "Minimizar a la bandeja del sistema"
+      minimizeToTray: "Minimizar a la bandeja del sistema",
+      enableAdvanced: "Habilitar configuración avanzada",
+      enableImportExport: "Importar/Exportar Eventos",
+      autoUploadImages: "Subir automáticamente imágenes de galería desde eventos/perfiles importados"
     },
     saveButton: "Guardar configuración",
     saved: "Configuración guardada."
@@ -198,6 +201,7 @@ export const es = {
     labels: {
       groupRequired: "Grupo (obligatorio)",
       profileOptional: "Perfil (opcional)",
+      advanced: "Avanzado",
       dateSource: "Usar",
       dateSourcePattern: "Patrón",
       dateSourceManual: "Manual",

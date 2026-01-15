@@ -142,7 +142,10 @@ export const ru = {
     },
     general: {
       title: "Общие",
-      minimizeToTray: "Свернуть в системный трей"
+      minimizeToTray: "Свернуть в системный трей",
+      enableAdvanced: "Включить расширенные настройки",
+      enableImportExport: "Импорт/Экспорт событий",
+      autoUploadImages: "Автоматически загружать изображения галереи из импортированных событий/профилей"
     },
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
@@ -198,6 +201,7 @@ export const ru = {
     labels: {
       groupRequired: "Группа (обязательно)",
       profileOptional: "Профиль (необязательно)",
+      advanced: "Дополнительно",
       dateSource: "Использовать",
       dateSourcePattern: "Шаблон",
       dateSourceManual: "Вручную",

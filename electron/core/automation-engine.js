@@ -459,6 +459,14 @@ function resolveEventDetails(pendingEventId, profiles = null) {
   }
 
   // Start with profile data
+  // Construct image URL from imageId if available
+  const imageId = profile.imageId || null;
+  let imageUrl = profile.imageUrl || null;
+  if (imageId && !imageUrl) {
+    // VRChat gallery image URL format
+    imageUrl = `https://api.vrchat.cloud/api/1/file/${imageId}/1`;
+  }
+
   const eventDetails = {
     title: profile.name || "Untitled Event",
     description: profile.description || "",
@@ -467,8 +475,8 @@ function resolveEventDetails(pendingEventId, profiles = null) {
     languages: Array.isArray(profile.languages) ? [...profile.languages] : [],
     platforms: Array.isArray(profile.platforms) ? [...profile.platforms] : [],
     tags: Array.isArray(profile.tags) ? [...profile.tags] : [],
-    imageId: profile.imageId || null,
-    imageUrl: profile.imageUrl || null,
+    imageId,
+    imageUrl,
     roleIds: Array.isArray(profile.roleIds) ? [...profile.roleIds] : [],
     sendCreationNotification: profile.sendNotification ?? false
   };
