@@ -1983,6 +1983,10 @@ ipcMain.handle("events:create", async (_, payload) => {
         automationEngine.incrementEventsCreated(groupId, profileKey);
         // Generate pending events for this profile
         automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
+        // Notify renderer that pending events were updated so it can refresh
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("automation:pendingUpdated", { groupId, profileKey });
+        }
       }
     }
 

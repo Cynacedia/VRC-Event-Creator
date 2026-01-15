@@ -72,6 +72,9 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   },
   onAutomationCreated: callback => {
     ipcRenderer.on("automation:created", (_, data) => callback(data));
+  },
+  onPendingUpdated: callback => {
+    ipcRenderer.on("automation:pendingUpdated", (_, data) => callback(data));
   }
 });
 

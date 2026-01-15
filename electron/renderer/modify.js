@@ -1427,6 +1427,13 @@ export function initModifyEvents(api) {
     });
   }
 
+  // Listen for pending events being updated (e.g., after first manual event creation)
+  if (api?.onPendingUpdated) {
+    api.onPendingUpdated(() => {
+      void refreshModifyEvents(modifyApi, { bypassCache: true });
+    });
+  }
+
   dom.modifyRefresh.addEventListener("click", () => { void handleRefreshClick(); });
   dom.modifyGroup.addEventListener("change", () => {
     // Clear backoff and tombstones when switching groups

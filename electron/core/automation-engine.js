@@ -437,7 +437,8 @@ function cancelAllJobs() {
 }
 
 /**
- * Cancel all jobs for a specific profile
+ * Cancel all jobs for a specific profile and remove pending events
+ * Called when a profile is deleted
  * @param {string} groupId - Group ID
  * @param {string} profileKey - Profile key
  */
@@ -449,6 +450,26 @@ function cancelJobsForProfile(groupId, profileKey) {
   for (const id of toCancel) {
     cancelJob(id);
   }
+
+  // Remove pending events for this profile (profile is being deleted)
+  pendingEvents = pendingEvents.filter(e =>
+    !(e.groupId === groupId && e.profileKey === profileKey)
+  );
+
+  // Also remove deleted events for this profile (no point keeping them)
+  deletedEvents = deletedEvents.filter(e =>
+    !(e.groupId === groupId && e.profileKey === profileKey)
+  );
+
+  // Clean up automation state for this profile
+  const profileStateKey = `${groupId}::${profileKey}`;
+  if (automationState.profiles[profileStateKey]) {
+    delete automationState.profiles[profileStateKey];
+    saveAutomationState();
+  }
+
+  savePendingEvents();
+  debugLogFn("Automation", `Removed all pending and deleted events for deleted profile ${groupId}::${profileKey}`);
 }
 
 /**
@@ -883,10 +904,18 @@ async function handleMissedEvent(pendingEventId, action) {
       return { ok: false, error: { message: "Event is queued waiting for rate limits to clear. Please wait." } };
     }
 
-    // Execute immediately
+    // Execute immediately (bypass queue for user-initiated "Post Now")
     pendingEvent.status = "scheduled"; // Reset status for execution
-    await executeAutomatedPost(pendingEvent);
-    return { ok: true };
+    await executeAutomatedPostInternal(pendingEvent);
+
+    // Check if the post succeeded
+    if (pendingEvent.status === "published") {
+      return { ok: true };
+    } else if (pendingEvent.status === "queued") {
+      return { ok: false, error: { message: "Rate limit hit. Event has been queued and will post automatically when limits clear." } };
+    } else {
+      return { ok: false, error: { message: "Failed to post event. It will retry automatically." } };
+    }
   } else if (action === "reschedule") {
     // Recalculate publish time
     const profile = profilesRef?.[pendingEvent.groupId]?.profiles?.[pendingEvent.profileKey];
