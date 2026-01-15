@@ -142,7 +142,10 @@ export const pt = {
     },
     general: {
       title: "Geral",
-      minimizeToTray: "Minimizar para a bandeja do sistema"
+      minimizeToTray: "Minimizar para a bandeja do sistema",
+      enableAdvanced: "Ativar configurações avançadas",
+      enableImportExport: "Importar/Exportar Eventos",
+      autoUploadImages: "Carregar automaticamente imagens da galeria de eventos/perfis importados"
     },
     saveButton: "Salvar configurações",
     saved: "Configurações salvas."
@@ -198,6 +201,7 @@ export const pt = {
     labels: {
       groupRequired: "Grupo (obrigatório)",
       profileOptional: "Perfil (opcional)",
+      advanced: "Avançado",
       dateSource: "Usar",
       dateSourcePattern: "Padrão",
       dateSourceManual: "Manual",

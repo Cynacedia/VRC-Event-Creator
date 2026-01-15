@@ -142,7 +142,10 @@ export const nl = {
     },
     general: {
       title: "Algemeen",
-      minimizeToTray: "Minimaliseren naar systeemvak"
+      minimizeToTray: "Minimaliseren naar systeemvak",
+      enableAdvanced: "Geavanceerde instellingen inschakelen",
+      enableImportExport: "Evenementen importeren/exporteren",
+      autoUploadImages: "Galerij-afbeeldingen automatisch uploaden van geïmporteerde evenementen/profielen"
     },
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
@@ -198,6 +201,7 @@ export const nl = {
     labels: {
       groupRequired: "Groep (verplicht)",
       profileOptional: "Profiel (optioneel)",
+      advanced: "Geavanceerd",
       dateSource: "Gebruik",
       dateSourcePattern: "Patroon",
       dateSourceManual: "Handmatig",

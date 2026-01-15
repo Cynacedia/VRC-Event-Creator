@@ -142,7 +142,10 @@ export const de = {
     },
     general: {
       title: "Allgemein",
-      minimizeToTray: "In Systemleiste minimieren"
+      minimizeToTray: "In Systemleiste minimieren",
+      enableAdvanced: "Erweiterte Einstellungen aktivieren",
+      enableImportExport: "Events importieren/exportieren",
+      autoUploadImages: "Galeriebilder aus importierten Events/Profilen automatisch hochladen"
     },
     saveButton: "Einstellungen speichern",
     saved: "Einstellungen gespeichert."
@@ -198,6 +201,7 @@ export const de = {
     labels: {
       groupRequired: "Gruppe (erforderlich)",
       profileOptional: "Profil (optional)",
+      advanced: "Erweitert",
       dateSource: "Verwenden",
       dateSourcePattern: "Muster",
       dateSourceManual: "Manuell",

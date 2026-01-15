@@ -142,7 +142,10 @@ export const ja = {
     },
     general: {
       title: "一般",
-      minimizeToTray: "システムトレイに最小化"
+      minimizeToTray: "システムトレイに最小化",
+      enableAdvanced: "詳細設定を有効にする",
+      enableImportExport: "イベントのインポート/エクスポート",
+      autoUploadImages: "インポートしたイベント/プロファイルからギャラリー画像を自動アップロード"
     },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
@@ -198,6 +201,7 @@ export const ja = {
     labels: {
       groupRequired: "グループ (必須)",
       profileOptional: "プロフィール (任意)",
+      advanced: "詳細設定",
       dateSource: "使用",
       dateSourcePattern: "パターン",
       dateSourceManual: "手動",

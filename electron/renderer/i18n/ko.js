@@ -142,7 +142,10 @@ export const ko = {
     },
     general: {
       title: "일반",
-      minimizeToTray: "시스템 트레이로 최소화"
+      minimizeToTray: "시스템 트레이로 최소화",
+      enableAdvanced: "고급 설정 활성화",
+      enableImportExport: "이벤트 가져오기/내보내기",
+      autoUploadImages: "가져온 이벤트/프로필에서 갤러리 이미지 자동 업로드"
     },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
@@ -198,6 +201,7 @@ export const ko = {
     labels: {
       groupRequired: "그룹 (필수)",
       profileOptional: "프로필 (선택)",
+      advanced: "고급",
       dateSource: "사용",
       dateSourcePattern: "패턴",
       dateSourceManual: "수동",

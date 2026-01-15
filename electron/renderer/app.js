@@ -1,13 +1,13 @@
 // Main application entry point - imports and wires modular components
 
 import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, MONTHS, TAG_LIMIT } from "./config.js";
-import { dom, state, setEventWizard, setProfileWizard, getProfileEditConfirmed } from "./state.js";
+import { dom, state, setEventWizard, setProfileWizard, getProfileWizard, getProfileEditConfirmed } from "./state.js";
 import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset } from "./profiles.js";
-import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview } from "./events.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson } from "./profiles.js";
+import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
 import { initDemoControls } from "./demo.js";
@@ -1078,8 +1078,72 @@ import { initDemoControls } from "./demo.js";
         }
       });
     }
+    if (dom.settingsEnableAdvanced) {
+      dom.settingsEnableAdvanced.addEventListener("change", async () => {
+        try {
+          const enabled = dom.settingsEnableAdvanced.checked;
+          // When disabling advanced, also disable sub-settings
+          if (!enabled) {
+            if (dom.settingsEnableImportExport) dom.settingsEnableImportExport.checked = false;
+            if (dom.settingsAutoUploadImages) dom.settingsAutoUploadImages.checked = false;
+            await api.updateSettings({
+              enableAdvanced: false,
+              enableImportExport: false,
+              autoUploadImages: false
+            });
+            updateImportExportVisibility();
+          } else {
+            await api.updateSettings({ enableAdvanced: true });
+          }
+          updateAdvancedSettingsVisibility();
+        } catch (err) {
+          console.error("Failed to save advanced settings:", err);
+        }
+      });
+    }
+    if (dom.settingsEnableImportExport) {
+      dom.settingsEnableImportExport.addEventListener("change", async () => {
+        try {
+          await api.updateSettings({ enableImportExport: dom.settingsEnableImportExport.checked });
+          updateImportExportVisibility();
+        } catch (err) {
+          console.error("Failed to save import/export setting:", err);
+        }
+      });
+    }
+    if (dom.settingsAutoUploadImages) {
+      dom.settingsAutoUploadImages.addEventListener("change", async () => {
+        try {
+          await api.updateSettings({ autoUploadImages: dom.settingsAutoUploadImages.checked });
+        } catch (err) {
+          console.error("Failed to save auto upload images setting:", err);
+        }
+      });
+    }
     if (dom.eventImagePicker) {
       dom.eventImagePicker.addEventListener("click", () => openGalleryPicker(dom.eventImageId));
+    }
+    if (dom.eventImportJson) {
+      dom.eventImportJson.addEventListener("click", async () => {
+        const result = await handleEventImportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          showToast(t("events.importSuccess") || "Event data imported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
+    }
+    if (dom.eventExportJson) {
+      dom.eventExportJson.addEventListener("click", async () => {
+        const result = await handleEventExportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          showToast(t("events.exportSuccess") || "Event data exported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
     }
     if (dom.modifyEventImagePicker) {
       dom.modifyEventImagePicker.addEventListener("click", () => openGalleryPicker(dom.modifyEventImageId));
@@ -1159,6 +1223,37 @@ import { initDemoControls } from "./demo.js";
 
     if (dom.profileImagePicker) {
       dom.profileImagePicker.addEventListener("click", () => openGalleryPicker(dom.profileImageId));
+    }
+    if (dom.profileImportJson) {
+      dom.profileImportJson.addEventListener("click", async () => {
+        const result = await handleProfileImportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          if (result.needsUiUpdate) {
+            renderProfileLanguageList();
+            renderProfilePlatformList();
+            renderPatternList();
+            const wizard = getProfileWizard();
+            if (wizard) {
+              wizard.goTo(1);
+            }
+          }
+          showToast(t("profiles.importSuccess") || "Profile data imported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
+    }
+    if (dom.profileExportJson) {
+      dom.profileExportJson.addEventListener("click", async () => {
+        const result = await handleProfileExportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          showToast(t("profiles.exportSuccess") || "Profile data exported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
     }
     dom.twoFactorForm.addEventListener("submit", e => { e.preventDefault(); const code = dom.twoFactorCode.value.trim(); if (!code) { showToast("Enter your code.", true); return; } api.submitTwoFactor(code); dom.twoFactorCode.value = ""; dom.twoFactorOverlay.classList.add("is-hidden"); });
     bindWindowControls(windowControls);

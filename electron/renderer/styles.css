@@ -964,6 +964,66 @@ textarea {
   font-size: var(--text-14);
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+#event-advanced-section,
+#event-export-section {
+  margin-top: var(--space-4);
+}
+
+#event-advanced-section button,
+#event-export-section button {
+  align-self: flex-start;
+}
+
+.profile-hint-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.profile-hint-row .hint {
+  margin: 0;
+}
+
+.profile-io-buttons {
+  display: flex;
+  gap: var(--space-2);
+}
+
+button.icon-button {
+  padding: var(--space-2);
+  min-width: unset;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.icon-button svg {
+  width: 24px;
+  height: 24px;
+}
+
+.advanced-options {
+  margin-left: var(--space-6);
+  margin-top: var(--space-2);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--border-strong);
+}
+
 select {
   background: var(--input-bg-strong);
   color: var(--input-text);
@@ -2016,6 +2076,7 @@ button.compact-button {
   padding: 4px 10px;
   font-size: var(--text-11);
   letter-spacing: 0.5px;
+  width: auto;
 }
 
 button.primary {
