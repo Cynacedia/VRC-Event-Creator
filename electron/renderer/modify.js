@@ -165,7 +165,7 @@ function reconcileOptimisticEvents(realEvents, pendingEvents, groupId) {
   const pendingById = new Map((pendingEvents || []).map(event => [event.id, event]));
   for (const [pendingId, entry] of state.modify.optimisticEvents.entries()) {
     const event = entry.event;
-    if (groupId && event.groupId && event.groupId !== groupId) {
+    if (event.groupId && event.groupId !== groupId) {
       state.modify.optimisticEvents.delete(pendingId);
       continue;
     }
