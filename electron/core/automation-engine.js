@@ -4,6 +4,7 @@
  */
 
 const fs = require("fs");
+const { DateTime } = require("luxon");
 const { generateDateOptionsFromPatterns } = require("./date-utils");
 
 // In-memory job storage
@@ -904,17 +905,35 @@ async function handleMissedEvent(pendingEventId, action) {
       return { ok: false, error: { message: "Event is queued waiting for rate limits to clear. Please wait." } };
     }
 
-    // Execute immediately (bypass queue for user-initiated "Post Now")
-    pendingEvent.status = "scheduled"; // Reset status for execution
-    await executeAutomatedPostInternal(pendingEvent);
-
-    // Check if the post succeeded
+    // Prevent double-posting if already published or being processed
     if (pendingEvent.status === "published") {
-      return { ok: true };
-    } else if (pendingEvent.status === "queued") {
-      return { ok: false, error: { message: "Rate limit hit. Event has been queued and will post automatically when limits clear." } };
-    } else {
-      return { ok: false, error: { message: "Failed to post event. It will retry automatically." } };
+      return { ok: false, error: { message: "Event has already been posted." } };
+    }
+
+    // Mark as processing to prevent concurrent executions
+    const previousStatus = pendingEvent.status;
+    pendingEvent.status = "processing";
+
+    try {
+      // Execute immediately (bypass queue for user-initiated "Post Now")
+      await executeAutomatedPostInternal(pendingEvent);
+
+      // Re-fetch the event to get the latest status (in case array was modified)
+      const updatedEvent = pendingEvents.find(e => e.id === pendingEventId);
+      const finalStatus = updatedEvent?.status || pendingEvent.status;
+
+      // Check if the post succeeded
+      if (finalStatus === "published") {
+        return { ok: true };
+      } else if (finalStatus === "queued") {
+        return { ok: false, error: { message: "Rate limit hit. Event has been queued and will post automatically when limits clear." } };
+      } else {
+        return { ok: false, error: { message: "Failed to post event. It will retry automatically." } };
+      }
+    } catch (err) {
+      // Restore previous status on error
+      pendingEvent.status = previousStatus;
+      return { ok: false, error: { message: err.message || "Failed to post event." } };
     }
   } else if (action === "reschedule") {
     // Recalculate publish time
@@ -1121,6 +1140,17 @@ function updatePendingEventOverrides(pendingEventId, overrides) {
   }
 
   const previousEventStartsAt = event.eventStartsAt;
+
+  // Convert manual date/time/timezone to UTC ISO string if provided
+  if (overrides?.manualDate && overrides?.manualTime && overrides?.timezone) {
+    const { manualDate, manualTime, timezone } = overrides;
+    const safeTimezone = DateTime.local().setZone(timezone).isValid ? timezone : "UTC";
+    const dt = DateTime.fromISO(`${manualDate}T${manualTime}`, { zone: safeTimezone });
+    if (dt.isValid) {
+      overrides.eventStartsAt = dt.toUTC().toISO();
+    }
+  }
+
   event.manualOverrides = overrides;
 
   // If eventStartsAt is overridden, also update the main field for display

@@ -1537,12 +1537,26 @@ ipcMain.handle("app:info", () => ({
   dataDir: DATA_DIR || "Not initialized"
 }));
 
+// Compare semver versions: returns true if remote > local
+function isNewerVersion(remote, local) {
+  if (!remote || !local) return false;
+  const remoteParts = remote.replace(/^v/, "").split(".").map(Number);
+  const localParts = local.replace(/^v/, "").split(".").map(Number);
+  for (let i = 0; i < Math.max(remoteParts.length, localParts.length); i++) {
+    const r = remoteParts[i] || 0;
+    const l = localParts[i] || 0;
+    if (r > l) return true;
+    if (r < l) return false;
+  }
+  return false;
+}
+
 ipcMain.handle("app:checkUpdate", async () => {
   try {
     const result = await autoUpdater.checkForUpdates();
     const latestVersion = result?.updateInfo?.version || null;
-    // Only report update if latest version is actually newer
-    const updateAvailable = latestVersion && latestVersion !== APP_VERSION;
+    // Only report update if latest version is actually newer (not just different)
+    const updateAvailable = isNewerVersion(latestVersion, APP_VERSION);
     return {
       updateAvailable,
       updateDownloaded,

@@ -660,7 +660,8 @@ async function handlePendingPostNow(pendingEvent) {
       return;
     }
     showToast(t("modify.pending.posted"));
-    await refreshModifyEvents(modifyApi, { preserveScroll: true });
+    // Refresh in background - don't block on potential failure
+    refreshModifyEvents(modifyApi, { preserveScroll: true }).catch(() => {});
   } catch (err) {
     showToast(t("modify.pending.postFailed"), true);
   }
@@ -785,16 +786,6 @@ async function handlePendingSave() {
     const manualTime = dom.modifyEventTime.value;
     const manualTimezone = dom.modifyEventTimezone.value;
 
-    // Calculate eventStartsAt from date/time/timezone
-    let eventStartsAt = null;
-    if (manualDate && manualTime) {
-      // Parse as local time in the selected timezone, then convert to ISO
-      const dateTimeStr = `${manualDate}T${manualTime}:00`;
-      // Create date assuming local time, then adjust for timezone
-      const localDate = new Date(dateTimeStr);
-      eventStartsAt = localDate.toISOString();
-    }
-
     const manualOverrides = {
       title,
       description,
@@ -808,7 +799,9 @@ async function handlePendingSave() {
       roleIds: dom.modifyEventAccess.value === "group" ? state.modify.roleIds.slice() : [],
       durationMinutes,
       timezone: manualTimezone,
-      eventStartsAt
+      // Pass date/time/timezone separately - main process will convert to UTC
+      manualDate: manualDate || null,
+      manualTime: manualTime || null
     };
 
     const result = await modifyApi.pendingAction({
@@ -934,7 +927,7 @@ function closeModifyModal() {
   state.modify.selectedPendingEvent = null;
 }
 
-function applyProfileToModifyForm(profile) {
+function applyProfileToModifyForm(profile, groupId) {
   if (!profile) {
     return;
   }
@@ -947,7 +940,9 @@ function applyProfileToModifyForm(profile) {
     dom.modifyEventTags.value = (profile.tags || []).join(", ");
   }
   dom.modifyEventAccess.value = profile.accessType || dom.modifyEventAccess.value || "public";
-  enforceGroupAccess(dom.modifyEventAccess, groupId);
+  if (groupId) {
+    enforceGroupAccess(dom.modifyEventAccess, groupId);
+  }
   dom.modifyEventImageId.value = profile.imageId || dom.modifyEventImageId.value;
   state.modify.roleIds = Array.isArray(profile.roleIds) ? profile.roleIds.slice() : state.modify.roleIds;
   if (profile.duration) {
@@ -1280,7 +1275,7 @@ function handleProfileLoad() {
     showToast(t("modify.profileLoadFailed"), true);
     return;
   }
-  applyProfileToModifyForm(profile);
+  applyProfileToModifyForm(profile, groupId);
   showToast(t("modify.profileLoaded"));
 }
 
@@ -1412,6 +1407,8 @@ function updateMissedBadge() {
   }
 }
 
+let modifyListenersInitialized = false;
+
 export function initModifyEvents(api) {
   if (api) {
     modifyApi = api;
@@ -1420,18 +1417,23 @@ export function initModifyEvents(api) {
     return;
   }
 
-  // Listen for automated event creation to refresh the view
-  if (api?.onAutomationCreated) {
-    api.onAutomationCreated(() => {
-      void refreshModifyEvents(modifyApi, { bypassCache: true });
-    });
-  }
+  // Register IPC listeners only once to prevent memory leaks
+  if (!modifyListenersInitialized) {
+    modifyListenersInitialized = true;
 
-  // Listen for pending events being updated (e.g., after first manual event creation)
-  if (api?.onPendingUpdated) {
-    api.onPendingUpdated(() => {
-      void refreshModifyEvents(modifyApi, { bypassCache: true });
-    });
+    // Listen for automated event creation to refresh the view
+    if (api?.onAutomationCreated) {
+      api.onAutomationCreated(() => {
+        void refreshModifyEvents(modifyApi, { bypassCache: true });
+      });
+    }
+
+    // Listen for pending events being updated (e.g., after first manual event creation)
+    if (api?.onPendingUpdated) {
+      api.onPendingUpdated(() => {
+        void refreshModifyEvents(modifyApi, { bypassCache: true });
+      });
+    }
   }
 
   dom.modifyRefresh.addEventListener("click", () => { void handleRefreshClick(); });
