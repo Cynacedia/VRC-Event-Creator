@@ -2,6 +2,32 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.31] - 2026-01-15
+
+### Changed
+- Automation pending events now use deterministic IDs with slot dedupe and adaptive recheck scheduling
+- Theme Studio import/export icons refreshed
+- Modify Events keeps optimistic cards until posted or queued/missed
+
+### Fixed
+- Manual event creation now passes profile key so automations can schedule follow-ups
+- Restore deleted automations now uses current profile settings and clears restore pool when all pending are deleted (auto-disables automation)
+- Manage Profiles group switching no longer locks when a profile is selected
+- Pending cards pull cached gallery images when available
+- Automation recheck jobs now prune for groups without calendar access
+- Auto-disabled automations now sync back to profile UI
+- Restore anchor uses actual event starts to avoid pre-anchor restores after edits
+- Published automation slots now reconcile against upcoming events to allow regeneration after deletions
+- Deleted pending events with date overrides restore to the profile slot time
+- Modify refresh button now respects a short cooldown with visible countdown
+- Post Now deletions now clear optimistic cards immediately and roll back if the delete fails
+- Post Now now guards against double-post clicks per pending event
+- Restore count now refreshes when returning to Manage Profiles
+- Added missing translation keys for JSON import/export and restore controls across all languages
+- Pending edit time conversion now uses the main process timezone calculation
+- Update check now only flags newer versions
+- Modify Events profile load now respects the selected group when applying access rules
+
 ## [0.9.30] - 2026-01-15
 
 ### Fixed

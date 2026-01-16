@@ -21,9 +21,16 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   listGroupEvents: payload => ipcRenderer.invoke("events:listGroup", payload),
   updateEvent: payload => ipcRenderer.invoke("events:update", payload),
   deleteEvent: payload => ipcRenderer.invoke("events:delete", payload),
+  importEventJson: () => ipcRenderer.invoke("events:importJson"),
+  exportEventJson: data => ipcRenderer.invoke("events:exportJson", data),
+  importProfileJson: () => ipcRenderer.invoke("profiles:importJson"),
+  exportProfileJson: data => ipcRenderer.invoke("profiles:exportJson", data),
   getGalleryFiles: payload => ipcRenderer.invoke("files:listGallery", payload),
   uploadGalleryImage: () => ipcRenderer.invoke("files:uploadGallery"),
+  uploadGalleryImageBase64: base64Data => ipcRenderer.invoke("files:uploadGalleryBase64", { base64Data }),
   getCachedImage: imageId => ipcRenderer.invoke("gallery:getCachedImage", { imageId }),
+  getImageAsBase64: imageId => ipcRenderer.invoke("gallery:getImageAsBase64", { imageId }),
+  checkGalleryImageExists: imageId => ipcRenderer.invoke("gallery:checkImageExists", { imageId }),
   getCacheStatus: imageIds => ipcRenderer.invoke("gallery:getCacheStatus", { imageIds }),
   cleanGalleryCache: maxAgeDays => ipcRenderer.invoke("gallery:cleanCache", { maxAgeDays }),
   triggerBackgroundCache: images => ipcRenderer.invoke("gallery:triggerBackgroundCache", { images }),
@@ -58,11 +65,16 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   updatePendingSettings: payload => ipcRenderer.invoke("pending:updateSettings", payload),
   getAutomationStatus: payload => ipcRenderer.invoke("automation:getStatus", payload),
   resolveAutomationEvent: payload => ipcRenderer.invoke("automation:resolveEvent", payload),
+  restoreDeletedEvents: payload => ipcRenderer.invoke("automation:restore", payload),
+  getRestorableCount: payload => ipcRenderer.invoke("automation:getRestorableCount", payload),
   onAutomationMissed: callback => {
     ipcRenderer.on("automation:missed", (_, data) => callback(data));
   },
   onAutomationCreated: callback => {
     ipcRenderer.on("automation:created", (_, data) => callback(data));
+  },
+  onProfilesUpdated: callback => {
+    ipcRenderer.on("profiles:updated", (_, data) => callback(data));
   }
 });
 

@@ -142,7 +142,10 @@ export const en = {
     },
     general: {
       title: "General",
-      minimizeToTray: "Minimize to system tray"
+      minimizeToTray: "Minimize to system tray",
+      enableAdvanced: "Enable advanced settings",
+      enableImportExport: "Import/Export Events",
+      autoUploadImages: "Automatically upload gallery images from imported events/profiles"
     },
     saveButton: "Save Settings",
     saved: "Settings saved."
@@ -198,6 +201,8 @@ export const en = {
     labels: {
       groupRequired: "Group (required)",
       profileOptional: "Profile (optional)",
+      advanced: "Advanced",
+      importJson: "Import from JSON",
       dateSource: "Use",
       dateSourcePattern: "Pattern",
       dateSourceManual: "Manual",
@@ -206,7 +211,8 @@ export const en = {
       manualTime: "Manual Time"
     },
     hints: {
-      profileDefaults: "Pick a profile for defaults, or leave blank to create manually."
+      profileDefaults: "Pick a profile for defaults, or leave blank to create manually.",
+      importJson: "Import event details from a JSON file."
     },
     dateHints: {
       default: "Manual mode is ready. Profiles with patterns unlock date options.",
@@ -220,6 +226,11 @@ export const en = {
     loadProfile: "Load Profile (optional)",
     loadProfilePlaceholder: "Select a profile",
     clearProfile: "Clear Profile",
+    importJsonButton: "Import JSON",
+    importSuccess: "Event data imported from JSON.",
+    importWrongType: "This appears to be a profile JSON. Please use Import Profile instead.",
+    exportJsonButton: "Export JSON",
+    exportSuccess: "Event data exported to JSON.",
     dateSource: "Date & Time",
     dateSourceManual: "Manual",
     dateSourcePattern: "From profile pattern",
@@ -340,6 +351,11 @@ export const en = {
     buttons: {
       new: "New"
     },
+    importJsonButton: "Import JSON",
+    importSuccess: "Profile data imported from JSON.",
+    importWrongType: "This appears to be an event JSON. Please use Import Event instead.",
+    exportJsonButton: "Export JSON",
+    exportSuccess: "Profile data exported to JSON.",
     hints: {
       groupAccess: "Choose a group with calendar access.",
       patternsInfo: "Patterns are used to pre-generate upcoming dates."
@@ -447,7 +463,13 @@ export const en = {
         monthlyTime: "Set the time when events will be posted each month"
       },
       offsetProse: "Post the next event 7 days before it begins.",
-      monthlyProse: "Every month on the 1st at 6:00 PM"
+      monthlyProse: "Every month on the 1st at 6:00 PM",
+      restoreButton: "Restore",
+      restoreSuccess: "Restored {count} event(s)",
+      restoreNone: "No events to restore",
+      restoreFailed: "Failed to restore events",
+      restoreNoProfile: "No profile selected",
+      restorableCount: "{count} deleted event(s) can be restored"
     },
     created: "Profile created.",
     updated: "Profile updated.",

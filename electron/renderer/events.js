@@ -8,6 +8,27 @@ import { fetchGroupRoles, renderRoleList } from "./roles.js";
 const EVENT_HOURLY_LIMIT = 10;
 const EVENT_HOURLY_WINDOW_MS = 60 * 60 * 1000;
 const CREATE_RATE_LIMIT_BASE_KEY = "events:create";
+
+export function updateAdvancedSettingsVisibility() {
+  const enabled = dom.settingsEnableAdvanced?.checked ?? false;
+  if (dom.settingsAdvancedOptions) {
+    dom.settingsAdvancedOptions.classList.toggle("is-hidden", !enabled);
+  }
+}
+
+export function updateImportExportVisibility() {
+  const enabled = dom.settingsEnableImportExport?.checked ?? false;
+  if (dom.eventAdvancedSection) {
+    dom.eventAdvancedSection.classList.toggle("is-hidden", !enabled);
+  }
+  if (dom.eventExportSection) {
+    dom.eventExportSection.classList.toggle("is-hidden", !enabled);
+  }
+  if (dom.profileImportExportButtons) {
+    dom.profileImportExportButtons.classList.toggle("is-hidden", !enabled);
+  }
+}
+
 const HOURLY_HISTORY_STORAGE_KEY = "vrc-event-hourly-history-v1";
 const CREATED_EVENTS_STORAGE_KEY = "vrc-event-created-ids-v1";
 const BACKOFF_SEQUENCE = [2, 4, 8, 16, 32, 60]; // minutes
@@ -745,6 +766,9 @@ export async function handleEventGroupChange(api) {
   renderEventProfileOptions(api);
   enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
   void renderEventRoleRestrictions(api);
+  if (dom.eventImportJson) {
+    dom.eventImportJson.disabled = !dom.eventGroup.value;
+  }
   await refreshUpcomingEventCount(api);
 }
 
@@ -942,7 +966,8 @@ export async function handleEventCreate(api) {
       groupId,
       startsAtUtc: prep.startsAtUtc,
       endsAtUtc: prep.endsAtUtc,
-      eventData
+      eventData,
+      profileKey: profileKey && profileKey !== "__manual__" ? profileKey : null
     });
     if (!result?.ok) {
       if (isRateLimitError(result?.error)) {
@@ -1074,6 +1099,235 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
 function getProfileLabel(profileKey, profile) {
   const label = (profile?.displayName || "").trim();
   return label || profileKey;
+}
+
+const VALID_CATEGORIES = ["hangout", "exploration", "roleplaying", "film_media", "gaming", "music", "dance", "performance", "arts", "avatars", "education", "wellness", "other"];
+const VALID_ACCESS_TYPES = ["public", "group"];
+
+export async function applyImportedJsonToEventForm(data, api) {
+  if (!data || typeof data !== "object") {
+    return { success: false, message: "Invalid JSON data." };
+  }
+
+  // Check if this looks like a profile JSON instead of an event JSON
+  if (data.displayName !== undefined || data.patterns !== undefined || data.automation !== undefined) {
+    return { success: false, message: t("events.importWrongType") || "This appears to be a profile JSON. Please use Import Profile instead." };
+  }
+
+  // Handle image - check if imageId exists in user's gallery first, otherwise upload base64
+  const autoUpload = dom.settingsAutoUploadImages?.checked ?? false;
+  if (data.imageId && typeof data.imageId === "string") {
+    // Check if this imageId already exists in user's gallery
+    try {
+      const imageExists = await api.checkGalleryImageExists(data.imageId);
+      if (!imageExists && autoUpload && data.imageBase64 && typeof data.imageBase64 === "string") {
+        // Image doesn't exist, upload from base64
+        const uploadResult = await api.uploadGalleryImageBase64(data.imageBase64);
+        if (uploadResult?.ok && uploadResult?.data?.id) {
+          data.imageId = uploadResult.data.id;
+        }
+      }
+      // If imageExists is true, keep the original imageId
+    } catch (imgErr) {
+      console.warn("Could not check/upload imported image:", imgErr);
+    }
+  } else if (autoUpload && data.imageBase64 && typeof data.imageBase64 === "string") {
+    // No imageId but has base64, upload it
+    try {
+      const uploadResult = await api.uploadGalleryImageBase64(data.imageBase64);
+      if (uploadResult?.ok && uploadResult?.data?.id) {
+        data.imageId = uploadResult.data.id;
+      }
+    } catch (imgErr) {
+      console.warn("Could not upload imported image:", imgErr);
+    }
+  }
+
+  // Apply title (eventName) - always set, clear if empty
+  dom.eventName.value = (data.title && typeof data.title === "string")
+    ? sanitizeText(data.title, {
+        maxLength: EVENT_NAME_LIMIT,
+        allowNewlines: false,
+        trim: true
+      })
+    : "";
+
+  // Apply description - always set, clear if empty
+  dom.eventDescription.value = (data.description && typeof data.description === "string")
+    ? sanitizeText(data.description, {
+        maxLength: EVENT_DESCRIPTION_LIMIT,
+        allowNewlines: true,
+        trim: true
+      })
+    : "";
+
+  // Apply category - use default if invalid/missing
+  if (data.category && typeof data.category === "string" && VALID_CATEGORIES.includes(data.category)) {
+    dom.eventCategory.value = data.category;
+  } else {
+    dom.eventCategory.value = VALID_CATEGORIES[0] || "";
+  }
+
+  // Apply tags - always set, clear if empty
+  const tags = Array.isArray(data.tags)
+    ? data.tags.filter(t => typeof t === "string").slice(0, TAG_LIMIT)
+    : [];
+  if (state.event.tagInput) {
+    state.event.tagInput.setTags(tags);
+  } else {
+    dom.eventTags.value = tags.join(", ");
+  }
+
+  // Apply access type - use default if invalid/missing
+  if (data.accessType && typeof data.accessType === "string" && VALID_ACCESS_TYPES.includes(data.accessType)) {
+    dom.eventAccess.value = data.accessType;
+  } else {
+    dom.eventAccess.value = VALID_ACCESS_TYPES[0] || "public";
+  }
+  const groupId = dom.eventGroup.value;
+  if (groupId) {
+    enforceGroupAccess(dom.eventAccess, groupId);
+  }
+
+  // Apply role IDs - always set, clear if empty
+  state.event.roleIds = Array.isArray(data.roleIds)
+    ? data.roleIds.filter(id => typeof id === "string" && id.trim())
+    : [];
+
+  // Apply image ID - always set, clear if empty
+  dom.eventImageId.value = (data.imageId && typeof data.imageId === "string")
+    ? data.imageId.trim()
+    : "";
+
+  // Apply send notification - default to false if missing
+  dom.eventSendNotification.checked = typeof data.sendNotification === "boolean"
+    ? data.sendNotification
+    : false;
+
+  // Apply duration - use default if invalid/missing
+  if (typeof data.duration === "number" && data.duration > 0) {
+    dom.eventDuration.value = formatDuration(data.duration);
+  } else {
+    dom.eventDuration.value = formatDuration(120); // Default 2 hours
+  }
+  updateEventDurationPreview();
+
+  // Apply timezone - keep current if invalid/missing
+  if (data.timezone && typeof data.timezone === "string") {
+    ensureTimezoneOption(dom.eventTimezone, data.timezone);
+    dom.eventTimezone.value = data.timezone;
+  }
+
+  // Apply languages - only update if provided with valid non-empty values
+  if (Array.isArray(data.languages)) {
+    const validLanguages = data.languages.filter(l => typeof l === "string" && l.trim()).slice(0, 3);
+    if (validLanguages.length > 0) {
+      state.event.languages = validLanguages;
+      renderEventLanguageList();
+    }
+  }
+
+  // Apply platforms - only update if provided with valid non-empty values
+  if (Array.isArray(data.platforms)) {
+    const validPlatforms = data.platforms.filter(p => typeof p === "string" && p.trim());
+    if (validPlatforms.length > 0) {
+      state.event.platforms = validPlatforms;
+      renderEventPlatformList();
+    }
+  }
+
+  // Apply date - always set, clear if invalid/missing
+  if (data.date && typeof data.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(data.date)) {
+    dom.eventManualDate.value = data.date;
+  } else {
+    dom.eventManualDate.value = "";
+  }
+
+  // Apply time - always set, clear if invalid/missing
+  if (data.time && typeof data.time === "string" && /^\d{2}:\d{2}$/.test(data.time)) {
+    dom.eventManualTime.value = data.time;
+  } else {
+    dom.eventManualTime.value = "";
+  }
+
+  // Re-render role restrictions if needed
+  void renderEventRoleRestrictions(api);
+
+  return { success: true };
+}
+
+export async function handleEventImportJson(api) {
+  try {
+    const result = await api.importEventJson();
+    if (!result) {
+      return { success: false, message: "Import failed." };
+    }
+    if (result.cancelled) {
+      return { success: false, cancelled: true };
+    }
+    if (!result.ok) {
+      const errorMessage = result.error?.message || "Could not import JSON file.";
+      return { success: false, message: errorMessage };
+    }
+    return await applyImportedJsonToEventForm(result.data, api);
+  } catch (err) {
+    return { success: false, message: err.message || "Import failed." };
+  }
+}
+
+export async function handleEventExportJson(api) {
+  try {
+    // Gather current form values
+    const tags = state.event.tagInput?.getTags?.() ||
+      dom.eventTags.value.split(",").map(t => t.trim()).filter(Boolean);
+
+    const durationMinutes = parseDurationInput(dom.eventDuration.value);
+
+    const exportData = {
+      title: dom.eventName.value.trim(),
+      description: dom.eventDescription.value.trim(),
+      category: dom.eventCategory.value,
+      tags: tags.slice(0, TAG_LIMIT),
+      accessType: dom.eventAccess.value,
+      roleIds: state.event.roleIds || [],
+      imageId: dom.eventImageId.value.trim(),
+      sendNotification: dom.eventSendNotification.checked,
+      duration: durationMinutes || 120,
+      timezone: dom.eventTimezone.value,
+      languages: state.event.languages || [],
+      platforms: state.event.platforms || [],
+      date: dom.eventManualDate.value || "",
+      time: dom.eventManualTime.value || ""
+    };
+
+    // Include base64 image if imageId is set (fetches from gallery if not cached)
+    // Keep imageId as well so importer can check if they already have it
+    if (exportData.imageId) {
+      try {
+        const imageData = await api.getImageAsBase64(exportData.imageId);
+        if (imageData) {
+          exportData.imageBase64 = imageData;
+          // Keep imageId in export so importer can check if image already exists
+        }
+      } catch (imgErr) {
+        console.warn("Could not include image in export:", imgErr);
+      }
+    }
+
+    const result = await api.exportEventJson(exportData);
+    if (!result) {
+      return { success: false, message: "Export failed." };
+    }
+    if (result.cancelled) {
+      return { success: false, cancelled: true };
+    }
+    if (!result.ok) {
+      return { success: false, message: result.error?.message || "Could not export JSON file." };
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, message: err.message || "Export failed." };
+  }
 }
 
 // Bind conflict modal event handlers

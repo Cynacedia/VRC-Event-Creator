@@ -79,6 +79,10 @@
                       <p class="hint" data-i18n="events.hints.profileDefaults">Pick a profile for defaults, or leave blank to create manually.</p>
                     </div>
                   </div>
+                  <div id="event-advanced-section" class="card is-hidden">
+                    <h3 data-i18n="events.labels.advanced">Advanced</h3>
+                    <button id="event-import-json" class="ghost compact-button" type="button" disabled data-i18n="events.importJsonButton">Import JSON</button>
+                  </div>
                 </div>
 
                 <div class="wizard-step is-hidden" data-step="2">
@@ -205,6 +209,10 @@
                     </div>
                     <button id="event-create" class="primary" data-i18n="events.createButton">Create Event</button>
                   </div>
+                  <div id="event-export-section" class="card is-hidden">
+                    <h3 data-i18n="events.labels.advanced">Advanced</h3>
+                    <button id="event-export-json" class="ghost compact-button" type="button" data-i18n="events.exportJsonButton">Export JSON</button>
+                  </div>
                   <div class="field mt-1">
                     <label class="toggle">
                       <input id="event-warn-conflicts" type="checkbox" />
@@ -293,7 +301,25 @@
                         </div>
                       </div>
                     </div>
-                    <p class="hint" data-i18n="profiles.hints.groupAccess">Choose a group with calendar access.</p>
+                    <div class="profile-hint-row">
+                      <p class="hint" data-i18n="profiles.hints.groupAccess">Choose a group with calendar access.</p>
+                      <div id="profile-import-export-buttons" class="profile-io-buttons is-hidden">
+                        <button id="profile-import-json" class="ghost icon-button" type="button" disabled title="Import Profile JSON">
+                            <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <g transform="translate(12 12) scale(0.9) translate(-12 -12)">
+                                <path d="M21,14a1,1,0,0,0-1,1v4a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V15a1,1,0,0,0-2,0v4a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V15A1,1,0,0,0,21,14Zm-9.71,1.71a1,1,0,0,0,.33.21.94.94,0,0,0,.76,0,1,1,0,0,0,.33-.21l4-4a1,1,0,0,0-1.42-1.42L13,12.59V3a1,1,0,0,0-2,0v9.59l-2.29-2.3a1,1,0,1,0-1.42,1.42Z"></path>
+                              </g>
+                            </svg>
+                        </button>
+                        <button id="profile-export-json" class="ghost icon-button" type="button" disabled title="Export Profile JSON">
+                            <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <g transform="translate(12 12) scale(0.9) translate(-12 -12)">
+                                <path d="M8.71,7.71,11,5.41V15a1,1,0,0,0,2,0V5.41l2.29,2.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4-4a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-4,4A1,1,0,1,0,8.71,7.71ZM21,14a1,1,0,0,0-1,1v4a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V15a1,1,0,0,0-2,0v4a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V15A1,1,0,0,0,21,14Z"></path>
+                              </g>
+                            </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -445,13 +471,17 @@
                         </div>
                       </div>
 
-                      <div class="automation-prose" id="automation-offset-prose">
-                        <span data-i18n="profiles.automation.offsetProse">Post the next event 7 days before it begins.</span>
-                      </div>
-                      <div class="automation-prose is-hidden" id="automation-monthly-prose">
-                        <span data-i18n="profiles.automation.monthlyProse">Every month on the 1st at 6:00 PM</span>
+                      <div class="automation-prose-row">
+                        <div class="automation-prose" id="automation-offset-prose">
+                          <span data-i18n="profiles.automation.offsetProse">Post the next event 7 days before it begins.</span>
+                        </div>
+                        <div class="automation-prose is-hidden" id="automation-monthly-prose">
+                          <span data-i18n="profiles.automation.monthlyProse">Every month on the 1st at 6:00 PM</span>
+                        </div>
+                        <button id="automation-restore" class="ghost pill-button" type="button" disabled data-i18n="profiles.automation.restoreButton">Restore</button>
                       </div>
                       <p id="automation-offset-warning" class="hint warning is-hidden"></p>
+                      <span id="automation-restore-count" class="hint"></span>
                     </div>
                   </div>
                 </div>
@@ -512,6 +542,26 @@
                   <span data-i18n="settings.general.minimizeToTray">Minimize to system tray</span>
                 </label>
               </div>
+              <div class="field">
+                <label class="toggle">
+                  <input id="settings-enable-advanced" type="checkbox" />
+                  <span data-i18n="settings.general.enableAdvanced">Enable advanced settings</span>
+                </label>
+              </div>
+              <div id="settings-advanced-options" class="advanced-options is-hidden">
+                <div class="field">
+                  <label class="toggle">
+                    <input id="settings-enable-import-export" type="checkbox" />
+                    <span data-i18n="settings.general.enableImportExport">Import/Export Events</span>
+                  </label>
+                </div>
+                <div class="field">
+                  <label class="toggle">
+                    <input id="settings-auto-upload-images" type="checkbox" />
+                    <span data-i18n="settings.general.autoUploadImages">Automatically upload gallery images from imported events/profiles</span>
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div class="card">
@@ -541,14 +591,18 @@
                   </div>
                   <div class="theme-preset-actions-icons">
                     <button id="theme-preset-import" class="ghost theme-icon-button" type="button">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 3a1 1 0 0 1 1 1v9.6l2.3-2.3a1 1 0 1 1 1.4 1.4l-4.1 4.1a1 1 0 0 1-1.4 0l-4.1-4.1a1 1 0 1 1 1.4-1.4L11 13.6V4a1 1 0 0 1 1-1zM5 19a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
+                      <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <g transform="translate(12 12) scale(0.9) translate(-12 -12)">
+                          <path d="M21,14a1,1,0,0,0-1,1v4a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V15a1,1,0,0,0-2,0v4a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V15A1,1,0,0,0,21,14Zm-9.71,1.71a1,1,0,0,0,.33.21.94.94,0,0,0,.76,0,1,1,0,0,0,.33-.21l4-4a1,1,0,0,0-1.42-1.42L13,12.59V3a1,1,0,0,0-2,0v9.59l-2.29-2.3a1,1,0,1,0-1.42,1.42Z"></path>
+                        </g>
                       </svg>
                       <span class="sr-only" data-i18n="settings.theme.importButton">Import Theme</span>
                     </button>
                     <button id="theme-preset-export" class="ghost theme-icon-button" type="button">
-                      <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M12 21a1 1 0 0 1-1-1v-9.6l-2.3 2.3a1 1 0 1 1-1.4-1.4l4.1-4.1a1 1 0 0 1 1.4 0l4.1 4.1a1 1 0 1 1-1.4 1.4L13 10.4V20a1 1 0 0 1-1 1zM5 5a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1z" />
+                      <svg fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <g transform="translate(12 12) scale(0.9) translate(-12 -12)">
+                          <path d="M8.71,7.71,11,5.41V15a1,1,0,0,0,2,0V5.41l2.29,2.3a1,1,0,0,0,1.42,0,1,1,0,0,0,0-1.42l-4-4a1,1,0,0,0-.33-.21,1,1,0,0,0-.76,0,1,1,0,0,0-.33.21l-4,4A1,1,0,1,0,8.71,7.71ZM21,14a1,1,0,0,0-1,1v4a1,1,0,0,1-1,1H5a1,1,0,0,1-1-1V15a1,1,0,0,0-2,0v4a3,3,0,0,0,3,3H19a3,3,0,0,0,3-3V15A1,1,0,0,0,21,14Z"></path>
+                        </g>
                       </svg>
                       <span class="sr-only" data-i18n="settings.theme.exportButton">Export Theme</span>
                     </button>

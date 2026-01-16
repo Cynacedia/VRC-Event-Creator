@@ -142,7 +142,10 @@ export const ko = {
     },
     general: {
       title: "일반",
-      minimizeToTray: "시스템 트레이로 최소화"
+      minimizeToTray: "시스템 트레이로 최소화",
+      enableAdvanced: "고급 설정 활성화",
+      enableImportExport: "이벤트 가져오기/내보내기",
+      autoUploadImages: "가져온 이벤트/프로필에서 갤러리 이미지 자동 업로드"
     },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
@@ -198,6 +201,8 @@ export const ko = {
     labels: {
       groupRequired: "그룹 (필수)",
       profileOptional: "프로필 (선택)",
+      advanced: "고급",
+      importJson: "JSON에서 가져오기",
       dateSource: "사용",
       dateSourcePattern: "패턴",
       dateSourceManual: "수동",
@@ -206,7 +211,8 @@ export const ko = {
       manualTime: "수동 시간"
     },
     hints: {
-      profileDefaults: "기본값을 위해 프로필을 선택하거나, 비워두고 수동으로 생성하세요."
+      profileDefaults: "기본값을 위해 프로필을 선택하거나, 비워두고 수동으로 생성하세요.",
+      importJson: "JSON 파일에서 이벤트 세부 정보를 가져옵니다."
     },
     dateHints: {
       default: "수동 모드가 준비되었습니다. 패턴이 있는 프로필은 날짜 옵션을 제공합니다.",
@@ -220,6 +226,11 @@ export const ko = {
     loadProfile: "프로필 불러오기 (선택)",
     loadProfilePlaceholder: "프로필 선택",
     clearProfile: "프로필 지우기",
+    importJsonButton: "JSON 가져오기",
+    importSuccess: "JSON에서 이벤트 데이터를 가져왔습니다.",
+    importWrongType: "프로필 JSON으로 보입니다. 대신 프로필 가져오기를 사용하세요.",
+    exportJsonButton: "JSON 내보내기",
+    exportSuccess: "이벤트 데이터를 JSON으로 내보냈습니다.",
     dateSource: "날짜 및 시간",
     dateSourceManual: "수동",
     dateSourcePattern: "프로필 패턴에서",
@@ -340,6 +351,11 @@ export const ko = {
     buttons: {
       new: "새로 만들기"
     },
+    importJsonButton: "JSON 가져오기",
+    importSuccess: "JSON에서 프로필 데이터를 가져왔습니다.",
+    importWrongType: "이벤트 JSON으로 보입니다. 대신 이벤트 가져오기를 사용하세요.",
+    exportJsonButton: "JSON 내보내기",
+    exportSuccess: "프로필 데이터를 JSON으로 내보냈습니다.",
     hints: {
       groupAccess: "캘린더 접근 권한이 있는 그룹을 선택하세요.",
       patternsInfo: "패턴은 예정 날짜를 미리 생성하는 데 사용됩니다."
@@ -447,7 +463,13 @@ export const ko = {
         monthlyTime: "매월 이벤트가 게시될 시간을 설정합니다"
       },
       offsetProse: "다음 이벤트 시작 7일 전에 게시합니다.",
-      monthlyProse: "매월 1일 오후 6시"
+      monthlyProse: "매월 1일 오후 6시",
+      restoreButton: "복원",
+      restoreSuccess: "이벤트 {count}개를 복원했습니다",
+      restoreNone: "복원할 이벤트가 없습니다",
+      restoreFailed: "이벤트 복원에 실패했습니다",
+      restoreNoProfile: "프로필이 선택되지 않았습니다",
+      restorableCount: "삭제된 이벤트 {count}개를 복원할 수 있습니다"
     },
     created: "프로필이 생성되었습니다.",
     updated: "프로필이 업데이트되었습니다.",

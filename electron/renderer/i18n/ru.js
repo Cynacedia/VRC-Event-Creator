@@ -142,7 +142,10 @@ export const ru = {
     },
     general: {
       title: "Общие",
-      minimizeToTray: "Свернуть в системный трей"
+      minimizeToTray: "Свернуть в системный трей",
+      enableAdvanced: "Включить расширенные настройки",
+      enableImportExport: "Импорт/Экспорт событий",
+      autoUploadImages: "Автоматически загружать изображения галереи из импортированных событий/профилей"
     },
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
@@ -198,6 +201,8 @@ export const ru = {
     labels: {
       groupRequired: "Группа (обязательно)",
       profileOptional: "Профиль (необязательно)",
+      advanced: "Дополнительно",
+      importJson: "Импорт из JSON",
       dateSource: "Использовать",
       dateSourcePattern: "Шаблон",
       dateSourceManual: "Вручную",
@@ -206,7 +211,8 @@ export const ru = {
       manualTime: "Ручное время"
     },
     hints: {
-      profileDefaults: "Выберите профиль для значений по умолчанию или оставьте пустым для ручного создания."
+      profileDefaults: "Выберите профиль для значений по умолчанию или оставьте пустым для ручного создания.",
+      importJson: "Импортировать детали события из файла JSON."
     },
     dateHints: {
       default: "Ручной режим готов. Профили с шаблонами открывают варианты дат.",
@@ -220,6 +226,11 @@ export const ru = {
     loadProfile: "Загрузить профиль (необязательно)",
     loadProfilePlaceholder: "Выберите профиль",
     clearProfile: "Очистить профиль",
+    importJsonButton: "Импорт JSON",
+    importSuccess: "Данные события импортированы из JSON.",
+    importWrongType: "Похоже, это JSON профиля. Пожалуйста, используйте импорт профиля.",
+    exportJsonButton: "Экспорт JSON",
+    exportSuccess: "Данные события экспортированы в JSON.",
     dateSource: "Дата и время",
     dateSourceManual: "Вручную",
     dateSourcePattern: "По шаблону профиля",
@@ -340,6 +351,11 @@ export const ru = {
     buttons: {
       new: "Новый"
     },
+    importJsonButton: "Импорт JSON",
+    importSuccess: "Данные профиля импортированы из JSON.",
+    importWrongType: "Похоже, это JSON события. Пожалуйста, используйте импорт события.",
+    exportJsonButton: "Экспорт JSON",
+    exportSuccess: "Данные профиля экспортированы в JSON.",
     hints: {
       groupAccess: "Выберите группу с доступом к календарю.",
       patternsInfo: "Шаблоны используются для предварительного создания дат."
@@ -447,7 +463,13 @@ export const ru = {
         monthlyTime: "Установите время, в которое события будут публиковаться каждый месяц"
       },
       offsetProse: "Опубликовать следующее событие за 7 дней до его начала.",
-      monthlyProse: "Каждый месяц 1-го числа в 6:00 PM"
+      monthlyProse: "Каждый месяц 1-го числа в 6:00 PM",
+      restoreButton: "Восстановить",
+      restoreSuccess: "Восстановлено {count} событие(й)",
+      restoreNone: "Нет событий для восстановления",
+      restoreFailed: "Не удалось восстановить события",
+      restoreNoProfile: "Профиль не выбран",
+      restorableCount: "{count} удалённых событие(й) можно восстановить"
     },
     created: "Профиль создан.",
     updated: "Профиль обновлен.",

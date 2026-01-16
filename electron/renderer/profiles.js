@@ -109,6 +109,25 @@ export function buildProfileKey(groupId, displayName, fallbackName) {
   return getUniqueProfileKey(groupId, base);
 }
 
+// Helper function to get unique display name for a group
+export function getUniqueDisplayName(groupId, baseName) {
+  const profiles = state.profiles?.[groupId]?.profiles || {};
+  const existingNames = Object.values(profiles).map(p => (p.displayName || "").trim().toLowerCase());
+  const baseNameLower = baseName.trim().toLowerCase();
+
+  if (!existingNames.includes(baseNameLower)) {
+    return baseName.trim();
+  }
+
+  let counter = 1;
+  let nextName = `${baseName.trim()} - ${counter}`;
+  while (existingNames.includes(nextName.toLowerCase())) {
+    counter += 1;
+    nextName = `${baseName.trim()} - ${counter}`;
+  }
+  return nextName;
+}
+
 // Helper function to get group name
 export function getGroupName(groupId) {
   const group = (state.groups || []).find(item => item.groupId === groupId);
@@ -118,8 +137,7 @@ export function getGroupName(groupId) {
 // Set profile mode (create or edit)
 export function setProfileMode(mode) {
   state.profile.mode = mode;
-  const isEdit = mode === "edit";
-  dom.profileGroup.disabled = isEdit;
+  dom.profileGroup.disabled = false;
 }
 
 // Automation form helpers
@@ -199,6 +217,11 @@ function applyAutomationToForm(automation) {
   // Update prose display - will be called after form is applied and ready
   if (window.updateAutomationProse) {
     window.updateAutomationProse();
+  }
+
+  // Update restorable count for the selected profile
+  if (window.updateRestorableCount) {
+    window.updateRestorableCount();
   }
 }
 
@@ -375,6 +398,12 @@ export function resetProfileForm() {
 
   // Reset automation
   resetAutomationForm();
+  if (dom.automationRestore) {
+    dom.automationRestore.disabled = true;
+  }
+  if (dom.automationRestoreCount) {
+    dom.automationRestoreCount.textContent = "";
+  }
 }
 
 // Apply profile data to form
@@ -427,10 +456,18 @@ export function applyProfileToForm(groupId, profileKey) {
 // Update profile action buttons visibility
 export function updateProfileActionButtons() {
   const hasSelection = Boolean(dom.profileExisting.value);
+  const hasGroup = Boolean(dom.profileGroup.value);
   dom.profileEdit.classList.toggle("is-hidden", !hasSelection);
   dom.profileDelete.classList.toggle("is-hidden", !hasSelection);
   dom.profileEdit.disabled = !hasSelection;
   dom.profileDelete.disabled = !hasSelection;
+  // Import enabled when group selected, export enabled when profile selected
+  if (dom.profileImportJson) {
+    dom.profileImportJson.disabled = !hasGroup;
+  }
+  if (dom.profileExportJson) {
+    dom.profileExportJson.disabled = !hasSelection;
+  }
 }
 
 // Render profile list for a selected group
@@ -758,4 +795,254 @@ export async function refreshProfiles(api) {
       message: "Failed to load profiles."
     };
   }
+}
+
+// Export profile to JSON
+export async function handleProfileExportJson(api) {
+  try {
+    const selected = dom.profileExisting.value;
+    if (!selected) {
+      return { success: false, message: "No profile selected to export." };
+    }
+
+    const [groupId, profileKey] = selected.split("::");
+    const profile = state.profiles?.[groupId]?.profiles?.[profileKey];
+    if (!profile) {
+      return { success: false, message: "Profile not found." };
+    }
+
+    const exportData = {
+      displayName: profile.displayName || "",
+      name: profile.name || "",
+      description: profile.description || "",
+      category: profile.category || "hangout",
+      tags: profile.tags || [],
+      accessType: profile.accessType || "public",
+      roleIds: profile.roleIds || [],
+      imageId: profile.imageId || "",
+      sendNotification: profile.sendNotification ?? false,
+      duration: profile.duration || 120,
+      timezone: profile.timezone || "",
+      languages: profile.languages || [],
+      platforms: profile.platforms || [],
+      dateMode: profile.dateMode || "manual",
+      patterns: profile.patterns || [],
+      automation: profile.automation || null
+    };
+
+    // Include base64 image if imageId is set
+    if (exportData.imageId) {
+      try {
+        const imageData = await api.getImageAsBase64(exportData.imageId);
+        if (imageData) {
+          exportData.imageBase64 = imageData;
+        }
+      } catch (imgErr) {
+        console.warn("Could not include image in profile export:", imgErr);
+      }
+    }
+
+    const result = await api.exportProfileJson(exportData);
+    if (!result) {
+      return { success: false, message: "Export failed." };
+    }
+    if (result.cancelled) {
+      return { success: false, cancelled: true };
+    }
+    if (!result.ok) {
+      return { success: false, message: result.error?.message || "Could not export profile JSON." };
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, message: err.message || "Export failed." };
+  }
+}
+
+// Import profile from JSON
+export async function handleProfileImportJson(api) {
+  try {
+    const result = await api.importProfileJson();
+    if (!result) {
+      return { success: false, message: "Import failed." };
+    }
+    if (result.cancelled) {
+      return { success: false, cancelled: true };
+    }
+    if (!result.ok) {
+      const errorMessage = result.error?.message || "Could not import profile JSON.";
+      return { success: false, message: errorMessage };
+    }
+    return await applyImportedJsonToProfileForm(result.data, api);
+  } catch (err) {
+    return { success: false, message: err.message || "Import failed." };
+  }
+}
+
+// Apply imported JSON data to profile form
+async function applyImportedJsonToProfileForm(data, api) {
+  if (!data || typeof data !== "object") {
+    return { success: false, message: "Invalid JSON data." };
+  }
+
+  // Check if this looks like an event JSON instead of a profile JSON
+  // Events have startDate/endDate/worldId - these fields don't exist in profiles
+  const hasEventFields = data.startDate !== undefined || data.endDate !== undefined || data.worldId !== undefined;
+  // Profiles must have displayName (required field unique to profiles)
+  const hasProfileFields = data.displayName !== undefined;
+  if (hasEventFields || !hasProfileFields) {
+    return { success: false, message: t("profiles.importWrongType") || "This appears to be an event JSON. Please use Import Event instead." };
+  }
+
+  // Handle image - check if imageId exists in user's gallery first, otherwise upload base64
+  const autoUpload = dom.settingsAutoUploadImages?.checked ?? false;
+  if (data.imageId && typeof data.imageId === "string") {
+    try {
+      const imageExists = await api.checkGalleryImageExists(data.imageId);
+      if (!imageExists && autoUpload && data.imageBase64 && typeof data.imageBase64 === "string") {
+        const uploadResult = await api.uploadGalleryImageBase64(data.imageBase64);
+        if (uploadResult?.ok && uploadResult?.data?.id) {
+          data.imageId = uploadResult.data.id;
+        }
+      }
+    } catch (imgErr) {
+      console.warn("Could not check/upload imported profile image:", imgErr);
+    }
+  } else if (autoUpload && data.imageBase64 && typeof data.imageBase64 === "string") {
+    try {
+      const uploadResult = await api.uploadGalleryImageBase64(data.imageBase64);
+      if (uploadResult?.ok && uploadResult?.data?.id) {
+        data.imageId = uploadResult.data.id;
+      }
+    } catch (imgErr) {
+      console.warn("Could not upload imported profile image:", imgErr);
+    }
+  }
+
+  // Apply display name - ensure unique name within the selected group
+  const selectedGroupId = dom.profileGroup.value;
+  let displayName = (data.displayName && typeof data.displayName === "string")
+    ? data.displayName.trim()
+    : "";
+  if (displayName && selectedGroupId) {
+    displayName = getUniqueDisplayName(selectedGroupId, displayName);
+  }
+  dom.profileDisplayName.value = displayName;
+
+  // Apply event name
+  dom.profileName.value = (data.name && typeof data.name === "string")
+    ? sanitizeText(data.name, {
+        maxLength: EVENT_NAME_LIMIT,
+        allowNewlines: false,
+        trim: true
+      })
+    : "";
+
+  // Apply description
+  dom.profileDescription.value = (data.description && typeof data.description === "string")
+    ? sanitizeText(data.description, {
+        maxLength: EVENT_DESCRIPTION_LIMIT,
+        allowNewlines: true,
+        trim: true
+      })
+    : "";
+
+  // Apply category
+  const validCategories = ["hangout", "social", "gaming", "roleplay", "media", "music", "dance", "performance", "educational", "creative", "networking", "sports", "other"];
+  if (data.category && validCategories.includes(data.category)) {
+    dom.profileCategory.value = data.category;
+  } else {
+    dom.profileCategory.value = "hangout";
+  }
+
+  // Apply tags
+  const tags = Array.isArray(data.tags)
+    ? data.tags.filter(t => typeof t === "string").slice(0, TAG_LIMIT)
+    : [];
+  if (state.profile.tagInput) {
+    state.profile.tagInput.setTags(tags);
+  } else {
+    dom.profileTags.value = tags.join(", ");
+  }
+
+  // Apply access type
+  const validAccessTypes = ["public", "members", "group"];
+  if (data.accessType && validAccessTypes.includes(data.accessType)) {
+    dom.profileAccess.value = data.accessType;
+  } else {
+    dom.profileAccess.value = "public";
+  }
+
+  // Apply role IDs
+  state.profile.roleIds = Array.isArray(data.roleIds)
+    ? data.roleIds.filter(id => typeof id === "string" && id.trim())
+    : [];
+
+  // Apply image ID
+  dom.profileImageId.value = (data.imageId && typeof data.imageId === "string")
+    ? data.imageId.trim()
+    : "";
+
+  // Apply send notification
+  dom.profileSendNotification.checked = typeof data.sendNotification === "boolean"
+    ? data.sendNotification
+    : false;
+
+  // Apply duration
+  if (typeof data.duration === "number" && data.duration > 0) {
+    dom.profileDuration.value = formatDuration(data.duration);
+  } else {
+    dom.profileDuration.value = formatDuration(120);
+  }
+  updateProfileDurationPreview();
+
+  // Apply timezone
+  if (data.timezone && typeof data.timezone === "string") {
+    dom.profileTimezone.value = data.timezone;
+  }
+
+  // Apply languages - only update if provided with valid non-empty values
+  if (Array.isArray(data.languages)) {
+    const validLanguages = data.languages.filter(l => typeof l === "string" && l.trim()).slice(0, 3);
+    if (validLanguages.length > 0) {
+      state.profile.languages = validLanguages;
+    }
+  }
+
+  // Apply platforms - only update if provided with valid non-empty values
+  if (Array.isArray(data.platforms)) {
+    const validPlatforms = data.platforms.filter(p => typeof p === "string" && p.trim());
+    if (validPlatforms.length > 0) {
+      state.profile.platforms = validPlatforms;
+    }
+  }
+
+  // Apply date mode
+  const validDateModes = ["manual", "pattern"];
+  if (data.dateMode && validDateModes.includes(data.dateMode)) {
+    dom.profileDateMode.value = data.dateMode;
+  }
+
+  // Apply patterns
+  if (Array.isArray(data.patterns)) {
+    state.profile.patterns = data.patterns.filter(p => p && typeof p === "object");
+  }
+
+  // Apply automation settings
+  if (data.automation && typeof data.automation === "object") {
+    applyAutomationToForm(data.automation);
+  }
+
+  // Set up for new profile mode
+  setProfileMode("new");
+  state.profile.currentKey = null;
+  dom.profileExisting.value = "";
+  // Mark as confirmed so wizard navigation doesn't reset the form
+  setProfileEditConfirmed(true);
+  updateProfileActionButtons();
+
+  // Re-render role restrictions if needed
+  void renderProfileRoleRestrictions(api);
+
+  // Return success with flag to update UI
+  return { success: true, needsUiUpdate: true };
 }

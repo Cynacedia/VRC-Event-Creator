@@ -137,6 +137,27 @@ function debugApiCall(name, params) {
   }
 }
 
+function normalizeVersion(version) {
+  return String(version || "").trim().replace(/^v/i, "");
+}
+
+function compareVersions(a, b) {
+  const left = normalizeVersion(a).split(".").map(part => parseInt(part, 10) || 0);
+  const right = normalizeVersion(b).split(".").map(part => parseInt(part, 10) || 0);
+  const length = Math.max(left.length, right.length);
+  for (let i = 0; i < length; i += 1) {
+    const leftValue = left[i] || 0;
+    const rightValue = right[i] || 0;
+    if (leftValue > rightValue) {
+      return 1;
+    }
+    if (leftValue < rightValue) {
+      return -1;
+    }
+  }
+  return 0;
+}
+
 function debugApiResponse(name, response, error = null) {
   if (IS_DEV) {
     const timestamp = new Date().toISOString();
@@ -303,13 +324,19 @@ function normalizeSettings(raw) {
     return {
       warnConflicts: false,
       minimizeToTray: false,
-      trayPromptShown: false
+      trayPromptShown: false,
+      enableAdvanced: false,
+      enableImportExport: false,
+      autoUploadImages: false
     };
   }
   return {
     warnConflicts: typeof raw.warnConflicts === "boolean" ? raw.warnConflicts : false,
     minimizeToTray: typeof raw.minimizeToTray === "boolean" ? raw.minimizeToTray : false,
-    trayPromptShown: typeof raw.trayPromptShown === "boolean" ? raw.trayPromptShown : false
+    trayPromptShown: typeof raw.trayPromptShown === "boolean" ? raw.trayPromptShown : false,
+    enableAdvanced: typeof raw.enableAdvanced === "boolean" ? raw.enableAdvanced : false,
+    enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
+    autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false
   };
 }
 
@@ -350,7 +377,7 @@ function saveGalleryCacheManifest(manifest) {
   }
 }
 
-async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
+async function downloadGalleryImage(imageId, _remoteUrl, mimeType) {
   try {
     ensureGalleryCacheDir();
     const ext = mimeType === "image/png" ? ".png" : ".jpg";
@@ -365,39 +392,38 @@ async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
       return null;
     }
 
-    // Validate URL is from VRChat's CDN to prevent arbitrary file downloads
-    const url = new URL(remoteUrl);
-    const allowedHosts = ['api.vrchat.cloud', 'd348imysud55la.cloudfront.net'];
-    if (!allowedHosts.some(host => url.hostname === host || url.hostname.endsWith(`.${host}`))) {
-      debugLog("galleryCache", `Untrusted URL host rejected: ${url.hostname}`);
+    // Use SDK's authenticated downloadFileVersion method
+    // First get file info to determine version
+    const fileRes = await vrchat.getFile({
+      path: { fileId: imageId },
+      throwOnError: false
+    });
+    const file = fileRes?.data;
+    if (!file || !file.versions?.length) {
+      debugLog("galleryCache", `No file data or versions for ${imageId}`);
       return null;
     }
 
-    const response = await fetch(remoteUrl);
-    if (!response.ok) {
-      debugLog("galleryCache", `Failed to download ${imageId}: HTTP ${response.status}`);
+    const lastVersion = file.versions[file.versions.length - 1];
+    const versionNum = lastVersion?.version ?? 1;
+
+    debugLog("galleryCache", `Downloading ${imageId} version ${versionNum} via SDK`);
+
+    const downloadRes = await vrchat.downloadFileVersion({
+      path: { fileId: imageId, versionId: versionNum },
+      throwOnError: false
+    });
+
+    const blob = downloadRes?.data;
+    if (!blob) {
+      debugLog("galleryCache", `Failed to download ${imageId}: no blob data`);
       return null;
     }
 
-    // Validate content type from response headers
-    const contentType = response.headers.get('content-type');
-    const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!contentType || !validImageTypes.some(type => contentType.includes(type))) {
-      debugLog("galleryCache", `Invalid content-type for ${imageId}: ${contentType}`);
-      return null;
-    }
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Validate content length to prevent DoS via huge files (max 10MB)
-    const contentLength = response.headers.get('content-length');
     const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-    if (contentLength && parseInt(contentLength) > MAX_IMAGE_SIZE) {
-      debugLog("galleryCache", `Image too large for ${imageId}: ${contentLength} bytes`);
-      return null;
-    }
-
-    const buffer = Buffer.from(await response.arrayBuffer());
-
-    // Additional size check after download
     if (buffer.length > MAX_IMAGE_SIZE) {
       debugLog("galleryCache", `Downloaded image too large for ${imageId}: ${buffer.length} bytes`);
       return null;
@@ -414,7 +440,6 @@ async function downloadGalleryImage(imageId, remoteUrl, mimeType) {
       return null;
     }
 
-    // codeql[js/http-to-file-access] - URL validated against VRChat CDN allowlist, content-type checked, size limited, and magic bytes verified
     fs.writeFileSync(localPath, buffer);
 
     const manifest = loadGalleryCacheManifest();
@@ -1265,6 +1290,72 @@ async function getUpcomingEventCount(groupId) {
   return upcomingCount;
 }
 
+function mapGroupCalendarEvents(results, groupId, options = {}) {
+  const { upcomingOnly = true, includeNonEditable = false } = options;
+  const now = DateTime.utc();
+  return results
+    .filter(event => {
+      if (!getEventId(event)) {
+        return false;
+      }
+      const editableFlag = getEventField(event, "canEdit")
+        ?? getEventField(event, "isEditable")
+        ?? getEventField(event, "editable");
+      if (!includeNonEditable && editableFlag === false) {
+        return false;
+      }
+      if (upcomingOnly) {
+        return isUpcomingEvent(event, now);
+      }
+      return true;
+    })
+    .map(event => {
+      const startValue = getEventStartValue(event);
+      const endValue = getEventEndValue(event);
+      const createdValue = getEventCreatedValue(event);
+      const createdByValue = getEventCreatedByValue(event);
+      const startsAt = parseEventDateValue(startValue);
+      const endsAt = parseEventDateValue(endValue);
+      const createdAt = parseEventDateValue(createdValue);
+      const startsAtUtc = startsAt?.isValid ? startsAt.toUTC().toISO() : null;
+      const endsAtUtc = endsAt?.isValid ? endsAt.toUTC().toISO() : null;
+      const createdAtUtc = createdAt?.isValid ? createdAt.toUTC().toISO() : null;
+      let durationMinutes = null;
+      if (startsAt?.isValid && endsAt?.isValid) {
+        durationMinutes = Math.max(1, Math.round(endsAt.diff(startsAt, "minutes").minutes));
+      }
+      const languages = getEventField(event, "languages");
+      const platforms = getEventField(event, "platforms");
+      const tags = getEventField(event, "tags");
+      const roleIds = getEventField(event, "roleIds");
+      return {
+        id: getEventId(event),
+        groupId,
+        title: getEventField(event, "title") || "",
+        description: getEventField(event, "description") || "",
+        category: getEventField(event, "category") || "hangout",
+        accessType: getEventField(event, "accessType") || "public",
+        languages: Array.isArray(languages) ? languages : [],
+        platforms: Array.isArray(platforms) ? platforms : [],
+        tags: Array.isArray(tags) ? tags : [],
+        roleIds: Array.isArray(roleIds) ? roleIds : [],
+        imageId: getEventField(event, "imageId") || null,
+        imageUrl: getEventImageUrl(event),
+        startsAtUtc,
+        endsAtUtc,
+        createdAtUtc,
+        createdById: typeof createdByValue === "string" ? createdByValue : null,
+        durationMinutes,
+        timezone: getEventField(event, "timezone") || null
+      };
+    })
+    .sort((a, b) => {
+      const aTime = Date.parse(a.startsAtUtc || a.endsAtUtc || "") || Number.POSITIVE_INFINITY;
+      const bTime = Date.parse(b.startsAtUtc || b.endsAtUtc || "") || Number.POSITIVE_INFINITY;
+      return aTime - bTime;
+    });
+}
+
 function getCalendarEventList(data) {
   if (Array.isArray(data)) {
     return data;
@@ -1538,7 +1629,7 @@ ipcMain.handle("app:checkUpdate", async () => {
     const result = await autoUpdater.checkForUpdates();
     const latestVersion = result?.updateInfo?.version || null;
     // Only report update if latest version is actually newer
-    const updateAvailable = latestVersion && latestVersion !== APP_VERSION;
+    const updateAvailable = latestVersion && compareVersions(latestVersion, APP_VERSION) > 0;
     return {
       updateAvailable,
       updateDownloaded,
@@ -1669,6 +1760,96 @@ ipcMain.handle("themePresets:export", async (_, payload) => {
   return exportThemePreset(payload);
 });
 
+ipcMain.handle("events:importJson", async () => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openFile"],
+    title: "Import Event JSON",
+    filters: [{ name: "Event JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false, cancelled: true };
+  }
+  const filePath = result.filePaths[0];
+  let raw = null;
+  try {
+    raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (err) {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Could not parse JSON file." } };
+  }
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Invalid JSON structure." } };
+  }
+  return { ok: true, data: raw };
+});
+
+ipcMain.handle("events:exportJson", async (_, data) => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Export Event JSON",
+    defaultPath: `event-${Date.now()}.json`,
+    filters: [{ name: "Event JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePath) {
+    return { ok: false, cancelled: true };
+  }
+  try {
+    fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2), "utf8");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: { code: "WRITE_FAILED", message: "Could not write JSON file." } };
+  }
+});
+
+ipcMain.handle("profiles:importJson", async () => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showOpenDialog(mainWindow, {
+    properties: ["openFile"],
+    title: "Import Profile JSON",
+    filters: [{ name: "Profile JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePaths.length) {
+    return { ok: false, cancelled: true };
+  }
+  const filePath = result.filePaths[0];
+  let raw = null;
+  try {
+    raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (err) {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Could not parse JSON file." } };
+  }
+  if (!raw || typeof raw !== "object") {
+    return { ok: false, error: { code: "FILE_INVALID", message: "Invalid JSON structure." } };
+  }
+  return { ok: true, data: raw };
+});
+
+ipcMain.handle("profiles:exportJson", async (_, data) => {
+  if (!mainWindow) {
+    return { ok: false, error: { code: "NO_WINDOW" } };
+  }
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Export Profile JSON",
+    defaultPath: `profile-${Date.now()}.json`,
+    filters: [{ name: "Profile JSON", extensions: ["json"] }]
+  });
+  if (result.canceled || !result.filePath) {
+    return { ok: false, cancelled: true };
+  }
+  try {
+    fs.writeFileSync(result.filePath, JSON.stringify(data, null, 2), "utf8");
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: { code: "WRITE_FAILED", message: "Could not write JSON file." } };
+  }
+});
+
 ipcMain.handle("auth:getCurrentUser", async () => {
   return getCurrentUser();
 });
@@ -1738,6 +1919,19 @@ ipcMain.handle("groups:list", async () => {
       permissions.includes("*") || permissions.includes("group-calendar-manage");
     enriched.push({ ...group, groupId, canManageCalendar, privacy: privacy ?? group.privacy });
   }
+  if (automationEngine.isInitialized()) {
+    const knownGroupIds = enriched
+      .filter(group => group.canManageCalendar)
+      .map(group => group.groupId)
+      .filter(Boolean);
+    const pruneResult = automationEngine.setKnownGroupIds(knownGroupIds);
+    if (pruneResult.removedPending || pruneResult.removedDeleted) {
+      debugLog(
+        "Automation",
+        `Pruned ${pruneResult.removedPending} pending + ${pruneResult.removedDeleted} deleted for unknown groups`
+      );
+    }
+  }
   return enriched;
 });
 
@@ -1799,6 +1993,27 @@ ipcMain.handle("profiles:update", async (_, payload) => {
 
   // Trigger automation recalculation for this profile
   if (automationEngine.isInitialized()) {
+    try {
+      await ensureUser();
+      await ensureCalendarPermission(groupId);
+      debugApiCall("getGroupCalendarEvents (reconcilePublished)", { groupId, n: 100 });
+      const response = await requestGet(
+        "getGroupCalendarEvents",
+        { path: { groupId }, query: { n: 100 } },
+        () => vrchat.getGroupCalendarEvents({
+          path: { groupId },
+          query: { n: 100 }
+        })
+      );
+      debugApiResponse("getGroupCalendarEvents (reconcilePublished)", response);
+      const results = getCalendarEventList(response.data);
+      const mapped = mapGroupCalendarEvents(results, groupId, { upcomingOnly: true, includeNonEditable: false });
+      if (mapped.length < 100) {
+        automationEngine.reconcilePublishedEvents(groupId, mapped);
+      }
+    } catch (err) {
+      debugApiResponse("getGroupCalendarEvents (reconcilePublished)", null, err);
+    }
     automationEngine.updatePendingEventsForProfile(groupId, profileKey, data);
   }
 
@@ -1816,7 +2031,7 @@ ipcMain.handle("profiles:delete", async (_, payload) => {
 
     // Clean up pending events for deleted profile
     if (automationEngine.isInitialized()) {
-      automationEngine.cancelJobsForProfile(groupId, profileKey);
+      automationEngine.purgeProfilePendingEvents(groupId, profileKey);
     }
   }
   return profiles;
@@ -1844,7 +2059,7 @@ ipcMain.handle("events:prepare", async (_, payload) => {
 
 ipcMain.handle("events:create", async (_, payload) => {
   try {
-    const { groupId, startsAtUtc, endsAtUtc, eventData } = payload || {};
+    const { groupId, startsAtUtc, endsAtUtc, eventData, profileKey } = payload || {};
     if (!groupId || !startsAtUtc || !endsAtUtc || !eventData) {
       throw new Error("Missing event data.");
     }
@@ -1876,6 +2091,13 @@ ipcMain.handle("events:create", async (_, payload) => {
     const eventId = getEventId(response.data);
     // Track locally created event for conflict detection (VRChat API has delay)
     trackCreatedEvent(groupId, startsAtUtc, eventData.title);
+    if (automationEngine.isInitialized() && profileKey) {
+      const profile = profiles?.[groupId]?.profiles?.[profileKey];
+      if (profile?.automation?.enabled) {
+        automationEngine.recordManualEvent(groupId, profileKey, startsAtUtc);
+        automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
+      }
+    }
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
@@ -1919,68 +2141,16 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
   );
   debugApiResponse("getGroupCalendarEvents (listGroup)", response);
   const results = getCalendarEventList(response.data);
-  const now = DateTime.utc();
-  const mapped = results
-    .filter(event => {
-      if (!getEventId(event)) {
-        return false;
-      }
-      const editableFlag = getEventField(event, "canEdit")
-        ?? getEventField(event, "isEditable")
-        ?? getEventField(event, "editable");
-      if (!includeNonEditable && editableFlag === false) {
-        return false;
-      }
-      if (upcomingOnly) {
-        return isUpcomingEvent(event, now);
-      }
-      return true;
-    })
-      .map(event => {
-        const startValue = getEventStartValue(event);
-        const endValue = getEventEndValue(event);
-        const createdValue = getEventCreatedValue(event);
-        const createdByValue = getEventCreatedByValue(event);
-        const startsAt = parseEventDateValue(startValue);
-        const endsAt = parseEventDateValue(endValue);
-        const createdAt = parseEventDateValue(createdValue);
-        const startsAtUtc = startsAt?.isValid ? startsAt.toUTC().toISO() : null;
-        const endsAtUtc = endsAt?.isValid ? endsAt.toUTC().toISO() : null;
-        const createdAtUtc = createdAt?.isValid ? createdAt.toUTC().toISO() : null;
-        let durationMinutes = null;
-        if (startsAt?.isValid && endsAt?.isValid) {
-          durationMinutes = Math.max(1, Math.round(endsAt.diff(startsAt, "minutes").minutes));
-        }
-        const languages = getEventField(event, "languages");
-        const platforms = getEventField(event, "platforms");
-        const tags = getEventField(event, "tags");
-        const roleIds = getEventField(event, "roleIds");
-        return {
-          id: getEventId(event),
-          groupId,
-          title: getEventField(event, "title") || "",
-          description: getEventField(event, "description") || "",
-          category: getEventField(event, "category") || "hangout",
-          accessType: getEventField(event, "accessType") || "public",
-          languages: Array.isArray(languages) ? languages : [],
-          platforms: Array.isArray(platforms) ? platforms : [],
-          tags: Array.isArray(tags) ? tags : [],
-          roleIds: Array.isArray(roleIds) ? roleIds : [],
-          imageId: getEventField(event, "imageId") || null,
-          imageUrl: getEventImageUrl(event),
-          startsAtUtc,
-          endsAtUtc,
-          createdAtUtc,
-          createdById: typeof createdByValue === "string" ? createdByValue : null,
-          durationMinutes,
-          timezone: getEventField(event, "timezone") || null
-      };
-    })
-    .sort((a, b) => {
-      const aTime = Date.parse(a.startsAtUtc || a.endsAtUtc || "") || Number.POSITIVE_INFINITY;
-      const bTime = Date.parse(b.startsAtUtc || b.endsAtUtc || "") || Number.POSITIVE_INFINITY;
-      return aTime - bTime;
-    });
+  const mapped = mapGroupCalendarEvents(results, groupId, { upcomingOnly, includeNonEditable });
+  if (automationEngine.isInitialized() && upcomingOnly && mapped.length < 100) {
+    const reconcileResult = automationEngine.reconcilePublishedEvents(groupId, mapped);
+    if (reconcileResult.removed || reconcileResult.updated) {
+      debugLog(
+        "Automation",
+        `Reconciled published events for ${groupId}: ${reconcileResult.updated} updated, ${reconcileResult.removed} removed`
+      );
+    }
+  }
   return mapped;
 });
 
@@ -2201,6 +2371,71 @@ ipcMain.handle("files:uploadGallery", async () => {
   }
 });
 
+ipcMain.handle("files:uploadGalleryBase64", async (_, payload) => {
+  const { base64Data } = payload || {};
+  if (!base64Data || typeof base64Data !== "string") {
+    return { ok: false, error: { code: "INVALID_DATA", message: "No base64 data provided." } };
+  }
+
+  try {
+    // Parse data URL format: data:image/png;base64,iVBOR...
+    const match = base64Data.match(/^data:([^;]+);base64,(.+)$/);
+    if (!match) {
+      return { ok: false, error: { code: "INVALID_FORMAT", message: "Invalid base64 data URL format." } };
+    }
+
+    const mimeType = match[1];
+    const base64Content = match[2];
+    const buffer = Buffer.from(base64Content, "base64");
+
+    // Validate file size (max 10MB)
+    const maxBytes = 10 * 1024 * 1024;
+    if (buffer.length >= maxBytes) {
+      return { ok: false, error: { code: "FILE_TOO_LARGE" } };
+    }
+
+    // Validate image
+    const image = nativeImage.createFromBuffer(buffer);
+    if (image.isEmpty()) {
+      return { ok: false, error: { code: "FILE_TYPE", message: "Invalid image data." } };
+    }
+    const { width, height } = image.getSize();
+    if (width <= 64 || height <= 64) {
+      return { ok: false, error: { code: "DIMENSIONS_TOO_SMALL" } };
+    }
+    if (width >= 2048 || height >= 2048) {
+      return { ok: false, error: { code: "DIMENSIONS_TOO_LARGE" } };
+    }
+
+    // Determine file extension
+    const extMap = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" };
+    const ext = extMap[mimeType] || "png";
+    const fileName = `imported-${Date.now()}.${ext}`;
+
+    const uploadFile = typeof File === "function"
+      ? new File([buffer], fileName, { type: mimeType })
+      : new Blob([buffer], { type: mimeType });
+
+    debugApiCall("uploadGalleryImage (base64)", { fileName, mimeType, size: buffer.length, width, height });
+    const res = await vrchat.uploadGalleryImage({
+      body: { file: uploadFile },
+      throwOnError: true
+    });
+    debugApiResponse("uploadGalleryImage (base64)", res);
+
+    return { ok: true, data: res?.data || null };
+  } catch (err) {
+    debugApiResponse("uploadGalleryImage (base64)", null, err);
+    return {
+      ok: false,
+      error: {
+        status: err?.response?.status || null,
+        message: err?.message || "Could not upload image."
+      }
+    };
+  }
+});
+
 // ============================================
 // Gallery Cache IPC Handlers
 // ============================================
@@ -2209,6 +2444,114 @@ ipcMain.handle("gallery:getCachedImage", async (_, payload) => {
   const { imageId } = payload || {};
   if (!imageId) return null;
   return getCachedImageAsDataUrl(imageId);
+});
+
+ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
+  const { imageId } = payload || {};
+  if (!imageId) return null;
+
+  // First check if already cached
+  let dataUrl = getCachedImageAsDataUrl(imageId);
+  if (dataUrl) return dataUrl;
+
+  // Not cached, try to download using authenticated SDK method
+  try {
+    // Get file info to determine version and mime type
+    debugLog("gallery", `Fetching file info for ${imageId}`);
+    const fileRes = await vrchat.getFile({
+      path: { fileId: imageId },
+      throwOnError: true
+    });
+    const file = fileRes?.data;
+    if (!file) {
+      debugLog("gallery", `No file data returned for ${imageId}`);
+      return null;
+    }
+
+    // Get the latest version - use the version field from the last entry
+    const lastVersion = file.versions?.[file.versions.length - 1];
+    const versionNum = lastVersion?.version ?? 1;
+    const mimeType = file.mimeType || "image/png";
+
+    debugLog("gallery", `Downloading ${imageId} version ${versionNum} via SDK (versions array length: ${file.versions?.length})`);
+
+    // Use SDK's downloadFileVersion which handles authentication
+    const downloadRes = await vrchat.downloadFileVersion({
+      path: { fileId: imageId, versionId: versionNum },
+      throwOnError: true
+    });
+
+    const blob = downloadRes?.data;
+    if (!blob) {
+      debugLog("gallery", `No blob data returned for ${imageId}`);
+      return null;
+    }
+
+    // Convert Blob to Buffer
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    debugLog("gallery", `Downloaded ${imageId}: ${buffer.length} bytes`);
+
+    // Validate image data by checking magic bytes
+    const isValidImage =
+      (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) || // PNG
+      (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) || // JPEG
+      (buffer.length >= 12 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50); // WebP
+
+    if (!isValidImage) {
+      debugLog("gallery", `Invalid image magic bytes for ${imageId}`);
+      return null;
+    }
+
+    // Save to cache
+    ensureGalleryCacheDir();
+    const ext = mimeType === "image/png" ? ".png" : ".jpg";
+    const localFileName = `${imageId}${ext}`;
+    const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
+
+    // Validate path is within cache directory
+    const normalizedPath = path.normalize(localPath);
+    const normalizedCacheDir = path.normalize(GALLERY_CACHE_DIR);
+    if (!normalizedPath.startsWith(normalizedCacheDir)) {
+      debugLog("gallery", `Invalid path detected for ${imageId}`);
+      return null;
+    }
+
+    fs.writeFileSync(localPath, buffer);
+
+    // Update manifest
+    const manifest = loadGalleryCacheManifest();
+    manifest.images[imageId] = {
+      localPath: localFileName,
+      mimeType,
+      cachedAt: new Date().toISOString()
+    };
+    saveGalleryCacheManifest(manifest);
+
+    debugLog("gallery", `Cached ${imageId} successfully`);
+    return getCachedImageAsDataUrl(imageId);
+  } catch (err) {
+    debugLog("gallery", `Failed to fetch image ${imageId}:`, err.message);
+    return null;
+  }
+});
+
+ipcMain.handle("gallery:checkImageExists", async (_, payload) => {
+  const { imageId } = payload || {};
+  if (!imageId) return false;
+
+  try {
+    // Try to get file info - if it succeeds, the image exists in user's gallery
+    const fileRes = await vrchat.getFile({
+      path: { fileId: imageId },
+      throwOnError: false
+    });
+    return !!(fileRes?.data?.id);
+  } catch (err) {
+    debugLog("gallery", `Image ${imageId} does not exist or is not accessible:`, err.message);
+    return false;
+  }
 });
 
 ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {
@@ -2286,13 +2629,44 @@ ipcMain.handle("pending:action", async (_, payload) => {
         return await automationEngine.handleMissedEvent(pendingEventId, "postNow");
       case "reschedule":
         return await automationEngine.handleMissedEvent(pendingEventId, "reschedule");
-      case "cancel":
-        return await automationEngine.handleMissedEvent(pendingEventId, "cancel");
+        case "cancel": {
+          const result = await automationEngine.handleMissedEvent(pendingEventId, "cancel");
+            if (result?.ok && result.automationCleared && result.groupId && result.profileKey) {
+              const profile = profiles?.[result.groupId]?.profiles?.[result.profileKey];
+              if (profile) {
+                profile.automation = { ...(profile.automation || {}), enabled: false };
+                saveProfiles(profiles);
+                if (automationEngine.isInitialized()) {
+                  automationEngine.updatePendingEventsForProfile(result.groupId, result.profileKey, profile);
+                }
+                if (mainWindow) {
+                  mainWindow.webContents.send("profiles:updated", { profiles });
+                }
+              }
+            }
+            return result;
+          }
       case "edit":
         if (!overrides || typeof overrides !== "object") {
           return { ok: false, error: { message: "Missing overrides for edit action" } };
         }
-        return automationEngine.updatePendingEventOverrides(pendingEventId, overrides);
+        try {
+          const nextOverrides = { ...overrides };
+          if (nextOverrides.manualDate && nextOverrides.manualTime) {
+            const times = buildEventTimes({
+              manualDate: nextOverrides.manualDate,
+              manualTime: nextOverrides.manualTime,
+              timezone: nextOverrides.timezone,
+              durationMinutes: nextOverrides.durationMinutes
+            });
+            nextOverrides.eventStartsAt = times.startsAtUtc;
+          }
+          delete nextOverrides.manualDate;
+          delete nextOverrides.manualTime;
+          return automationEngine.updatePendingEventOverrides(pendingEventId, nextOverrides);
+        } catch (err) {
+          return { ok: false, error: { message: err.message || "Invalid date or time." } };
+        }
       default:
         return { ok: false, error: { message: `Unknown action: ${action}` } };
     }
@@ -2345,6 +2719,28 @@ ipcMain.handle("automation:resolveEvent", async (_, payload) => {
     return { ok: false, error: { message: "Could not resolve event details" } };
   }
   return { ok: true, eventDetails: resolved };
+});
+
+ipcMain.handle("automation:restore", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return { ok: false, error: { message: "Automation not initialized" } };
+  }
+  const { groupId, profileKey } = payload || {};
+  if (!groupId || !profileKey) {
+    return { ok: false, error: { message: "Missing groupId or profileKey" } };
+  }
+  return automationEngine.restoreDeletedEvents(groupId, profileKey);
+});
+
+ipcMain.handle("automation:getRestorableCount", async (_, payload) => {
+  if (!automationEngine.isInitialized()) {
+    return 0;
+  }
+  const { groupId, profileKey } = payload || {};
+  if (!groupId || !profileKey) {
+    return 0;
+  }
+  return automationEngine.getRestorableCount(groupId, profileKey);
 });
 
 app.whenReady().then(() => {
@@ -2416,7 +2812,8 @@ app.whenReady().then(() => {
       onEventCreated: (pendingEvent, eventId) => {
         // Notify renderer about successfully created events
         if (mainWindow) {
-          mainWindow.webContents.send("automation:created", { pendingEvent, eventId });
+          const eventDetails = automationEngine.resolveEventDetails(pendingEvent.id, profiles);
+          mainWindow.webContents.send("automation:created", { pendingEvent, eventId, eventDetails });
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

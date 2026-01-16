@@ -4,6 +4,7 @@ import { dom, state } from "./state.js";
 import { setStatus, showToast, setAuthState } from "./ui.js";
 import { t } from "./i18n/index.js";
 import { sanitizePassword, sanitizeUsername } from "./utils.js";
+import { updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 
 // ============================================================================
 // Session Management
@@ -39,6 +40,17 @@ async function onLoginSuccess(api, user, refreshDataFn) {
     if (dom.settingsMinimizeTray) {
       dom.settingsMinimizeTray.checked = Boolean(settings.minimizeToTray);
     }
+    if (dom.settingsEnableAdvanced) {
+      dom.settingsEnableAdvanced.checked = Boolean(settings.enableAdvanced);
+    }
+    if (dom.settingsEnableImportExport) {
+      dom.settingsEnableImportExport.checked = Boolean(settings.enableImportExport);
+    }
+    if (dom.settingsAutoUploadImages) {
+      dom.settingsAutoUploadImages.checked = Boolean(settings.autoUploadImages);
+    }
+    updateAdvancedSettingsVisibility();
+    updateImportExportVisibility();
   } catch (err) {
     console.error("Failed to load settings:", err);
   }

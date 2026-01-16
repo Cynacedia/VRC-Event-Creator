@@ -12,6 +12,7 @@ const MODIFY_RATE_LIMIT_KEYS = {
   refresh: "events:refresh"
 };
 const REFRESH_BACKOFF_SEQUENCE = [2000, 5000, 10000, 20000, 40000, 60000]; // 2s, 5s, 10s, 20s, 40s, 60s
+const REFRESH_DEDUP_MS = 3000;
 let modifyApi = null;
 
 // In-memory cache for image data URLs
@@ -43,6 +44,150 @@ function extractImageIdFromUrl(url) {
   // VRChat file URLs contain file ID like "file_abc123"
   const match = url.match(/file_[a-zA-Z0-9-]+/);
   return match ? match[0] : null;
+}
+
+function getImageIdForEvent(event) {
+  return event?.imageId || extractImageIdFromUrl(event?.imageUrl);
+}
+
+function getEventSlotKey(event) {
+  const start = event?.startsAtUtc || event?.eventStartsAt;
+  if (!event?.groupId || !start) {
+    return null;
+  }
+  return `${event.groupId}::${start}`;
+}
+
+function buildOptimisticEvent(pendingEvent, details, eventId) {
+  const resolved = details || pendingEvent?.resolvedDetails || {};
+  const startsAtUtc = pendingEvent?.eventStartsAt || resolved.eventStartsAt || null;
+  const durationMinutes = Number(
+    resolved.durationMinutes ?? resolved.duration ?? pendingEvent?.manualOverrides?.durationMinutes ?? 120
+  );
+  const endsAtUtc = startsAtUtc
+    ? new Date(Date.parse(startsAtUtc) + (durationMinutes * 60 * 1000)).toISOString()
+    : null;
+  const baseId = pendingEvent?.id ? `optimistic_${pendingEvent.id}` : `optimistic_${Date.now()}`;
+  return {
+    id: eventId || baseId,
+    eventId: eventId || null,
+    groupId: pendingEvent?.groupId || "",
+    title: resolved.title || "",
+    description: resolved.description || "",
+    category: resolved.category || "hangout",
+    accessType: resolved.accessType || "public",
+    tags: Array.isArray(resolved.tags) ? resolved.tags : [],
+    imageId: resolved.imageId || null,
+    imageUrl: resolved.imageUrl || null,
+    roleIds: Array.isArray(resolved.roleIds) ? resolved.roleIds : [],
+    languages: Array.isArray(resolved.languages) ? resolved.languages : [],
+    platforms: Array.isArray(resolved.platforms) ? resolved.platforms : [],
+    startsAtUtc,
+    endsAtUtc,
+    timezone: resolved.timezone || "UTC",
+    isOptimistic: true,
+    sourcePendingId: pendingEvent?.id || null,
+    optimisticCreatedAt: Date.now()
+  };
+}
+
+function upsertOptimisticEvent(pendingEvent, details, eventId) {
+  if (!pendingEvent?.id) {
+    return;
+  }
+  const existing = state.modify.optimisticEvents.get(pendingEvent.id);
+  const nextEvent = buildOptimisticEvent(pendingEvent, details, eventId || existing?.event?.eventId);
+  const createdAt = existing?.createdAt || Date.now();
+  state.modify.optimisticEvents.set(pendingEvent.id, {
+    event: { ...nextEvent, optimisticCreatedAt: createdAt },
+    createdAt
+  });
+}
+
+function collectOptimisticEntriesForEvent(event) {
+  const matches = [];
+  if (!event || !state.modify.optimisticEvents.size) {
+    return matches;
+  }
+  const seen = new Set();
+  const eventSlotKey = getEventSlotKey(event);
+
+  if (event?.sourcePendingId && state.modify.optimisticEvents.has(event.sourcePendingId)) {
+    const entry = state.modify.optimisticEvents.get(event.sourcePendingId);
+    if (entry) {
+      seen.add(event.sourcePendingId);
+      matches.push({ pendingId: event.sourcePendingId, entry });
+    }
+  }
+
+  for (const [pendingId, entry] of state.modify.optimisticEvents.entries()) {
+    if (seen.has(pendingId)) {
+      continue;
+    }
+    const optimistic = entry?.event;
+    if (!optimistic) {
+      continue;
+    }
+    if (optimistic.eventId && event.id && optimistic.eventId === event.id) {
+      seen.add(pendingId);
+      matches.push({ pendingId, entry });
+      continue;
+    }
+    if (optimistic.id && event.id && optimistic.id === event.id) {
+      seen.add(pendingId);
+      matches.push({ pendingId, entry });
+      continue;
+    }
+    if (eventSlotKey && eventSlotKey === getEventSlotKey(optimistic)) {
+      seen.add(pendingId);
+      matches.push({ pendingId, entry });
+    }
+  }
+  return matches;
+}
+
+function removeOptimisticEntriesForEvent(event) {
+  const removed = [];
+  const matches = collectOptimisticEntriesForEvent(event);
+  matches.forEach(({ pendingId, entry }) => {
+    state.modify.optimisticEvents.delete(pendingId);
+    removed.push({ pendingId, entry });
+  });
+  return removed;
+}
+
+function reconcileOptimisticEvents(realEvents, pendingEvents, groupId) {
+  if (!state.modify.optimisticEvents.size) {
+    return;
+  }
+  const realIds = new Set(realEvents.map(event => event.id).filter(Boolean));
+  const realSlots = new Set(realEvents.map(getEventSlotKey).filter(Boolean));
+  const pendingById = new Map((pendingEvents || []).map(event => [event.id, event]));
+  for (const [pendingId, entry] of state.modify.optimisticEvents.entries()) {
+    const event = entry.event;
+    if (groupId && event.groupId && event.groupId !== groupId) {
+      state.modify.optimisticEvents.delete(pendingId);
+      continue;
+    }
+    if (event.eventId && realIds.has(event.eventId)) {
+      state.modify.optimisticEvents.delete(pendingId);
+      continue;
+    }
+    if (event.id && realIds.has(event.id)) {
+      state.modify.optimisticEvents.delete(pendingId);
+      continue;
+    }
+    const slotKey = getEventSlotKey(event);
+    if (slotKey && realSlots.has(slotKey)) {
+      state.modify.optimisticEvents.delete(pendingId);
+      continue;
+    }
+    const pending = pendingById.get(pendingId);
+    if (pending && (pending.status === "queued" || pending.status === "missed")) {
+      state.modify.optimisticEvents.delete(pendingId);
+      continue;
+    }
+  }
 }
 let roleFetchToken = 0;
 let refreshButtonTimer = null;
@@ -85,7 +230,9 @@ function updateRefreshButtonState() {
   }
 
   const now = Date.now();
-  const remainingMs = Math.max(0, state.modify.refreshBackoffUntil - now);
+  const backoffRemainingMs = Math.max(0, state.modify.refreshBackoffUntil - now);
+  const dedupRemainingMs = Math.max(0, (state.modify.lastRefreshTime + REFRESH_DEDUP_MS) - now);
+  const remainingMs = Math.max(backoffRemainingMs, dedupRemainingMs);
 
   if (remainingMs > 0) {
     const seconds = Math.ceil(remainingMs / 1000);
@@ -115,13 +262,14 @@ async function handleRefreshClick() {
 
   // Check if still in backoff period
   if (state.modify.refreshBackoffUntil > now) {
+    updateRefreshButtonState();
     return;
   }
 
-  // Respect 10-second deduplication window
+  // Respect deduplication window
   const timeSinceLastRefresh = now - state.modify.lastRefreshTime;
-  if (timeSinceLastRefresh < 10000) {
-    // Too soon, use cached data
+  if (timeSinceLastRefresh < REFRESH_DEDUP_MS) {
+    updateRefreshButtonState();
     return;
   }
 
@@ -336,11 +484,13 @@ function renderModifyCount() {
     return;
   }
   const groupName = getGroupName(groupId) || t("modify.countGroupFallback");
+  const optimisticCount = state.modify.optimisticEvents?.size || 0;
+  const totalCount = state.modify.events.length + optimisticCount;
 
   // Base text: "Upcoming events for <group>."
   let countText = t("modify.countStatus", {
     group: groupName,
-    count: state.modify.events.length
+    count: totalCount
   });
 
   // Append missed automation text if count > 0
@@ -374,15 +524,37 @@ function getMergedEvents() {
     sortTime: new Date(e.startsAtUtc || e.endsAtUtc).getTime()
   }));
 
+  const optimisticEvents = Array.from(state.modify.optimisticEvents.values()).map(entry => ({
+    ...entry.event,
+    isPending: false,
+    isOptimistic: true,
+    sortTime: new Date(entry.event.startsAtUtc || entry.event.endsAtUtc).getTime()
+  }));
+
+  const realSlots = new Set(realEvents.map(getEventSlotKey).filter(Boolean));
+  const realIds = new Set(realEvents.map(event => event.id).filter(Boolean));
+  const filteredOptimistic = optimisticEvents.filter(event => {
+    if (event.eventId && realIds.has(event.eventId)) {
+      return false;
+    }
+    if (event.id && realIds.has(event.id)) {
+      return false;
+    }
+    const slotKey = getEventSlotKey(event);
+    return !slotKey || !realSlots.has(slotKey);
+  });
+
   const pendingEvents = state.modify.showPending
-    ? state.modify.pendingEvents.map(p => ({
+    ? state.modify.pendingEvents
+      .filter(p => !state.modify.optimisticEvents.has(p.id))
+      .map(p => ({
         ...p,
         isPending: true,
         sortTime: new Date(p.eventStartsAt).getTime()
       }))
     : [];
 
-  return [...realEvents, ...pendingEvents].sort((a, b) => a.sortTime - b.sortTime);
+  return [...realEvents, ...filteredOptimistic, ...pendingEvents].sort((a, b) => a.sortTime - b.sortTime);
 }
 
 function renderModifyEventGrid() {
@@ -420,6 +592,9 @@ function renderModifyEventGrid() {
 function renderPublishedCard(event) {
   const card = document.createElement("div");
   card.className = "event-card";
+  if (event.isOptimistic) {
+    card.classList.add("is-optimistic");
+  }
   card.dataset.eventId = event.id;
   card.setAttribute("role", "button");
   card.tabIndex = 0;
@@ -441,7 +616,7 @@ function renderPublishedCard(event) {
     });
     thumb.appendChild(img);
     // Try to use cached version
-    const imageId = extractImageIdFromUrl(event.imageUrl);
+    const imageId = getImageIdForEvent(event);
     if (imageId) {
       loadCachedImageForElement(img, imageId, imageUrl);
     }
@@ -530,7 +705,7 @@ function renderPendingCard(pendingEvent) {
     });
     thumb.appendChild(img);
     // Try to use cached version
-    const imageId = extractImageIdFromUrl(details.imageUrl);
+    const imageId = getImageIdForEvent(details);
     if (imageId) {
       loadCachedImageForElement(img, imageId, imageUrl);
     }
@@ -554,9 +729,12 @@ function renderPendingCard(pendingEvent) {
     postNowBtn.disabled = true;
     postNowBtn.title = t("modify.pending.queuedDisabled");
   }
+  if (state.modify.pendingPostNow?.has(pendingEvent.id)) {
+    postNowBtn.disabled = true;
+  }
   postNowBtn.addEventListener("click", evt => {
     evt.stopPropagation();
-    handlePendingPostNow(pendingEvent);
+    handlePendingPostNow(pendingEvent, postNowBtn);
   });
 
   const editBtn = document.createElement("button");
@@ -645,10 +823,21 @@ function renderPendingCard(pendingEvent) {
   dom.modifyEventGrid.appendChild(card);
 }
 
-async function handlePendingPostNow(pendingEvent) {
+async function handlePendingPostNow(pendingEvent, button) {
   if (!modifyApi?.pendingAction) {
     showToast(t("modify.pending.postFailed"), true);
     return;
+  }
+  if (!pendingEvent?.id) {
+    showToast(t("modify.pending.postFailed"), true);
+    return;
+  }
+  if (state.modify.pendingPostNow.has(pendingEvent.id)) {
+    return;
+  }
+  state.modify.pendingPostNow.add(pendingEvent.id);
+  if (button) {
+    button.disabled = true;
   }
   try {
     const result = await modifyApi.pendingAction({
@@ -659,10 +848,16 @@ async function handlePendingPostNow(pendingEvent) {
       showToast(result?.error?.message || t("modify.pending.postFailed"), true);
       return;
     }
+    upsertOptimisticEvent(pendingEvent);
     showToast(t("modify.pending.posted"));
     await refreshModifyEvents(modifyApi, { preserveScroll: true });
   } catch (err) {
     showToast(t("modify.pending.postFailed"), true);
+  } finally {
+    state.modify.pendingPostNow.delete(pendingEvent.id);
+    if (button && button.isConnected) {
+      button.disabled = pendingEvent.status === "queued";
+    }
   }
 }
 
@@ -720,6 +915,7 @@ async function handlePendingCancel(pendingEvent) {
 
     // Optimistically remove from local state
     state.modify.pendingEvents = state.modify.pendingEvents.filter(p => p.id !== pendingEvent.id);
+    state.modify.optimisticEvents.delete(pendingEvent.id);
     renderModifyEventGrid();
     renderModifyCount();
   } catch (err) {
@@ -785,16 +981,6 @@ async function handlePendingSave() {
     const manualTime = dom.modifyEventTime.value;
     const manualTimezone = dom.modifyEventTimezone.value;
 
-    // Calculate eventStartsAt from date/time/timezone
-    let eventStartsAt = null;
-    if (manualDate && manualTime) {
-      // Parse as local time in the selected timezone, then convert to ISO
-      const dateTimeStr = `${manualDate}T${manualTime}:00`;
-      // Create date assuming local time, then adjust for timezone
-      const localDate = new Date(dateTimeStr);
-      eventStartsAt = localDate.toISOString();
-    }
-
     const manualOverrides = {
       title,
       description,
@@ -808,7 +994,8 @@ async function handlePendingSave() {
       roleIds: dom.modifyEventAccess.value === "group" ? state.modify.roleIds.slice() : [],
       durationMinutes,
       timezone: manualTimezone,
-      eventStartsAt
+      manualDate,
+      manualTime
     };
 
     const result = await modifyApi.pendingAction({
@@ -938,6 +1125,7 @@ function applyProfileToModifyForm(profile) {
   if (!profile) {
     return;
   }
+  const groupId = state.modify.selectedEvent?.groupId || dom.modifyGroup?.value || state.modify.selectedGroupId;
   dom.modifyEventName.value = profile.name || dom.modifyEventName.value;
   dom.modifyEventDescription.value = profile.description || dom.modifyEventDescription.value;
   dom.modifyEventCategory.value = profile.category || dom.modifyEventCategory.value || "hangout";
@@ -1056,6 +1244,7 @@ async function handleDeleteEvent(event) {
   state.modify.pendingDeletions.add(event.id);
   const eventIndex = state.modify.events.findIndex(e => e.id === event.id);
   const deletedEvent = eventIndex >= 0 ? state.modify.events[eventIndex] : null;
+  const removedOptimisticEntries = removeOptimisticEntriesForEvent(event);
 
   // Capture scroll position before render
   const scrollPos = dom.modifyEventGrid ? dom.modifyEventGrid.scrollTop : 0;
@@ -1081,6 +1270,11 @@ async function handleDeleteEvent(event) {
 
   if (!result?.ok) {
     // Rollback: restore the event to the list
+    if (removedOptimisticEntries.length) {
+      removedOptimisticEntries.forEach(({ pendingId, entry }) => {
+        state.modify.optimisticEvents.set(pendingId, entry);
+      });
+    }
     if (deletedEvent) {
       // Capture scroll before rollback render
       const rollbackScrollPos = dom.modifyEventGrid ? dom.modifyEventGrid.scrollTop : 0;
@@ -1266,6 +1460,41 @@ async function handleModifySave() {
       }
     }
   }
+
+  let removedOptimistic = false;
+  if (event?.sourcePendingId && state.modify.optimisticEvents.has(event.sourcePendingId)) {
+    state.modify.optimisticEvents.delete(event.sourcePendingId);
+    removedOptimistic = true;
+  }
+  const eventSlotKey = getEventSlotKey(event);
+  for (const [pendingId, entry] of state.modify.optimisticEvents.entries()) {
+    const optimistic = entry?.event;
+    if (!optimistic) {
+      continue;
+    }
+    if (optimistic.eventId && event.id && optimistic.eventId === event.id) {
+      state.modify.optimisticEvents.delete(pendingId);
+      removedOptimistic = true;
+      continue;
+    }
+    if (optimistic.id && event.id && optimistic.id === event.id) {
+      state.modify.optimisticEvents.delete(pendingId);
+      removedOptimistic = true;
+      continue;
+    }
+    if (eventSlotKey && eventSlotKey === getEventSlotKey(optimistic)) {
+      state.modify.optimisticEvents.delete(pendingId);
+      removedOptimistic = true;
+    }
+  }
+  if (removedOptimistic) {
+    const refreshScrollPos = dom.modifyEventGrid ? dom.modifyEventGrid.scrollTop : 0;
+    renderModifyEventGrid();
+    renderModifyCount();
+    if (dom.modifyEventGrid && refreshScrollPos > 0) {
+      dom.modifyEventGrid.scrollTop = refreshScrollPos;
+    }
+  }
 }
 
 function handleProfileLoad() {
@@ -1360,6 +1589,7 @@ async function performRefresh(api, options = {}) {
     state.modify.pendingEvents = pendingEvents;
     state.modify.missedCount = pendingResult?.missedCount || 0;
     state.modify.queuedCount = pendingResult?.queuedCount || 0;
+    reconcileOptimisticEvents(filteredEvents, pendingEvents, groupId);
 
     // Success - clear any refresh backoff
     if (options.bypassCache) {
@@ -1422,7 +1652,10 @@ export function initModifyEvents(api) {
 
   // Listen for automated event creation to refresh the view
   if (api?.onAutomationCreated) {
-    api.onAutomationCreated(() => {
+    api.onAutomationCreated((payload) => {
+      if (payload?.pendingEvent) {
+        upsertOptimisticEvent(payload.pendingEvent, payload.eventDetails, payload.eventId);
+      }
       void refreshModifyEvents(modifyApi, { bypassCache: true });
     });
   }
@@ -1433,6 +1666,7 @@ export function initModifyEvents(api) {
     clearRefreshBackoff();
     state.modify.deletedTombstones.clear();
     state.modify.lastRefreshTime = 0;
+    state.modify.optimisticEvents.clear();
     void refreshModifyEvents(modifyApi);
   });
   if (dom.modifyShowPending) {

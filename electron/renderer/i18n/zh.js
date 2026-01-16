@@ -142,7 +142,10 @@ export const zh = {
     },
     general: {
       title: "常规",
-      minimizeToTray: "最小化到系统托盘"
+      minimizeToTray: "最小化到系统托盘",
+      enableAdvanced: "启用高级设置",
+      enableImportExport: "导入/导出活动",
+      autoUploadImages: "自动上传导入活动/配置文件中的图库图片"
     },
     saveButton: "保存设置",
     saved: "设置已保存。"
@@ -198,6 +201,8 @@ export const zh = {
     labels: {
       groupRequired: "群组（必填）",
       profileOptional: "模板（可选）",
+      advanced: "高级",
+      importJson: "从 JSON 导入",
       dateSource: "使用",
       dateSourcePattern: "模式",
       dateSourceManual: "手动",
@@ -206,7 +211,8 @@ export const zh = {
       manualTime: "手动时间"
     },
     hints: {
-      profileDefaults: "选择模板以填充默认值，或留空手动创建。"
+      profileDefaults: "选择模板以填充默认值，或留空手动创建。",
+      importJson: "从 JSON 文件导入活动详情。"
     },
     dateHints: {
       default: "手动模式已就绪。带模式的模板会提供日期选项。",
@@ -220,6 +226,11 @@ export const zh = {
     loadProfile: "加载模板（可选）",
     loadProfilePlaceholder: "选择一个模板",
     clearProfile: "清除模板",
+    importJsonButton: "导入 JSON",
+    importSuccess: "已从 JSON 导入活动数据。",
+    importWrongType: "这似乎是模板 JSON。请改用导入模板。",
+    exportJsonButton: "导出 JSON",
+    exportSuccess: "已将活动数据导出为 JSON。",
     dateSource: "日期与时间",
     dateSourceManual: "手动",
     dateSourcePattern: "来自模板模式",
@@ -340,6 +351,11 @@ export const zh = {
     buttons: {
       new: "新建"
     },
+    importJsonButton: "导入 JSON",
+    importSuccess: "已从 JSON 导入模板数据。",
+    importWrongType: "这似乎是活动 JSON。请改用导入活动。",
+    exportJsonButton: "导出 JSON",
+    exportSuccess: "已将模板数据导出为 JSON。",
     hints: {
       groupAccess: "选择具有日历权限的群组。",
       patternsInfo: "模式用于预生成即将到来的日期。"
@@ -447,7 +463,13 @@ export const zh = {
         monthlyTime: "设置每月发布活动的时间"
       },
       offsetProse: "在下一个活动开始前 7 天发布。",
-      monthlyProse: "每月 1 日下午 6 点"
+      monthlyProse: "每月 1 日下午 6 点",
+      restoreButton: "恢复",
+      restoreSuccess: "已恢复 {count} 个活动",
+      restoreNone: "没有可恢复的活动",
+      restoreFailed: "恢复活动失败",
+      restoreNoProfile: "未选择模板",
+      restorableCount: "{count} 个已删除的活动可恢复"
     },
     created: "模板已创建。",
     updated: "模板已更新。",

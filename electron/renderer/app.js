@@ -1,13 +1,13 @@
 // Main application entry point - imports and wires modular components
 
 import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, MONTHS, TAG_LIMIT } from "./config.js";
-import { dom, state, setEventWizard, setProfileWizard, getProfileEditConfirmed } from "./state.js";
+import { dom, state, setEventWizard, setProfileWizard, getProfileWizard, getProfileEditConfirmed } from "./state.js";
 import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset } from "./profiles.js";
-import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview } from "./events.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson } from "./profiles.js";
+import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
 import { initDemoControls } from "./demo.js";
@@ -513,6 +513,79 @@ import { initDemoControls } from "./demo.js";
     dom.automationEnabled.checked = false;
   }
 
+  function getAutomationProfileContext() {
+    const groupId = dom.profileGroup?.value || null;
+    let profileKey = state.profile.currentKey || null;
+    if (!profileKey && dom.profileExisting?.value) {
+      const parts = dom.profileExisting.value.split("::");
+      if (parts.length > 1) {
+        profileKey = parts[1];
+      }
+    }
+    return { groupId, profileKey };
+  }
+
+  async function handleAutomationRestore() {
+    const { groupId, profileKey } = getAutomationProfileContext();
+    if (!groupId || !profileKey || !dom.automationRestore) {
+      showToast(t("profiles.automation.restoreNoProfile") || "No profile selected", true);
+      if (dom.automationRestore) {
+        dom.automationRestore.disabled = true;
+      }
+      if (dom.automationRestoreCount) {
+        dom.automationRestoreCount.textContent = "";
+      }
+      return;
+    }
+
+    try {
+      dom.automationRestore.disabled = true;
+      const result = await window.vrcEvent.restoreDeletedEvents({ groupId, profileKey });
+      if (result.ok) {
+        const count = result.restoredCount || 0;
+        if (count > 0) {
+          showToast(t("profiles.automation.restoreSuccess", { count }) || `Restored ${count} event(s)`);
+        } else {
+          showToast(t("profiles.automation.restoreNone") || "No events to restore");
+        }
+        // Update the restorable count display
+        await updateRestorableCount();
+      } else {
+        showToast(result.error?.message || t("profiles.automation.restoreFailed") || "Failed to restore events", true);
+      }
+    } catch (err) {
+      showToast(err.message || t("profiles.automation.restoreFailed") || "Failed to restore events", true);
+    } finally {
+      dom.automationRestore.disabled = false;
+    }
+  }
+
+  async function updateRestorableCount() {
+    if (!dom.automationRestore || !dom.automationRestoreCount) {
+      return;
+    }
+    const { groupId, profileKey } = getAutomationProfileContext();
+    if (!groupId || !profileKey) {
+      dom.automationRestoreCount.textContent = "";
+      dom.automationRestore.disabled = true;
+      return;
+    }
+
+    try {
+      const count = await window.vrcEvent.getRestorableCount({ groupId, profileKey });
+      if (count > 0) {
+        dom.automationRestoreCount.textContent = t("profiles.automation.restorableCount", { count }) || `${count} deleted event(s) can be restored`;
+        dom.automationRestore.disabled = false;
+      } else {
+        dom.automationRestoreCount.textContent = "";
+        dom.automationRestore.disabled = true;
+      }
+    } catch (err) {
+      dom.automationRestoreCount.textContent = "";
+      dom.automationRestore.disabled = true;
+    }
+  }
+
   function handleAutomationTimingModeChange() {
     const mode = dom.automationTimingMode.value;
     const isMonthly = mode === "monthly";
@@ -869,6 +942,8 @@ import { initDemoControls } from "./demo.js";
       // Refresh profile list when navigating to profiles view
       if (view === "profiles") {
         renderProfileList(api);
+        updateAutomationProse();
+        updateRestorableCount();
       }
       if (view === "modify") {
         if (state.app?.updateAvailable) {
@@ -1078,8 +1153,72 @@ import { initDemoControls } from "./demo.js";
         }
       });
     }
+    if (dom.settingsEnableAdvanced) {
+      dom.settingsEnableAdvanced.addEventListener("change", async () => {
+        try {
+          const enabled = dom.settingsEnableAdvanced.checked;
+          // When disabling advanced, also disable sub-settings
+          if (!enabled) {
+            if (dom.settingsEnableImportExport) dom.settingsEnableImportExport.checked = false;
+            if (dom.settingsAutoUploadImages) dom.settingsAutoUploadImages.checked = false;
+            await api.updateSettings({
+              enableAdvanced: false,
+              enableImportExport: false,
+              autoUploadImages: false
+            });
+            updateImportExportVisibility();
+          } else {
+            await api.updateSettings({ enableAdvanced: true });
+          }
+          updateAdvancedSettingsVisibility();
+        } catch (err) {
+          console.error("Failed to save advanced settings:", err);
+        }
+      });
+    }
+    if (dom.settingsEnableImportExport) {
+      dom.settingsEnableImportExport.addEventListener("change", async () => {
+        try {
+          await api.updateSettings({ enableImportExport: dom.settingsEnableImportExport.checked });
+          updateImportExportVisibility();
+        } catch (err) {
+          console.error("Failed to save import/export setting:", err);
+        }
+      });
+    }
+    if (dom.settingsAutoUploadImages) {
+      dom.settingsAutoUploadImages.addEventListener("change", async () => {
+        try {
+          await api.updateSettings({ autoUploadImages: dom.settingsAutoUploadImages.checked });
+        } catch (err) {
+          console.error("Failed to save auto upload images setting:", err);
+        }
+      });
+    }
     if (dom.eventImagePicker) {
       dom.eventImagePicker.addEventListener("click", () => openGalleryPicker(dom.eventImageId));
+    }
+    if (dom.eventImportJson) {
+      dom.eventImportJson.addEventListener("click", async () => {
+        const result = await handleEventImportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          showToast(t("events.importSuccess") || "Event data imported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
+    }
+    if (dom.eventExportJson) {
+      dom.eventExportJson.addEventListener("click", async () => {
+        const result = await handleEventExportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          showToast(t("events.exportSuccess") || "Event data exported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
     }
     if (dom.modifyEventImagePicker) {
       dom.modifyEventImagePicker.addEventListener("click", () => openGalleryPicker(dom.modifyEventImageId));
@@ -1156,9 +1295,43 @@ import { initDemoControls } from "./demo.js";
     if (dom.automationMonthlyTime) {
       dom.automationMonthlyTime.addEventListener("input", updateAutomationProse);
     }
+    if (dom.automationRestore) {
+      dom.automationRestore.addEventListener("click", handleAutomationRestore);
+    }
 
     if (dom.profileImagePicker) {
       dom.profileImagePicker.addEventListener("click", () => openGalleryPicker(dom.profileImageId));
+    }
+    if (dom.profileImportJson) {
+      dom.profileImportJson.addEventListener("click", async () => {
+        const result = await handleProfileImportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          if (result.needsUiUpdate) {
+            renderProfileLanguageList();
+            renderProfilePlatformList();
+            renderPatternList();
+            const wizard = getProfileWizard();
+            if (wizard) {
+              wizard.goTo(1);
+            }
+          }
+          showToast(t("profiles.importSuccess") || "Profile data imported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
+    }
+    if (dom.profileExportJson) {
+      dom.profileExportJson.addEventListener("click", async () => {
+        const result = await handleProfileExportJson(api);
+        if (result.cancelled) return;
+        if (result.success) {
+          showToast(t("profiles.exportSuccess") || "Profile data exported.");
+        } else if (result.message) {
+          showToast(result.message, true);
+        }
+      });
     }
     dom.twoFactorForm.addEventListener("submit", e => { e.preventDefault(); const code = dom.twoFactorCode.value.trim(); if (!code) { showToast("Enter your code.", true); return; } api.submitTwoFactor(code); dom.twoFactorCode.value = ""; dom.twoFactorOverlay.classList.add("is-hidden"); });
     bindWindowControls(windowControls);
@@ -1254,6 +1427,27 @@ import { initDemoControls } from "./demo.js";
         setUpdateAvailable(updateInfo.available, true);
       });
     }
+    if (api.onProfilesUpdated) {
+      api.onProfilesUpdated((payload) => {
+        const nextProfiles = payload?.profiles || payload;
+        if (!nextProfiles || typeof nextProfiles !== "object") {
+          return;
+        }
+        state.profiles = nextProfiles;
+        renderProfileList(api);
+        renderEventProfileOptions(api);
+        const selected = dom.profileExisting?.value;
+        if (selected && !getProfileEditConfirmed()) {
+          const [groupId, profileKey] = selected.split("::");
+          applyProfileToForm(groupId, profileKey);
+          updateProfileActionButtons();
+          renderProfileLanguageList();
+          renderProfilePlatformList();
+          renderPatternList();
+          void renderProfileRoleRestrictions(api);
+        }
+      });
+    }
 
     // Listen for tray prompt event from main process
     if (windowControls.onShowTrayPrompt) {
@@ -1297,8 +1491,9 @@ import { initDemoControls } from "./demo.js";
     }
   }
 
-  // Expose updateAutomationProse to global scope for use in profiles.js
+  // Expose updateAutomationProse and updateRestorableCount to global scope for use in profiles.js
   window.updateAutomationProse = updateAutomationProse;
+  window.updateRestorableCount = updateRestorableCount;
 
   bindEvents();
   init().catch(() => showToast("Failed to initialize app.", true));

@@ -142,7 +142,10 @@ export const ja = {
     },
     general: {
       title: "一般",
-      minimizeToTray: "システムトレイに最小化"
+      minimizeToTray: "システムトレイに最小化",
+      enableAdvanced: "詳細設定を有効にする",
+      enableImportExport: "イベントのインポート/エクスポート",
+      autoUploadImages: "インポートしたイベント/プロファイルからギャラリー画像を自動アップロード"
     },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
@@ -198,6 +201,8 @@ export const ja = {
     labels: {
       groupRequired: "グループ (必須)",
       profileOptional: "プロフィール (任意)",
+      advanced: "詳細設定",
+      importJson: "JSON からインポート",
       dateSource: "使用",
       dateSourcePattern: "パターン",
       dateSourceManual: "手動",
@@ -206,7 +211,8 @@ export const ja = {
       manualTime: "手動時刻"
     },
     hints: {
-      profileDefaults: "プロフィールを選ぶと既定値を使えます。空欄なら手動で作成します。"
+      profileDefaults: "プロフィールを選ぶと既定値を使えます。空欄なら手動で作成します。",
+      importJson: "JSON ファイルからイベントの詳細をインポートします。"
     },
     dateHints: {
       default: "手動モードは準備完了。パターン付きプロフィールで日付候補が表示されます。",
@@ -220,6 +226,11 @@ export const ja = {
     loadProfile: "プロフィールを読み込む (任意)",
     loadProfilePlaceholder: "プロフィールを選択",
     clearProfile: "プロフィールをクリア",
+    importJsonButton: "JSON をインポート",
+    importSuccess: "イベントデータを JSON からインポートしました。",
+    importWrongType: "これはプロフィールの JSON のようです。代わりにプロフィールのインポートを使用してください。",
+    exportJsonButton: "JSON をエクスポート",
+    exportSuccess: "イベントデータを JSON にエクスポートしました。",
     dateSource: "日時",
     dateSourceManual: "手動",
     dateSourcePattern: "プロフィールのパターンから",
@@ -340,6 +351,11 @@ export const ja = {
     buttons: {
       new: "新規"
     },
+    importJsonButton: "JSON をインポート",
+    importSuccess: "プロフィールデータを JSON からインポートしました。",
+    importWrongType: "これはイベントの JSON のようです。代わりにイベントのインポートを使用してください。",
+    exportJsonButton: "JSON をエクスポート",
+    exportSuccess: "プロフィールデータを JSON にエクスポートしました。",
     hints: {
       groupAccess: "カレンダー権限のあるグループを選択してください。",
       patternsInfo: "パターンは今後の日付を事前生成するために使用されます。"
@@ -447,7 +463,13 @@ export const ja = {
         monthlyTime: "毎月イベントが投稿される時刻を設定します"
       },
       offsetProse: "次のイベントの開始7日前に投稿する。",
-      monthlyProse: "毎月1日午後6時"
+      monthlyProse: "毎月1日午後6時",
+      restoreButton: "復元",
+      restoreSuccess: "{count} 件のイベントを復元しました",
+      restoreNone: "復元できるイベントはありません",
+      restoreFailed: "イベントの復元に失敗しました",
+      restoreNoProfile: "プロフィールが選択されていません",
+      restorableCount: "{count} 件の削除済みイベントを復元できます"
     },
     created: "プロフィールを作成しました。",
     updated: "プロフィールを更新しました。",
