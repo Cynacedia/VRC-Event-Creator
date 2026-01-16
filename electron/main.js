@@ -1846,6 +1846,13 @@ ipcMain.handle("groups:list", async () => {
       permissions.includes("*") || permissions.includes("group-calendar-manage");
     enriched.push({ ...group, groupId, canManageCalendar, privacy: privacy ?? group.privacy });
   }
+
+  // Clean up automation data for groups that are no longer accessible
+  if (automationEngine.isInitialized()) {
+    const accessibleGroupIds = enriched.map(g => g.groupId).filter(Boolean);
+    automationEngine.cleanupInaccessibleGroups(accessibleGroupIds);
+  }
+
   return enriched;
 });
 

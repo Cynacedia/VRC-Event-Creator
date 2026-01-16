@@ -1238,8 +1238,21 @@ function getAutomationStatus(groupId, profileKey) {
  */
 function resetAutomationState(groupId, profileKey) {
   const profileStateKey = `${groupId}::${profileKey}`;
-  automationState.profiles[profileStateKey] = { eventsCreated: 0 };
+  // Reset both eventsCreated and publishedEventTimes so automations can regenerate
+  automationState.profiles[profileStateKey] = { eventsCreated: 0, publishedEventTimes: [] };
   saveAutomationState();
+
+  // Also clear any deleted events for this profile so they don't block regeneration
+  const beforeCount = deletedEvents.length;
+  deletedEvents = deletedEvents.filter(e =>
+    !(e.groupId === groupId && e.profileKey === profileKey)
+  );
+  if (deletedEvents.length !== beforeCount) {
+    savePendingEvents();
+    debugLogFn("Automation", `Cleared ${beforeCount - deletedEvents.length} deleted events for ${profileStateKey}`);
+  }
+
+  debugLogFn("Automation", `Reset automation state for ${profileStateKey} (eventsCreated=0, publishedEventTimes cleared, deletedEvents cleared)`);
 }
 
 /**
@@ -1416,6 +1429,61 @@ function getRestorableCount(groupId, profileKey) {
   ).length;
 }
 
+/**
+ * Clean up automation data for groups that are no longer accessible
+ * Call this after user groups are loaded to remove orphaned data
+ * @param {string[]} accessibleGroupIds - Array of group IDs the user can access
+ */
+function cleanupInaccessibleGroups(accessibleGroupIds) {
+  if (!accessibleGroupIds || !Array.isArray(accessibleGroupIds)) {
+    return { cleaned: false };
+  }
+
+  const accessibleSet = new Set(accessibleGroupIds);
+  let pendingRemoved = 0;
+  let deletedRemoved = 0;
+  let stateRemoved = 0;
+
+  // Cancel jobs and remove pending events for inaccessible groups
+  const inaccessiblePending = pendingEvents.filter(e => !accessibleSet.has(e.groupId));
+  for (const event of inaccessiblePending) {
+    cancelJob(event.id);
+  }
+  const pendingBefore = pendingEvents.length;
+  pendingEvents = pendingEvents.filter(e => accessibleSet.has(e.groupId));
+  pendingRemoved = pendingBefore - pendingEvents.length;
+
+  // Remove deleted events for inaccessible groups
+  const deletedBefore = deletedEvents.length;
+  deletedEvents = deletedEvents.filter(e => accessibleSet.has(e.groupId));
+  deletedRemoved = deletedBefore - deletedEvents.length;
+
+  // Remove automation state for inaccessible groups
+  const stateKeys = Object.keys(automationState.profiles || {});
+  for (const key of stateKeys) {
+    const groupId = key.split("::")[0];
+    if (!accessibleSet.has(groupId)) {
+      delete automationState.profiles[key];
+      stateRemoved++;
+    }
+  }
+
+  // Save if anything was cleaned up
+  if (pendingRemoved > 0 || deletedRemoved > 0) {
+    savePendingEvents();
+  }
+  if (stateRemoved > 0) {
+    saveAutomationState();
+  }
+
+  const totalCleaned = pendingRemoved + deletedRemoved + stateRemoved;
+  if (totalCleaned > 0) {
+    debugLogFn("Automation", `Cleaned up inaccessible groups: ${pendingRemoved} pending, ${deletedRemoved} deleted, ${stateRemoved} state entries`);
+  }
+
+  return { cleaned: totalCleaned > 0, pendingRemoved, deletedRemoved, stateRemoved };
+}
+
 module.exports = {
   isInitialized,
   initializeAutomation,
@@ -1443,5 +1511,6 @@ module.exports = {
   trackPublishedEventTime,
   resolveEventDetails,
   restoreDeletedEvents,
-  getRestorableCount
+  getRestorableCount,
+  cleanupInaccessibleGroups
 };
