@@ -202,6 +202,7 @@ export const fr = {
       groupRequired: "Groupe (obligatoire)",
       profileOptional: "Profil (facultatif)",
       advanced: "Avancé",
+      importJson: "Importer depuis JSON",
       dateSource: "Utiliser",
       dateSourcePattern: "Modèle",
       dateSourceManual: "Manuel",
@@ -210,7 +211,8 @@ export const fr = {
       manualTime: "Heure manuelle"
     },
     hints: {
-      profileDefaults: "Choisissez un profil pour les valeurs par défaut, ou laissez vide pour créer manuellement."
+      profileDefaults: "Choisissez un profil pour les valeurs par défaut, ou laissez vide pour créer manuellement.",
+      importJson: "Importer les détails de l'événement depuis un fichier JSON."
     },
     dateHints: {
       default: "Le mode manuel est prêt. Les profils avec des modèles débloquent les options de date.",
@@ -224,6 +226,11 @@ export const fr = {
     loadProfile: "Charger un profil (facultatif)",
     loadProfilePlaceholder: "Sélectionner un profil",
     clearProfile: "Effacer le profil",
+    importJsonButton: "Importer JSON",
+    importSuccess: "Données de l'événement importées depuis JSON.",
+    importWrongType: "Ceci semble être un JSON de profil. Veuillez utiliser Importer le profil à la place.",
+    exportJsonButton: "Exporter JSON",
+    exportSuccess: "Données de l'événement exportées vers JSON.",
     dateSource: "Date et heure",
     dateSourceManual: "Manuel",
     dateSourcePattern: "À partir du profil",
@@ -344,6 +351,11 @@ export const fr = {
     buttons: {
       new: "Nouveau"
     },
+    importJsonButton: "Importer JSON",
+    importSuccess: "Données du profil importées depuis JSON.",
+    importWrongType: "Ceci semble être un JSON d'événement. Veuillez utiliser Importer un événement à la place.",
+    exportJsonButton: "Exporter JSON",
+    exportSuccess: "Données du profil exportées vers JSON.",
     hints: {
       groupAccess: "Choisissez un groupe avec accès au calendrier.",
       patternsInfo: "Les modèles servent à pré-générer les dates à venir."
@@ -451,7 +463,13 @@ export const fr = {
         monthlyTime: "Définissez l'heure à laquelle les événements seront publiés chaque mois"
       },
       offsetProse: "Publier le prochain événement 7 jours avant qu'il ne commence.",
-      monthlyProse: "Le 1er de chaque mois à 18:00"
+      monthlyProse: "Le 1er de chaque mois à 18:00",
+      restoreButton: "Restaurer",
+      restoreSuccess: "{count} événement(s) restauré(s)",
+      restoreNone: "Aucun événement à restaurer",
+      restoreFailed: "Échec de la restauration des événements",
+      restoreNoProfile: "Aucun profil sélectionné",
+      restorableCount: "{count} événement(s) supprimé(s) peuvent être restauré(s)"
     },
     created: "Profil créé.",
     updated: "Profil mis à jour.",

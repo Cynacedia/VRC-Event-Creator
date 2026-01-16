@@ -202,6 +202,7 @@ export const nl = {
       groupRequired: "Groep (verplicht)",
       profileOptional: "Profiel (optioneel)",
       advanced: "Geavanceerd",
+      importJson: "Importeren uit JSON",
       dateSource: "Gebruik",
       dateSourcePattern: "Patroon",
       dateSourceManual: "Handmatig",
@@ -210,7 +211,8 @@ export const nl = {
       manualTime: "Handmatige tijd"
     },
     hints: {
-      profileDefaults: "Kies een profiel met standaardinstellingen, of laat leeg om handmatig aan te maken."
+      profileDefaults: "Kies een profiel met standaardinstellingen, of laat leeg om handmatig aan te maken.",
+      importJson: "Eventdetails importeren uit een JSON-bestand."
     },
     dateHints: {
       default: "Handmatige modus is klaar. Profielen met patronen ontgrendelen datumopties.",
@@ -224,6 +226,11 @@ export const nl = {
     loadProfile: "Profiel laden (optioneel)",
     loadProfilePlaceholder: "Selecteer een profiel",
     clearProfile: "Profiel wissen",
+    importJsonButton: "JSON importeren",
+    importSuccess: "Eventgegevens geïmporteerd uit JSON.",
+    importWrongType: "Dit lijkt een profiel-JSON te zijn. Gebruik in plaats daarvan Profiel importeren.",
+    exportJsonButton: "JSON exporteren",
+    exportSuccess: "Eventgegevens geëxporteerd naar JSON.",
     dateSource: "Datum & tijd",
     dateSourceManual: "Handmatig",
     dateSourcePattern: "Uit profielpatroon",
@@ -344,6 +351,11 @@ export const nl = {
     buttons: {
       new: "Nieuw"
     },
+    importJsonButton: "JSON importeren",
+    importSuccess: "Profielgegevens geïmporteerd uit JSON.",
+    importWrongType: "Dit lijkt een evenement-JSON te zijn. Gebruik in plaats daarvan Evenement importeren.",
+    exportJsonButton: "JSON exporteren",
+    exportSuccess: "Profielgegevens geëxporteerd naar JSON.",
     hints: {
       groupAccess: "Kies een groep met kalendertoegang.",
       patternsInfo: "Patronen worden gebruikt om aankomende datums vooraf te genereren."
@@ -451,7 +463,13 @@ export const nl = {
         monthlyTime: "Stel de tijd in waarop evenementen elke maand worden geplaatst"
       },
       offsetProse: "Plaats het volgende evenement 7 dagen voordat het begint.",
-      monthlyProse: "Elke maand op de 1e om 18:00"
+      monthlyProse: "Elke maand op de 1e om 18:00",
+      restoreButton: "Herstellen",
+      restoreSuccess: "{count} evenement(en) hersteld",
+      restoreNone: "Geen evenementen om te herstellen",
+      restoreFailed: "Evenementen herstellen mislukt",
+      restoreNoProfile: "Geen profiel geselecteerd",
+      restorableCount: "{count} verwijderde evenement(en) kunnen worden hersteld"
     },
     created: "Profiel aangemaakt.",
     updated: "Profiel bijgewerkt.",

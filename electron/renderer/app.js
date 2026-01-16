@@ -513,11 +513,28 @@ import { initDemoControls } from "./demo.js";
     dom.automationEnabled.checked = false;
   }
 
+  function getAutomationProfileContext() {
+    const groupId = dom.profileGroup?.value || null;
+    let profileKey = state.profile.currentKey || null;
+    if (!profileKey && dom.profileExisting?.value) {
+      const parts = dom.profileExisting.value.split("::");
+      if (parts.length > 1) {
+        profileKey = parts[1];
+      }
+    }
+    return { groupId, profileKey };
+  }
+
   async function handleAutomationRestore() {
-    const groupId = state.profile.groupId;
-    const profileKey = state.profile.key;
-    if (!groupId || !profileKey) {
+    const { groupId, profileKey } = getAutomationProfileContext();
+    if (!groupId || !profileKey || !dom.automationRestore) {
       showToast(t("profiles.automation.restoreNoProfile") || "No profile selected", true);
+      if (dom.automationRestore) {
+        dom.automationRestore.disabled = true;
+      }
+      if (dom.automationRestoreCount) {
+        dom.automationRestoreCount.textContent = "";
+      }
       return;
     }
 
@@ -544,9 +561,13 @@ import { initDemoControls } from "./demo.js";
   }
 
   async function updateRestorableCount() {
-    const groupId = state.profile.groupId;
-    const profileKey = state.profile.key;
-    if (!groupId || !profileKey || !dom.automationRestoreCount) {
+    if (!dom.automationRestore || !dom.automationRestoreCount) {
+      return;
+    }
+    const { groupId, profileKey } = getAutomationProfileContext();
+    if (!groupId || !profileKey) {
+      dom.automationRestoreCount.textContent = "";
+      dom.automationRestore.disabled = true;
       return;
     }
 
@@ -921,6 +942,8 @@ import { initDemoControls } from "./demo.js";
       // Refresh profile list when navigating to profiles view
       if (view === "profiles") {
         renderProfileList(api);
+        updateAutomationProse();
+        updateRestorableCount();
       }
       if (view === "modify") {
         if (state.app?.updateAvailable) {
@@ -1402,6 +1425,27 @@ import { initDemoControls } from "./demo.js";
         updateInfo.downloaded = true;
         updateInfo.downloading = false;
         setUpdateAvailable(updateInfo.available, true);
+      });
+    }
+    if (api.onProfilesUpdated) {
+      api.onProfilesUpdated((payload) => {
+        const nextProfiles = payload?.profiles || payload;
+        if (!nextProfiles || typeof nextProfiles !== "object") {
+          return;
+        }
+        state.profiles = nextProfiles;
+        renderProfileList(api);
+        renderEventProfileOptions(api);
+        const selected = dom.profileExisting?.value;
+        if (selected && !getProfileEditConfirmed()) {
+          const [groupId, profileKey] = selected.split("::");
+          applyProfileToForm(groupId, profileKey);
+          updateProfileActionButtons();
+          renderProfileLanguageList();
+          renderProfilePlatformList();
+          renderPatternList();
+          void renderProfileRoleRestrictions(api);
+        }
       });
     }
 

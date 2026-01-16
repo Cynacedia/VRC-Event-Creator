@@ -966,7 +966,8 @@ export async function handleEventCreate(api) {
       groupId,
       startsAtUtc: prep.startsAtUtc,
       endsAtUtc: prep.endsAtUtc,
-      eventData
+      eventData,
+      profileKey: profileKey && profileKey !== "__manual__" ? profileKey : null
     });
     if (!result?.ok) {
       if (isRateLimitError(result?.error)) {

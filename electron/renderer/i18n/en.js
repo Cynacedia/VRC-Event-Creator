@@ -464,7 +464,7 @@ export const en = {
       },
       offsetProse: "Post the next event 7 days before it begins.",
       monthlyProse: "Every month on the 1st at 6:00 PM",
-      restoreButton: "Restore Deleted Events",
+      restoreButton: "Restore",
       restoreSuccess: "Restored {count} event(s)",
       restoreNone: "No events to restore",
       restoreFailed: "Failed to restore events",

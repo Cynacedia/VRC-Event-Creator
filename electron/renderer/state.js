@@ -241,6 +241,7 @@ export const state = {
   modify: {
     events: [],
     pendingEvents: [],
+    optimisticEvents: new Map(),
     selectedGroupId: null,
     selectedEvent: null,
     selectedPendingEvent: null,
@@ -251,6 +252,7 @@ export const state = {
     loading: false,
     saving: false,
     pendingDeletions: new Set(),
+    pendingPostNow: new Set(),
     deletedTombstones: new Map(),
     refreshBackoffUntil: 0,
     refreshBackoffIndex: 0,

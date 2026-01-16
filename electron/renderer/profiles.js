@@ -137,8 +137,7 @@ export function getGroupName(groupId) {
 // Set profile mode (create or edit)
 export function setProfileMode(mode) {
   state.profile.mode = mode;
-  const isEdit = mode === "edit";
-  dom.profileGroup.disabled = isEdit;
+  dom.profileGroup.disabled = false;
 }
 
 // Automation form helpers
@@ -399,6 +398,12 @@ export function resetProfileForm() {
 
   // Reset automation
   resetAutomationForm();
+  if (dom.automationRestore) {
+    dom.automationRestore.disabled = true;
+  }
+  if (dom.automationRestoreCount) {
+    dom.automationRestoreCount.textContent = "";
+  }
 }
 
 // Apply profile data to form

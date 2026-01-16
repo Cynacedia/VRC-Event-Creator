@@ -137,6 +137,27 @@ function debugApiCall(name, params) {
   }
 }
 
+function normalizeVersion(version) {
+  return String(version || "").trim().replace(/^v/i, "");
+}
+
+function compareVersions(a, b) {
+  const left = normalizeVersion(a).split(".").map(part => parseInt(part, 10) || 0);
+  const right = normalizeVersion(b).split(".").map(part => parseInt(part, 10) || 0);
+  const length = Math.max(left.length, right.length);
+  for (let i = 0; i < length; i += 1) {
+    const leftValue = left[i] || 0;
+    const rightValue = right[i] || 0;
+    if (leftValue > rightValue) {
+      return 1;
+    }
+    if (leftValue < rightValue) {
+      return -1;
+    }
+  }
+  return 0;
+}
+
 function debugApiResponse(name, response, error = null) {
   if (IS_DEV) {
     const timestamp = new Date().toISOString();
@@ -1269,6 +1290,72 @@ async function getUpcomingEventCount(groupId) {
   return upcomingCount;
 }
 
+function mapGroupCalendarEvents(results, groupId, options = {}) {
+  const { upcomingOnly = true, includeNonEditable = false } = options;
+  const now = DateTime.utc();
+  return results
+    .filter(event => {
+      if (!getEventId(event)) {
+        return false;
+      }
+      const editableFlag = getEventField(event, "canEdit")
+        ?? getEventField(event, "isEditable")
+        ?? getEventField(event, "editable");
+      if (!includeNonEditable && editableFlag === false) {
+        return false;
+      }
+      if (upcomingOnly) {
+        return isUpcomingEvent(event, now);
+      }
+      return true;
+    })
+    .map(event => {
+      const startValue = getEventStartValue(event);
+      const endValue = getEventEndValue(event);
+      const createdValue = getEventCreatedValue(event);
+      const createdByValue = getEventCreatedByValue(event);
+      const startsAt = parseEventDateValue(startValue);
+      const endsAt = parseEventDateValue(endValue);
+      const createdAt = parseEventDateValue(createdValue);
+      const startsAtUtc = startsAt?.isValid ? startsAt.toUTC().toISO() : null;
+      const endsAtUtc = endsAt?.isValid ? endsAt.toUTC().toISO() : null;
+      const createdAtUtc = createdAt?.isValid ? createdAt.toUTC().toISO() : null;
+      let durationMinutes = null;
+      if (startsAt?.isValid && endsAt?.isValid) {
+        durationMinutes = Math.max(1, Math.round(endsAt.diff(startsAt, "minutes").minutes));
+      }
+      const languages = getEventField(event, "languages");
+      const platforms = getEventField(event, "platforms");
+      const tags = getEventField(event, "tags");
+      const roleIds = getEventField(event, "roleIds");
+      return {
+        id: getEventId(event),
+        groupId,
+        title: getEventField(event, "title") || "",
+        description: getEventField(event, "description") || "",
+        category: getEventField(event, "category") || "hangout",
+        accessType: getEventField(event, "accessType") || "public",
+        languages: Array.isArray(languages) ? languages : [],
+        platforms: Array.isArray(platforms) ? platforms : [],
+        tags: Array.isArray(tags) ? tags : [],
+        roleIds: Array.isArray(roleIds) ? roleIds : [],
+        imageId: getEventField(event, "imageId") || null,
+        imageUrl: getEventImageUrl(event),
+        startsAtUtc,
+        endsAtUtc,
+        createdAtUtc,
+        createdById: typeof createdByValue === "string" ? createdByValue : null,
+        durationMinutes,
+        timezone: getEventField(event, "timezone") || null
+      };
+    })
+    .sort((a, b) => {
+      const aTime = Date.parse(a.startsAtUtc || a.endsAtUtc || "") || Number.POSITIVE_INFINITY;
+      const bTime = Date.parse(b.startsAtUtc || b.endsAtUtc || "") || Number.POSITIVE_INFINITY;
+      return aTime - bTime;
+    });
+}
+
 function getCalendarEventList(data) {
   if (Array.isArray(data)) {
     return data;
@@ -1542,7 +1629,7 @@ ipcMain.handle("app:checkUpdate", async () => {
     const result = await autoUpdater.checkForUpdates();
     const latestVersion = result?.updateInfo?.version || null;
     // Only report update if latest version is actually newer
-    const updateAvailable = latestVersion && latestVersion !== APP_VERSION;
+    const updateAvailable = latestVersion && compareVersions(latestVersion, APP_VERSION) > 0;
     return {
       updateAvailable,
       updateDownloaded,
@@ -1832,6 +1919,19 @@ ipcMain.handle("groups:list", async () => {
       permissions.includes("*") || permissions.includes("group-calendar-manage");
     enriched.push({ ...group, groupId, canManageCalendar, privacy: privacy ?? group.privacy });
   }
+  if (automationEngine.isInitialized()) {
+    const knownGroupIds = enriched
+      .filter(group => group.canManageCalendar)
+      .map(group => group.groupId)
+      .filter(Boolean);
+    const pruneResult = automationEngine.setKnownGroupIds(knownGroupIds);
+    if (pruneResult.removedPending || pruneResult.removedDeleted) {
+      debugLog(
+        "Automation",
+        `Pruned ${pruneResult.removedPending} pending + ${pruneResult.removedDeleted} deleted for unknown groups`
+      );
+    }
+  }
   return enriched;
 });
 
@@ -1893,6 +1993,27 @@ ipcMain.handle("profiles:update", async (_, payload) => {
 
   // Trigger automation recalculation for this profile
   if (automationEngine.isInitialized()) {
+    try {
+      await ensureUser();
+      await ensureCalendarPermission(groupId);
+      debugApiCall("getGroupCalendarEvents (reconcilePublished)", { groupId, n: 100 });
+      const response = await requestGet(
+        "getGroupCalendarEvents",
+        { path: { groupId }, query: { n: 100 } },
+        () => vrchat.getGroupCalendarEvents({
+          path: { groupId },
+          query: { n: 100 }
+        })
+      );
+      debugApiResponse("getGroupCalendarEvents (reconcilePublished)", response);
+      const results = getCalendarEventList(response.data);
+      const mapped = mapGroupCalendarEvents(results, groupId, { upcomingOnly: true, includeNonEditable: false });
+      if (mapped.length < 100) {
+        automationEngine.reconcilePublishedEvents(groupId, mapped);
+      }
+    } catch (err) {
+      debugApiResponse("getGroupCalendarEvents (reconcilePublished)", null, err);
+    }
     automationEngine.updatePendingEventsForProfile(groupId, profileKey, data);
   }
 
@@ -1910,7 +2031,7 @@ ipcMain.handle("profiles:delete", async (_, payload) => {
 
     // Clean up pending events for deleted profile
     if (automationEngine.isInitialized()) {
-      automationEngine.cancelJobsForProfile(groupId, profileKey);
+      automationEngine.purgeProfilePendingEvents(groupId, profileKey);
     }
   }
   return profiles;
@@ -1938,7 +2059,7 @@ ipcMain.handle("events:prepare", async (_, payload) => {
 
 ipcMain.handle("events:create", async (_, payload) => {
   try {
-    const { groupId, startsAtUtc, endsAtUtc, eventData } = payload || {};
+    const { groupId, startsAtUtc, endsAtUtc, eventData, profileKey } = payload || {};
     if (!groupId || !startsAtUtc || !endsAtUtc || !eventData) {
       throw new Error("Missing event data.");
     }
@@ -1970,6 +2091,13 @@ ipcMain.handle("events:create", async (_, payload) => {
     const eventId = getEventId(response.data);
     // Track locally created event for conflict detection (VRChat API has delay)
     trackCreatedEvent(groupId, startsAtUtc, eventData.title);
+    if (automationEngine.isInitialized() && profileKey) {
+      const profile = profiles?.[groupId]?.profiles?.[profileKey];
+      if (profile?.automation?.enabled) {
+        automationEngine.recordManualEvent(groupId, profileKey, startsAtUtc);
+        automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
+      }
+    }
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
@@ -2013,68 +2141,16 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
   );
   debugApiResponse("getGroupCalendarEvents (listGroup)", response);
   const results = getCalendarEventList(response.data);
-  const now = DateTime.utc();
-  const mapped = results
-    .filter(event => {
-      if (!getEventId(event)) {
-        return false;
-      }
-      const editableFlag = getEventField(event, "canEdit")
-        ?? getEventField(event, "isEditable")
-        ?? getEventField(event, "editable");
-      if (!includeNonEditable && editableFlag === false) {
-        return false;
-      }
-      if (upcomingOnly) {
-        return isUpcomingEvent(event, now);
-      }
-      return true;
-    })
-      .map(event => {
-        const startValue = getEventStartValue(event);
-        const endValue = getEventEndValue(event);
-        const createdValue = getEventCreatedValue(event);
-        const createdByValue = getEventCreatedByValue(event);
-        const startsAt = parseEventDateValue(startValue);
-        const endsAt = parseEventDateValue(endValue);
-        const createdAt = parseEventDateValue(createdValue);
-        const startsAtUtc = startsAt?.isValid ? startsAt.toUTC().toISO() : null;
-        const endsAtUtc = endsAt?.isValid ? endsAt.toUTC().toISO() : null;
-        const createdAtUtc = createdAt?.isValid ? createdAt.toUTC().toISO() : null;
-        let durationMinutes = null;
-        if (startsAt?.isValid && endsAt?.isValid) {
-          durationMinutes = Math.max(1, Math.round(endsAt.diff(startsAt, "minutes").minutes));
-        }
-        const languages = getEventField(event, "languages");
-        const platforms = getEventField(event, "platforms");
-        const tags = getEventField(event, "tags");
-        const roleIds = getEventField(event, "roleIds");
-        return {
-          id: getEventId(event),
-          groupId,
-          title: getEventField(event, "title") || "",
-          description: getEventField(event, "description") || "",
-          category: getEventField(event, "category") || "hangout",
-          accessType: getEventField(event, "accessType") || "public",
-          languages: Array.isArray(languages) ? languages : [],
-          platforms: Array.isArray(platforms) ? platforms : [],
-          tags: Array.isArray(tags) ? tags : [],
-          roleIds: Array.isArray(roleIds) ? roleIds : [],
-          imageId: getEventField(event, "imageId") || null,
-          imageUrl: getEventImageUrl(event),
-          startsAtUtc,
-          endsAtUtc,
-          createdAtUtc,
-          createdById: typeof createdByValue === "string" ? createdByValue : null,
-          durationMinutes,
-          timezone: getEventField(event, "timezone") || null
-      };
-    })
-    .sort((a, b) => {
-      const aTime = Date.parse(a.startsAtUtc || a.endsAtUtc || "") || Number.POSITIVE_INFINITY;
-      const bTime = Date.parse(b.startsAtUtc || b.endsAtUtc || "") || Number.POSITIVE_INFINITY;
-      return aTime - bTime;
-    });
+  const mapped = mapGroupCalendarEvents(results, groupId, { upcomingOnly, includeNonEditable });
+  if (automationEngine.isInitialized() && upcomingOnly && mapped.length < 100) {
+    const reconcileResult = automationEngine.reconcilePublishedEvents(groupId, mapped);
+    if (reconcileResult.removed || reconcileResult.updated) {
+      debugLog(
+        "Automation",
+        `Reconciled published events for ${groupId}: ${reconcileResult.updated} updated, ${reconcileResult.removed} removed`
+      );
+    }
+  }
   return mapped;
 });
 
@@ -2553,13 +2629,44 @@ ipcMain.handle("pending:action", async (_, payload) => {
         return await automationEngine.handleMissedEvent(pendingEventId, "postNow");
       case "reschedule":
         return await automationEngine.handleMissedEvent(pendingEventId, "reschedule");
-      case "cancel":
-        return await automationEngine.handleMissedEvent(pendingEventId, "cancel");
+        case "cancel": {
+          const result = await automationEngine.handleMissedEvent(pendingEventId, "cancel");
+            if (result?.ok && result.automationCleared && result.groupId && result.profileKey) {
+              const profile = profiles?.[result.groupId]?.profiles?.[result.profileKey];
+              if (profile) {
+                profile.automation = { ...(profile.automation || {}), enabled: false };
+                saveProfiles(profiles);
+                if (automationEngine.isInitialized()) {
+                  automationEngine.updatePendingEventsForProfile(result.groupId, result.profileKey, profile);
+                }
+                if (mainWindow) {
+                  mainWindow.webContents.send("profiles:updated", { profiles });
+                }
+              }
+            }
+            return result;
+          }
       case "edit":
         if (!overrides || typeof overrides !== "object") {
           return { ok: false, error: { message: "Missing overrides for edit action" } };
         }
-        return automationEngine.updatePendingEventOverrides(pendingEventId, overrides);
+        try {
+          const nextOverrides = { ...overrides };
+          if (nextOverrides.manualDate && nextOverrides.manualTime) {
+            const times = buildEventTimes({
+              manualDate: nextOverrides.manualDate,
+              manualTime: nextOverrides.manualTime,
+              timezone: nextOverrides.timezone,
+              durationMinutes: nextOverrides.durationMinutes
+            });
+            nextOverrides.eventStartsAt = times.startsAtUtc;
+          }
+          delete nextOverrides.manualDate;
+          delete nextOverrides.manualTime;
+          return automationEngine.updatePendingEventOverrides(pendingEventId, nextOverrides);
+        } catch (err) {
+          return { ok: false, error: { message: err.message || "Invalid date or time." } };
+        }
       default:
         return { ok: false, error: { message: `Unknown action: ${action}` } };
     }
@@ -2705,7 +2812,8 @@ app.whenReady().then(() => {
       onEventCreated: (pendingEvent, eventId) => {
         // Notify renderer about successfully created events
         if (mainWindow) {
-          mainWindow.webContents.send("automation:created", { pendingEvent, eventId });
+          const eventDetails = automationEngine.resolveEventDetails(pendingEvent.id, profiles);
+          mainWindow.webContents.send("automation:created", { pendingEvent, eventId, eventDetails });
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

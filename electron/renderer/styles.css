@@ -1207,25 +1207,41 @@ textarea::-webkit-scrollbar {
   font-size: var(--text-13);
   color: var(--text);
   font-style: italic;
-  margin-bottom: var(--space-2);
-  margin-top: var(--space-1);
+  margin: 0;
 }
 
 .automation-prose.is-hidden {
   display: none;
 }
 
-.automation-restore-row {
+.automation-prose-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--border);
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-2);
 }
 
-.automation-restore-row .hint {
-  margin: 0;
+.automation-prose-row .automation-prose {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+button.pill-button {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: var(--text-11);
+  letter-spacing: 0.4px;
+  text-transform: none;
+  font-family: var(--font-ui);
+  min-width: unset;
+  white-space: nowrap;
+}
+
+#automation-restore-count {
+  display: block;
+  margin-top: var(--space-1);
   font-style: italic;
 }
 

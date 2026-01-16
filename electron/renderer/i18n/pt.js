@@ -202,6 +202,7 @@ export const pt = {
       groupRequired: "Grupo (obrigatório)",
       profileOptional: "Perfil (opcional)",
       advanced: "Avançado",
+      importJson: "Importar de JSON",
       dateSource: "Usar",
       dateSourcePattern: "Padrão",
       dateSourceManual: "Manual",
@@ -210,7 +211,8 @@ export const pt = {
       manualTime: "Hora manual"
     },
     hints: {
-      profileDefaults: "Escolha um perfil para padrões ou deixe em branco para criar manualmente."
+      profileDefaults: "Escolha um perfil para padrões ou deixe em branco para criar manualmente.",
+      importJson: "Importar detalhes do evento de um arquivo JSON."
     },
     dateHints: {
       default: "O modo manual está pronto. Perfis com padrões liberam opções de data.",
@@ -224,6 +226,11 @@ export const pt = {
     loadProfile: "Carregar perfil (opcional)",
     loadProfilePlaceholder: "Selecione um perfil",
     clearProfile: "Limpar perfil",
+    importJsonButton: "Importar JSON",
+    importSuccess: "Dados do evento importados do JSON.",
+    importWrongType: "Isto parece ser um JSON de perfil. Use Importar perfil em vez disso.",
+    exportJsonButton: "Exportar JSON",
+    exportSuccess: "Dados do evento exportados para JSON.",
     dateSource: "Data e hora",
     dateSourceManual: "Manual",
     dateSourcePattern: "Do padrão do perfil",
@@ -344,6 +351,11 @@ export const pt = {
     buttons: {
       new: "Novo"
     },
+    importJsonButton: "Importar JSON",
+    importSuccess: "Dados do perfil importados do JSON.",
+    importWrongType: "Isto parece ser um JSON de evento. Use Importar evento em vez disso.",
+    exportJsonButton: "Exportar JSON",
+    exportSuccess: "Dados do perfil exportados para JSON.",
     hints: {
       groupAccess: "Escolha um grupo com acesso ao calendário.",
       patternsInfo: "Padrões são usados para pré-gerar datas futuras."
@@ -451,7 +463,13 @@ export const pt = {
         monthlyTime: "Define a hora em que os eventos serão publicados a cada mês"
       },
       offsetProse: "Publicar o próximo evento 7 dias antes de começar.",
-      monthlyProse: "O 1º de cada mês às 6:00 PM"
+      monthlyProse: "O 1º de cada mês às 6:00 PM",
+      restoreButton: "Restaurar",
+      restoreSuccess: "Foram restaurados {count} evento(s)",
+      restoreNone: "Nenhum evento para restaurar",
+      restoreFailed: "Falha ao restaurar eventos",
+      restoreNoProfile: "Nenhum perfil selecionado",
+      restorableCount: "{count} evento(s) excluído(s) podem ser restaurados"
     },
     created: "Perfil criado.",
     updated: "Perfil atualizado.",
