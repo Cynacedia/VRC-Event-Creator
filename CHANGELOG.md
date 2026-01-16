@@ -2,6 +2,11 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.32] - 2026-01-15
+
+### Fixed
+- User data directory now pins to VRCEventCreator with a one-time migration from vrc-event-creator
+
 ## [0.9.31] - 2026-01-15
 
 ### Changed
