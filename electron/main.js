@@ -9,6 +9,11 @@ const { KeyvFile } = require("keyv-file");
 const { generateDateOptionsFromPatterns, safeZone } = require("./core/date-utils");
 const automationEngine = require("./core/automation-engine");
 
+const STABLE_USERDATA_NAME = "VRCEventCreator";
+const RENAMED_USERDATA_NAME = "vrc-event-creator";
+const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
+app.setPath("userData", STABLE_USERDATA_PATH);
+
 // Disable GPU cache to suppress warnings
 app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
 
@@ -293,8 +298,50 @@ const pendingGetRequests = new Map();
 function resolveDataDir() {
   const override = process.env.VRC_EVENT_DATA_DIR;
   const baseDir = override || app.getPath("userData");
+  if (!override) {
+    migrateUserDataIfNeeded(baseDir);
+  }
   fs.mkdirSync(baseDir, { recursive: true });
   return baseDir;
+}
+
+function migrateUserDataIfNeeded(targetDir) {
+  const sourceDir = path.join(app.getPath("appData"), RENAMED_USERDATA_NAME);
+  if (sourceDir === targetDir) {
+    return;
+  }
+  if (!fs.existsSync(sourceDir)) {
+    return;
+  }
+  const markerPath = path.join(targetDir, ".migrated-from-vrc-event-creator");
+  if (fs.existsSync(markerPath)) {
+    return;
+  }
+  try {
+    fs.mkdirSync(targetDir, { recursive: true });
+    mergeMissingEntries(sourceDir, targetDir);
+    fs.writeFileSync(markerPath, new Date().toISOString(), "utf8");
+  } catch (err) {
+    debugLog("migration", "Failed to migrate user data:", err.message);
+  }
+}
+
+function mergeMissingEntries(sourceDir, targetDir) {
+  const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const sourcePath = path.join(sourceDir, entry.name);
+    const targetPath = path.join(targetDir, entry.name);
+    if (entry.isDirectory()) {
+      if (!fs.existsSync(targetPath)) {
+        fs.mkdirSync(targetPath, { recursive: true });
+      }
+      mergeMissingEntries(sourcePath, targetPath);
+    } else if (entry.isFile()) {
+      if (!fs.existsSync(targetPath)) {
+        fs.copyFileSync(sourcePath, targetPath);
+      }
+    }
+  }
 }
 
 function initializePaths() {
