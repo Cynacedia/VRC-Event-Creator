@@ -143,9 +143,25 @@ export const zh = {
     general: {
       title: "常规",
       minimizeToTray: "最小化到系统托盘",
+      startOnStartup: "开机自动启动",
+      showFeaturedVerification: "显示精选活动验证",
       enableAdvanced: "启用高级设置",
       enableImportExport: "导入/导出活动",
       autoUploadImages: "自动上传导入活动/配置文件中的图库图片"
+    },
+    featuredVerification: {
+      title: "精选活动验证",
+      description: "部分群组有权创建精选活动。要启用精选活动复选框，请在下方选择您的群组进行验证。该群组必须至少有一个现有的精选活动。",
+      selectGroup: "选择要验证的群组",
+      verifyButton: "验证",
+      verifying: "验证中...",
+      noVerifiedGroups: "暂无已验证群组。",
+      verified: "群组已验证为可创建精选活动。",
+      selectFirst: "请先选择要验证的群组。",
+      removed: "群组已从验证列表中移除。",
+      verifyFailed: "群组验证失败。",
+      removeFailed: "群组移除失败。",
+      permissionDenied: "此群组无权创建精选活动。请关闭精选活动选项后重试。"
     },
     saveButton: "保存设置",
     saved: "设置已保存。"
@@ -502,6 +518,7 @@ export const zh = {
     edit: "编辑",
     delete: "删除",
     rateLimitError: "速率限制。请稍候再试。",
+    featuredEvent: "精选活动",
     noMatches: "无匹配项。",
     noGroupsAccess: "没有具备日历权限的群组",
     selectGroup: "选择群组",

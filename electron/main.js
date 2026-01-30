@@ -10,7 +10,6 @@ const { generateDateOptionsFromPatterns, safeZone } = require("./core/date-utils
 const automationEngine = require("./core/automation-engine");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
-const RENAMED_USERDATA_NAME = "vrc-event-creator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
 app.setPath("userData", STABLE_USERDATA_PATH);
 
@@ -298,50 +297,8 @@ const pendingGetRequests = new Map();
 function resolveDataDir() {
   const override = process.env.VRC_EVENT_DATA_DIR;
   const baseDir = override || app.getPath("userData");
-  if (!override) {
-    migrateUserDataIfNeeded(baseDir);
-  }
   fs.mkdirSync(baseDir, { recursive: true });
   return baseDir;
-}
-
-function migrateUserDataIfNeeded(targetDir) {
-  const sourceDir = path.join(app.getPath("appData"), RENAMED_USERDATA_NAME);
-  if (sourceDir === targetDir) {
-    return;
-  }
-  if (!fs.existsSync(sourceDir)) {
-    return;
-  }
-  const markerPath = path.join(targetDir, ".migrated-from-vrc-event-creator");
-  if (fs.existsSync(markerPath)) {
-    return;
-  }
-  try {
-    fs.mkdirSync(targetDir, { recursive: true });
-    mergeMissingEntries(sourceDir, targetDir);
-    fs.writeFileSync(markerPath, new Date().toISOString(), "utf8");
-  } catch (err) {
-    debugLog("migration", "Failed to migrate user data:", err.message);
-  }
-}
-
-function mergeMissingEntries(sourceDir, targetDir) {
-  const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
-  for (const entry of entries) {
-    const sourcePath = path.join(sourceDir, entry.name);
-    const targetPath = path.join(targetDir, entry.name);
-    if (entry.isDirectory()) {
-      if (!fs.existsSync(targetPath)) {
-        fs.mkdirSync(targetPath, { recursive: true });
-      }
-      mergeMissingEntries(sourcePath, targetPath);
-    } else if (entry.isFile()) {
-      if (!fs.existsSync(targetPath)) {
-        fs.copyFileSync(sourcePath, targetPath);
-      }
-    }
-  }
 }
 
 function initializePaths() {
@@ -374,7 +331,10 @@ function normalizeSettings(raw) {
       trayPromptShown: false,
       enableAdvanced: false,
       enableImportExport: false,
-      autoUploadImages: false
+      autoUploadImages: false,
+      startOnStartup: false,
+      showFeaturedVerification: false,
+      featuredVerifiedGroups: []
     };
   }
   return {
@@ -383,7 +343,10 @@ function normalizeSettings(raw) {
     trayPromptShown: typeof raw.trayPromptShown === "boolean" ? raw.trayPromptShown : false,
     enableAdvanced: typeof raw.enableAdvanced === "boolean" ? raw.enableAdvanced : false,
     enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
-    autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false
+    autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false,
+    startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false,
+    showFeaturedVerification: typeof raw.showFeaturedVerification === "boolean" ? raw.showFeaturedVerification : false,
+    featuredVerifiedGroups: Array.isArray(raw.featuredVerifiedGroups) ? raw.featuredVerifiedGroups : []
   };
 }
 
@@ -875,7 +838,12 @@ function saveSettings(nextSettings) {
     destroyTray();
   }
 
-  resetClient();
+  // Manage startup on login setting
+  app.setLoginItemSettings({
+    openAtLogin: settings.startOnStartup,
+    path: process.execPath
+  });
+
   return settings;
 }
 
@@ -1781,6 +1749,59 @@ ipcMain.handle("settings:set", (_, payload) => {
   return saveSettings({ ...settings, ...next });
 });
 
+ipcMain.handle("settings:verifyFeaturedGroup", async (_, groupId) => {
+  if (!groupId) {
+    return { ok: false, error: "No group ID provided" };
+  }
+  // TEST BYPASS - Remove after testing
+  const TEST_BYPASS_GROUP = "grp_e1e10383-8ee1-4e98-acd5-4eea0652e95a";
+  if (groupId === TEST_BYPASS_GROUP) {
+    const verifiedList = settings.featuredVerifiedGroups || [];
+    if (!verifiedList.includes(groupId)) {
+      verifiedList.push(groupId);
+      saveSettings({ ...settings, featuredVerifiedGroups: verifiedList });
+    }
+    return { ok: true };
+  }
+  // END TEST BYPASS
+  try {
+    debugApiCall("getGroupCalendarEvents (verifyFeatured)", { groupId, n: 100 });
+    const response = await requestGet(
+      "getGroupCalendarEvents",
+      { path: { groupId }, query: { n: 100 } },
+      () => vrchat.getGroupCalendarEvents({
+        path: { groupId },
+        query: { n: 100 }
+      })
+    );
+    debugApiResponse("getGroupCalendarEvents (verifyFeatured)", response);
+    const events = getCalendarEventList(response?.data) || [];
+    const hasFeatured = events.some(ev => ev.featured === true);
+    if (!hasFeatured) {
+      return { ok: false, error: "No featured events found for this group" };
+    }
+    // Add to verified list if not already present
+    const verifiedList = settings.featuredVerifiedGroups || [];
+    if (!verifiedList.includes(groupId)) {
+      verifiedList.push(groupId);
+      saveSettings({ ...settings, featuredVerifiedGroups: verifiedList });
+    }
+    return { ok: true };
+  } catch (err) {
+    debugApiResponse("getGroupCalendarEvents (verifyFeatured)", null, err);
+    return { ok: false, error: err.message || "Failed to verify group" };
+  }
+});
+
+ipcMain.handle("settings:removeFeaturedGroup", (_, groupId) => {
+  if (!groupId) {
+    return { ok: false, error: "No group ID provided" };
+  }
+  const verifiedList = (settings.featuredVerifiedGroups || []).filter(id => id !== groupId);
+  saveSettings({ ...settings, featuredVerifiedGroups: verifiedList });
+  return { ok: true };
+});
+
 ipcMain.handle("theme:get", () => themeStore);
 
 ipcMain.handle("theme:set", (_, payload) => {
@@ -2123,11 +2144,12 @@ ipcMain.handle("events:create", async (_, payload) => {
       platforms: eventData.platforms || [],
       tags: eventData.tags || [],
       imageId: eventData.imageId || null,
-      featured: false,
+      featured: Boolean(eventData.featured),
       isDraft: false,
       parentId: null,
       roleIds: Array.isArray(eventData.roleIds) ? eventData.roleIds : []
     };
+    debugLog("createEvent", "Featured flag:", requestBody.featured);
     debugApiCall("createGroupCalendarEvent", { groupId, body: requestBody });
     const response = await vrchat.createGroupCalendarEvent({
       throwOnError: true,
@@ -2148,6 +2170,12 @@ ipcMain.handle("events:create", async (_, payload) => {
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
+    debugLog("createEvent", "API Error details:", {
+      status: err?.response?.status,
+      statusText: err?.response?.statusText,
+      data: err?.response?.data,
+      message: err?.message
+    });
     const status = err?.response?.status || null;
     return {
       ok: false,
@@ -2227,11 +2255,12 @@ ipcMain.handle("events:update", async (_, payload) => {
       platforms: eventData.platforms || [],
       tags: eventData.tags || [],
       imageId: eventData.imageId || null,
-      featured: false,
+      featured: Boolean(eventData.featured),
       isDraft: false,
       parentId: null,
       ...(Array.isArray(eventData.roleIds) ? { roleIds: eventData.roleIds } : {})
     };
+    debugLog("updateEvent", "Featured flag:", requestBody.featured);
     debugApiCall("updateGroupCalendarEvent", { groupId, eventId, body: requestBody });
     const response = await vrchat.updateGroupCalendarEvent({
       throwOnError: true,
@@ -2242,6 +2271,12 @@ ipcMain.handle("events:update", async (_, payload) => {
     return { ok: true };
   } catch (err) {
     debugApiResponse("updateGroupCalendarEvent", null, err);
+    debugLog("updateEvent", "API Error details:", {
+      status: err?.response?.status,
+      statusText: err?.response?.statusText,
+      data: err?.response?.data,
+      message: err?.message
+    });
     return {
       ok: false,
       error: {
@@ -2822,11 +2857,12 @@ app.whenReady().then(() => {
             platforms: eventData.platforms || [],
             tags: eventData.tags || [],
             imageId: eventData.imageId || null,
-            featured: false,
+            featured: Boolean(eventData.featured),
             isDraft: false,
             parentId: null,
             roleIds: Array.isArray(eventData.roleIds) ? eventData.roleIds : []
           };
+          debugLog("createEvent (automation)", "Featured flag:", requestBody.featured);
           debugApiCall("createGroupCalendarEvent (automation)", { groupId, body: requestBody });
           const response = await vrchat.createGroupCalendarEvent({
             throwOnError: true,

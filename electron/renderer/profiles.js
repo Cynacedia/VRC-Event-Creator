@@ -387,6 +387,7 @@ export function resetProfileForm() {
 
   dom.profileDateMode.value = "both";
   dom.profileSendNotification.checked = true;
+  if (dom.profileFeatured) dom.profileFeatured.checked = false;
   state.profile.languages = ["eng"];
   state.profile.platforms = ["standalonewindows", "android"];
   state.profile.patterns = [];
@@ -445,6 +446,7 @@ export function applyProfileToForm(groupId, profileKey) {
 
   dom.profileDateMode.value = profile.dateMode || "both";
   dom.profileSendNotification.checked = Boolean(profile.sendNotification);
+  if (dom.profileFeatured) dom.profileFeatured.checked = Boolean(profile.featured);
   state.profile.languages = profile.languages ? profile.languages.slice() : [];
   state.profile.platforms = profile.platforms ? profile.platforms.slice() : [];
   state.profile.patterns = profile.patterns ? profile.patterns.slice() : [];
@@ -577,10 +579,29 @@ export function handleProfileGroupChange(api) {
   dom.profileExisting.value = "";
   updateProfileActionButtons();
   void renderProfileRoleRestrictions(api);
+  void updateProfileFeaturedVisibility(api);
 
   const wizard = getProfileWizard();
   if (wizard) {
     wizard.goTo(0);
+  }
+}
+
+async function updateProfileFeaturedVisibility(api) {
+  if (!dom.profileFeaturedField) return;
+  const groupId = dom.profileGroup.value;
+  if (!groupId) {
+    dom.profileFeaturedField.classList.add("is-hidden");
+    return;
+  }
+  try {
+    const settings = await api.getSettings();
+    const verifiedGroups = settings.featuredVerifiedGroups || [];
+    const isVerified = verifiedGroups.includes(groupId);
+    dom.profileFeaturedField.classList.toggle("is-hidden", !isVerified);
+  } catch (err) {
+    console.error("Failed to check featured verification:", err);
+    dom.profileFeaturedField.classList.add("is-hidden");
   }
 }
 
@@ -719,6 +740,7 @@ export async function handleProfileSave(api) {
       imageId: dom.profileImageId.value.trim() || null,
       duration,
       sendNotification: Boolean(dom.profileSendNotification.checked),
+      featured: Boolean(dom.profileFeatured?.checked),
       timezone: dom.profileTimezone.value,
       dateMode: dom.profileDateMode.value,
       patterns: state.profile.patterns.slice(),
@@ -986,6 +1008,13 @@ async function applyImportedJsonToProfileForm(data, api) {
   dom.profileSendNotification.checked = typeof data.sendNotification === "boolean"
     ? data.sendNotification
     : false;
+
+  // Apply featured
+  if (dom.profileFeatured) {
+    dom.profileFeatured.checked = typeof data.featured === "boolean"
+      ? data.featured
+      : false;
+  }
 
   // Apply duration
   if (typeof data.duration === "number" && data.duration > 0) {

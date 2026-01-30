@@ -16,6 +16,13 @@ export function updateAdvancedSettingsVisibility() {
   }
 }
 
+export function updateFeaturedVerificationVisibility() {
+  const enabled = dom.settingsShowFeaturedVerification?.checked ?? false;
+  if (dom.featuredVerificationCard) {
+    dom.featuredVerificationCard.classList.toggle("is-hidden", !enabled);
+  }
+}
+
 export function updateImportExportVisibility() {
   const enabled = dom.settingsEnableImportExport?.checked ?? false;
   if (dom.eventAdvancedSection) {
@@ -701,6 +708,7 @@ export function applyManualEventDefaults(options = {}) {
     enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
     dom.eventImageId.value = "";
     dom.eventSendNotification.checked = true;
+    if (dom.eventFeatured) dom.eventFeatured.checked = false;
     dom.eventDuration.value = formatDuration(120);
     updateEventDurationPreview();
     const { systemTz } = buildTimezones();
@@ -770,6 +778,26 @@ export async function handleEventGroupChange(api) {
     dom.eventImportJson.disabled = !dom.eventGroup.value;
   }
   await refreshUpcomingEventCount(api);
+  // Update featured checkbox visibility based on verified groups
+  void updateEventFeaturedVisibility(api);
+}
+
+async function updateEventFeaturedVisibility(api) {
+  if (!dom.eventFeaturedField) return;
+  const groupId = dom.eventGroup.value;
+  if (!groupId) {
+    dom.eventFeaturedField.classList.add("is-hidden");
+    return;
+  }
+  try {
+    const settings = await api.getSettings();
+    const verifiedGroups = settings.featuredVerifiedGroups || [];
+    const isVerified = verifiedGroups.includes(groupId);
+    dom.eventFeaturedField.classList.toggle("is-hidden", !isVerified);
+  } catch (err) {
+    console.error("Failed to check featured verification:", err);
+    dom.eventFeaturedField.classList.add("is-hidden");
+  }
 }
 
 export function handleEventProfileChange(api) {
@@ -896,7 +924,8 @@ export async function handleEventCreate(api) {
     platforms: state.event.platforms.slice(),
     tags,
     imageId: dom.eventImageId.value.trim() || null,
-    sendCreationNotification: Boolean(dom.eventSendNotification.checked)
+    sendCreationNotification: Boolean(dom.eventSendNotification.checked),
+    featured: Boolean(dom.eventFeatured?.checked)
   };
   if (eventData.accessType === "group") {
     eventData.roleIds = (state.event.roleIds || []).filter(id => typeof id === "string" && id.trim());
@@ -970,6 +999,9 @@ export async function handleEventCreate(api) {
       profileKey: profileKey && profileKey !== "__manual__" ? profileKey : null
     });
     if (!result?.ok) {
+      const rawMessage = result?.error?.message || "";
+      const isFeaturedPermissionError = Boolean(eventData.featured)
+        && (result?.error?.status === 403 || /featured event/i.test(rawMessage));
       if (isRateLimitError(result?.error)) {
         state.event.createInProgress = false;
         const rateLimitInfo = handleCreateRateLimit(groupId);
@@ -980,7 +1012,12 @@ export async function handleEventCreate(api) {
       }
       state.event.createInProgress = false;
       updateEventCreateDisabled();
-      return { success: false, message: result?.error?.message || "Could not create event." };
+      if (isFeaturedPermissionError) {
+        const message = t("settings.featuredVerification.permissionDenied");
+        showToast(message, true);
+        return { success: false, message, toastShown: true };
+      }
+      return { success: false, message: rawMessage || "Could not create event." };
     }
     clearRateLimit(getCreateRateLimitKey(groupId));
     clearHourlyLimit(groupId);
@@ -995,6 +1032,10 @@ export async function handleEventCreate(api) {
       : t("events.created");
     return { success: true, message };
   } catch (err) {
+    const rawMessage = err?.message || "";
+    const status = err?.status || err?.response?.status || null;
+    const isFeaturedPermissionError = Boolean(eventData.featured)
+      && (status === 403 || /featured event/i.test(rawMessage));
     if (isRateLimitError(err)) {
       state.event.createInProgress = false;
       const rateLimitInfo = handleCreateRateLimit(groupId);
@@ -1005,7 +1046,12 @@ export async function handleEventCreate(api) {
     }
     state.event.createInProgress = false;
     updateEventCreateDisabled();
-    return { success: false, message: err?.message || "Could not create event." };
+    if (isFeaturedPermissionError) {
+      const message = t("settings.featuredVerification.permissionDenied");
+      showToast(message, true);
+      return { success: false, message, toastShown: true };
+    }
+    return { success: false, message: rawMessage || "Could not create event." };
   }
 }
 
@@ -1082,6 +1128,7 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   state.event.roleIds = Array.isArray(profile.roleIds) ? profile.roleIds.slice() : [];
   dom.eventImageId.value = profile.imageId || "";
   dom.eventSendNotification.checked = Boolean(profile.sendNotification);
+  if (dom.eventFeatured) dom.eventFeatured.checked = Boolean(profile.featured);
   dom.eventDuration.value = formatDuration(profile.duration || 120);
   updateEventDurationPreview();
   const timezone = profile.timezone || buildTimezones().systemTz;
@@ -1203,6 +1250,13 @@ export async function applyImportedJsonToEventForm(data, api) {
   dom.eventSendNotification.checked = typeof data.sendNotification === "boolean"
     ? data.sendNotification
     : false;
+
+  // Apply featured - default to false if missing
+  if (dom.eventFeatured) {
+    dom.eventFeatured.checked = typeof data.featured === "boolean"
+      ? data.featured
+      : false;
+  }
 
   // Apply duration - use default if invalid/missing
   if (typeof data.duration === "number" && data.duration > 0) {

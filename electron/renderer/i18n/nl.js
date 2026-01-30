@@ -143,9 +143,25 @@ export const nl = {
     general: {
       title: "Algemeen",
       minimizeToTray: "Minimaliseren naar systeemvak",
+      startOnStartup: "Starten bij opstarten systeem",
+      showFeaturedVerification: "Verificatie uitgelichte evenementen tonen",
       enableAdvanced: "Geavanceerde instellingen inschakelen",
       enableImportExport: "Evenementen importeren/exporteren",
       autoUploadImages: "Galerij-afbeeldingen automatisch uploaden van geïmporteerde evenementen/profielen"
+    },
+    featuredVerification: {
+      title: "Verificatie uitgelichte evenementen",
+      description: "Sommige groepen hebben toestemming om uitgelichte evenementen te maken. Om het selectievakje voor uitgelichte evenementen in te schakelen, verifieer je groep door deze hieronder te selecteren. De groep moet minimaal één bestaand uitgelicht evenement hebben.",
+      selectGroup: "Selecteer groep om te verifiëren",
+      verifyButton: "Verifiëren",
+      verifying: "Verifiëren...",
+      noVerifiedGroups: "Nog geen geverifieerde groepen.",
+      verified: "Groep geverifieerd voor uitgelichte evenementen.",
+      selectFirst: "Selecteer eerst een groep om te verifiëren.",
+      removed: "Groep verwijderd uit de geverifieerde lijst.",
+      verifyFailed: "Groep kon niet worden geverifieerd.",
+      removeFailed: "Groep kon niet worden verwijderd.",
+      permissionDenied: "Deze groep heeft geen toestemming om uitgelichte evenementen te maken. Schakel de optie Uitgelicht Evenement uit en probeer het opnieuw."
     },
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
@@ -502,6 +518,7 @@ export const nl = {
     edit: "Bewerken",
     delete: "Verwijderen",
     rateLimitError: "Rate-limiet bereikt. Wacht even en probeer het later opnieuw.",
+    featuredEvent: "Uitgelicht evenement",
     noMatches: "Geen overeenkomsten.",
     noGroupsAccess: "Geen groepen met kalendertoegang",
     selectGroup: "Groep selecteren",

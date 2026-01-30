@@ -46,6 +46,8 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   },
   getSettings: () => ipcRenderer.invoke("settings:get"),
   updateSettings: payload => ipcRenderer.invoke("settings:set", payload),
+  verifyFeaturedGroup: groupId => ipcRenderer.invoke("settings:verifyFeaturedGroup", groupId),
+  removeFeaturedGroup: groupId => ipcRenderer.invoke("settings:removeFeaturedGroup", groupId),
   getThemeStore: () => ipcRenderer.invoke("theme:get"),
   saveThemeStore: payload => ipcRenderer.invoke("theme:set", payload),
   getThemePresets: () => ipcRenderer.invoke("themePresets:get"),

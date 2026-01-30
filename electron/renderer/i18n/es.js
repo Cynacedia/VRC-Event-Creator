@@ -143,9 +143,25 @@ export const es = {
     general: {
       title: "General",
       minimizeToTray: "Minimizar a la bandeja del sistema",
+      startOnStartup: "Iniciar con el sistema",
+      showFeaturedVerification: "Mostrar verificación de eventos destacados",
       enableAdvanced: "Habilitar configuración avanzada",
       enableImportExport: "Importar/Exportar Eventos",
       autoUploadImages: "Subir automáticamente imágenes de galería desde eventos/perfiles importados"
+    },
+    featuredVerification: {
+      title: "Verificación de eventos destacados",
+      description: "Algunos grupos tienen permiso para crear eventos destacados. Para habilitar la casilla de evento destacado, verifica tu grupo seleccionándolo a continuación. El grupo debe tener al menos un evento destacado existente.",
+      selectGroup: "Seleccionar grupo a verificar",
+      verifyButton: "Verificar",
+      verifying: "Verificando...",
+      noVerifiedGroups: "Aún no hay grupos verificados.",
+      verified: "Grupo verificado para eventos destacados.",
+      selectFirst: "Por favor selecciona un grupo a verificar.",
+      removed: "Grupo eliminado de la lista verificada.",
+      verifyFailed: "Error al verificar el grupo.",
+      removeFailed: "Error al eliminar el grupo.",
+      permissionDenied: "Este grupo no tiene permiso para crear eventos destacados. Por favor desactiva la opción de Evento Destacado e inténtalo de nuevo."
     },
     saveButton: "Guardar configuración",
     saved: "Configuración guardada."
@@ -502,6 +518,7 @@ export const es = {
     edit: "Editar",
     delete: "Eliminar",
     rateLimitError: "Límite de tasa. Por favor espere e inténtelo más tarde.",
+    featuredEvent: "Evento destacado",
     noMatches: "Sin coincidencias.",
     noGroupsAccess: "No hay grupos con acceso al calendario",
     selectGroup: "Seleccionar grupo",

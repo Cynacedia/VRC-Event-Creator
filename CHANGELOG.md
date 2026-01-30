@@ -2,6 +2,22 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.33] - 2026-01-29
+
+### Added
+- "Start on system startup" setting to launch the app automatically when your computer starts
+- Featured Event toggle for groups with featured event permissions
+  - Checkbox appears in Event Creation, Profiles, and Modify Event forms (below Platforms)
+  - Settings card for verifying which groups have featured event access
+  - Groups are verified by checking for existing featured events via the API
+- Translations for all new features across all 10 supported languages
+
+### Changed
+- Logout button now only visible in Settings menu (previously always visible in footer)
+
+### Removed
+- One-time data migration code (migrated users from vrc-event-creator to VRCEventCreator directory)
+
 ## [0.9.32] - 2026-01-15
 
 ### Fixed

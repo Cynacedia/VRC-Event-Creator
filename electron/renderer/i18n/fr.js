@@ -143,9 +143,25 @@ export const fr = {
     general: {
       title: "Général",
       minimizeToTray: "Réduire dans la barre d'état système",
+      startOnStartup: "Démarrer au démarrage du système",
+      showFeaturedVerification: "Afficher la vérification des événements en vedette",
       enableAdvanced: "Activer les paramètres avancés",
       enableImportExport: "Importer/Exporter des événements",
       autoUploadImages: "Télécharger automatiquement les images de galerie depuis les événements/profils importés"
+    },
+    featuredVerification: {
+      title: "Vérification des événements en vedette",
+      description: "Certains groupes ont la permission de créer des événements en vedette. Pour activer la case à cocher d'événement en vedette, vérifiez votre groupe en le sélectionnant ci-dessous. Le groupe doit avoir au moins un événement en vedette existant.",
+      selectGroup: "Sélectionner le groupe à vérifier",
+      verifyButton: "Vérifier",
+      verifying: "Vérification...",
+      noVerifiedGroups: "Aucun groupe vérifié pour le moment.",
+      verified: "Groupe vérifié pour les événements en vedette.",
+      selectFirst: "Veuillez sélectionner un groupe à vérifier.",
+      removed: "Groupe retiré de la liste vérifiée.",
+      verifyFailed: "Échec de la vérification du groupe.",
+      removeFailed: "Échec de la suppression du groupe.",
+      permissionDenied: "Ce groupe n'a pas la permission de créer des événements en vedette. Veuillez désactiver l'option Événement en vedette et réessayer."
     },
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
@@ -502,6 +518,7 @@ export const fr = {
     edit: "Modifier",
     delete: "Supprimer",
     rateLimitError: "Limite de débit. Veuillez patienter et réessayer plus tard.",
+    featuredEvent: "Événement en vedette",
     noMatches: "Aucune correspondance.",
     noGroupsAccess: "Aucun groupe avec accès au calendrier",
     selectGroup: "Sélectionner un groupe",

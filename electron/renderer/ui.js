@@ -110,6 +110,7 @@ export function setAuthState(isAuthed) {
   statusIsAuthed = Boolean(isAuthed);
   updateStatusPill();
   dom.logoutBtn.disabled = !isAuthed;
+  dom.logoutBtn.classList.add("is-hidden");
   dom.loginOverlay.classList.toggle("is-hidden", isAuthed);
   dom.navButtons.forEach(btn => {
     if (btn.dataset.view !== "about") {
@@ -137,6 +138,7 @@ export function showView(viewName) {
   dom.viewModify.classList.toggle("is-hidden", viewName !== "modify");
   dom.viewProfiles.classList.toggle("is-hidden", viewName !== "profiles");
   dom.viewAbout.classList.toggle("is-hidden", viewName !== "about");
+  dom.logoutBtn.classList.toggle("is-hidden", viewName !== "about");
 }
 
 // ============================================================================

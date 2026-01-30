@@ -1081,6 +1081,9 @@ function applyModifyFormFromEvent(event) {
   dom.modifyEventAccess.value = event.accessType || "public";
   enforceGroupAccess(dom.modifyEventAccess, event.groupId);
   dom.modifyEventImageId.value = event.imageId || "";
+  if (dom.modifyFeatured) {
+    dom.modifyFeatured.checked = Boolean(event.featured);
+  }
   state.modify.roleIds = Array.isArray(event.roleIds) ? event.roleIds.slice() : [];
   const { systemTz } = buildTimezones();
   const timezone = event.timezone || systemTz;
@@ -1098,6 +1101,24 @@ function applyModifyFormFromEvent(event) {
   renderModifyPlatformList();
   renderModifyProfileOptions(event.groupId);
   void renderModifyRoleRestrictions();
+  void updateModifyFeaturedVisibility(event.groupId);
+}
+
+async function updateModifyFeaturedVisibility(groupId) {
+  if (!dom.modifyFeaturedField) return;
+  if (!groupId) {
+    dom.modifyFeaturedField.classList.add("is-hidden");
+    return;
+  }
+  try {
+    const settings = await modifyApi.getSettings();
+    const verifiedGroups = settings.featuredVerifiedGroups || [];
+    const isVerified = verifiedGroups.includes(groupId);
+    dom.modifyFeaturedField.classList.toggle("is-hidden", !isVerified);
+  } catch (err) {
+    console.error("Failed to check featured verification:", err);
+    dom.modifyFeaturedField.classList.add("is-hidden");
+  }
 }
 
 function openModifyModal(event) {
@@ -1417,7 +1438,8 @@ async function handleModifySave() {
       platforms: state.modify.platforms.slice(),
       tags,
       imageId: dom.modifyEventImageId.value.trim() || null,
-      roleIds: dom.modifyEventAccess.value === "group" ? state.modify.roleIds.slice() : []
+      roleIds: dom.modifyEventAccess.value === "group" ? state.modify.roleIds.slice() : [],
+      featured: Boolean(dom.modifyFeatured?.checked)
     };
   try {
     const result = await modifyApi.updateEvent({

@@ -143,9 +143,25 @@ export const pt = {
     general: {
       title: "Geral",
       minimizeToTray: "Minimizar para a bandeja do sistema",
+      startOnStartup: "Iniciar com o sistema",
+      showFeaturedVerification: "Mostrar verificação de eventos em destaque",
       enableAdvanced: "Ativar configurações avançadas",
       enableImportExport: "Importar/Exportar Eventos",
       autoUploadImages: "Carregar automaticamente imagens da galeria de eventos/perfis importados"
+    },
+    featuredVerification: {
+      title: "Verificação de eventos em destaque",
+      description: "Alguns grupos têm permissão para criar eventos em destaque. Para ativar a caixa de seleção de evento em destaque, verifique seu grupo selecionando-o abaixo. O grupo deve ter pelo menos um evento em destaque existente.",
+      selectGroup: "Selecionar grupo para verificar",
+      verifyButton: "Verificar",
+      verifying: "Verificando...",
+      noVerifiedGroups: "Nenhum grupo verificado ainda.",
+      verified: "Grupo verificado para eventos em destaque.",
+      selectFirst: "Por favor, selecione um grupo para verificar.",
+      removed: "Grupo removido da lista verificada.",
+      verifyFailed: "Falha ao verificar o grupo.",
+      removeFailed: "Falha ao remover o grupo.",
+      permissionDenied: "Este grupo não tem permissão para criar eventos em destaque. Por favor, desative a opção Evento em Destaque e tente novamente."
     },
     saveButton: "Salvar configurações",
     saved: "Configurações salvas."
@@ -502,6 +518,7 @@ export const pt = {
     edit: "Editar",
     delete: "Excluir",
     rateLimitError: "Limite de taxa. Aguarde e tente novamente mais tarde.",
+    featuredEvent: "Evento em destaque",
     noMatches: "Nenhuma correspondência.",
     noGroupsAccess: "Nenhum grupo com acesso ao calendário",
     selectGroup: "Selecionar grupo",

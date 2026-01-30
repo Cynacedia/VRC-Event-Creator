@@ -143,9 +143,25 @@ export const de = {
     general: {
       title: "Allgemein",
       minimizeToTray: "In Systemleiste minimieren",
+      startOnStartup: "Bei Systemstart starten",
+      showFeaturedVerification: "Verifizierung für hervorgehobene Events anzeigen",
       enableAdvanced: "Erweiterte Einstellungen aktivieren",
       enableImportExport: "Events importieren/exportieren",
       autoUploadImages: "Galeriebilder aus importierten Events/Profilen automatisch hochladen"
+    },
+    featuredVerification: {
+      title: "Verifizierung für hervorgehobene Events",
+      description: "Einige Gruppen haben die Berechtigung, hervorgehobene Events zu erstellen. Um das Kontrollkästchen für hervorgehobene Events zu aktivieren, wählen Sie unten Ihre Gruppe aus. Die Gruppe muss mindestens ein bestehendes hervorgehobenes Event haben.",
+      selectGroup: "Gruppe zur Verifizierung auswählen",
+      verifyButton: "Verifizieren",
+      verifying: "Wird verifiziert...",
+      noVerifiedGroups: "Noch keine verifizierten Gruppen.",
+      verified: "Gruppe für hervorgehobene Events verifiziert.",
+      selectFirst: "Bitte wählen Sie eine Gruppe zur Verifizierung.",
+      removed: "Gruppe aus der verifizierten Liste entfernt.",
+      verifyFailed: "Gruppe konnte nicht verifiziert werden.",
+      removeFailed: "Gruppe konnte nicht entfernt werden.",
+      permissionDenied: "Diese Gruppe hat keine Berechtigung, hervorgehobene Events zu erstellen. Bitte deaktivieren Sie die Option für hervorgehobene Events und versuchen Sie es erneut."
     },
     saveButton: "Einstellungen speichern",
     saved: "Einstellungen gespeichert."
@@ -502,6 +518,7 @@ export const de = {
     edit: "Bearbeiten",
     delete: "Löschen",
     rateLimitError: "Ratenbegrenzung. Bitte warten Sie und versuchen Sie es später erneut.",
+    featuredEvent: "Hervorgehobenes Event",
     noMatches: "Keine Treffer.",
     noGroupsAccess: "Keine Gruppen mit Kalenderzugriff",
     selectGroup: "Gruppe auswählen",

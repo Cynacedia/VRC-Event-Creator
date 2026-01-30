@@ -143,9 +143,25 @@ export const en = {
     general: {
       title: "General",
       minimizeToTray: "Minimize to system tray",
+      startOnStartup: "Start on system startup",
+      showFeaturedVerification: "Show Featured Events Verification",
       enableAdvanced: "Enable advanced settings",
       enableImportExport: "Import/Export Events",
       autoUploadImages: "Automatically upload gallery images from imported events/profiles"
+    },
+    featuredVerification: {
+      title: "Featured Events Verification",
+      description: "Some groups have permission to create featured events. To enable the Featured Event checkbox, verify your group by selecting it below. The group must have at least one existing featured event.",
+      selectGroup: "Select Group to Verify",
+      verifyButton: "Verify",
+      verifying: "Verifying...",
+      noVerifiedGroups: "No verified groups yet.",
+      verified: "Group verified for featured events.",
+      selectFirst: "Please select a group to verify.",
+      removed: "Group removed from verified list.",
+      verifyFailed: "Failed to verify group.",
+      removeFailed: "Failed to remove group.",
+      permissionDenied: "This group does not have permission to create featured events. Please disable the Featured Event option and try again."
     },
     saveButton: "Save Settings",
     saved: "Settings saved."
@@ -502,6 +518,7 @@ export const en = {
     edit: "Edit",
     delete: "Delete",
     rateLimitError: "Rate limited. Please wait and try again later.",
+    featuredEvent: "Featured Event",
     noMatches: "No matches.",
     noGroupsAccess: "No groups with calendar access",
     selectGroup: "Select Group",

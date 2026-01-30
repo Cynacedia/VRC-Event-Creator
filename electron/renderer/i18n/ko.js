@@ -143,9 +143,25 @@ export const ko = {
     general: {
       title: "일반",
       minimizeToTray: "시스템 트레이로 최소화",
+      startOnStartup: "시스템 시작 시 실행",
+      showFeaturedVerification: "주목 이벤트 인증 표시",
       enableAdvanced: "고급 설정 활성화",
       enableImportExport: "이벤트 가져오기/내보내기",
       autoUploadImages: "가져온 이벤트/프로필에서 갤러리 이미지 자동 업로드"
+    },
+    featuredVerification: {
+      title: "주목 이벤트 인증",
+      description: "일부 그룹은 주목 이벤트를 만들 수 있는 권한이 있습니다. 주목 이벤트 체크박스를 활성화하려면 아래에서 그룹을 선택하여 인증하세요. 그룹에 기존 주목 이벤트가 있어야 합니다.",
+      selectGroup: "인증할 그룹 선택",
+      verifyButton: "인증",
+      verifying: "인증 중...",
+      noVerifiedGroups: "인증된 그룹이 없습니다.",
+      verified: "그룹이 주목 이벤트에 대해 인증되었습니다.",
+      selectFirst: "인증할 그룹을 선택하세요.",
+      removed: "인증 목록에서 그룹이 제거되었습니다.",
+      verifyFailed: "그룹 인증에 실패했습니다.",
+      removeFailed: "그룹 제거에 실패했습니다.",
+      permissionDenied: "이 그룹은 주목 이벤트를 만들 권한이 없습니다. 주목 이벤트 옵션을 비활성화하고 다시 시도하세요."
     },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
@@ -502,6 +518,7 @@ export const ko = {
     edit: "편집",
     delete: "삭제",
     rateLimitError: "속도 제한. 잠시 기다렸다가 다시 시도하세요.",
+    featuredEvent: "주목 이벤트",
     noMatches: "일치하는 항목이 없습니다.",
     noGroupsAccess: "캘린더 접근 권한이 있는 그룹이 없습니다",
     selectGroup: "그룹 선택",

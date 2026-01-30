@@ -4,7 +4,7 @@ import { dom, state } from "./state.js";
 import { setStatus, showToast, setAuthState } from "./ui.js";
 import { t } from "./i18n/index.js";
 import { sanitizePassword, sanitizeUsername } from "./utils.js";
-import { updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
+import { updateAdvancedSettingsVisibility, updateImportExportVisibility, updateFeaturedVerificationVisibility } from "./events.js";
 
 // ============================================================================
 // Session Management
@@ -40,6 +40,12 @@ async function onLoginSuccess(api, user, refreshDataFn) {
     if (dom.settingsMinimizeTray) {
       dom.settingsMinimizeTray.checked = Boolean(settings.minimizeToTray);
     }
+    if (dom.settingsStartOnStartup) {
+      dom.settingsStartOnStartup.checked = Boolean(settings.startOnStartup);
+    }
+    if (dom.settingsShowFeaturedVerification) {
+      dom.settingsShowFeaturedVerification.checked = Boolean(settings.showFeaturedVerification);
+    }
     if (dom.settingsEnableAdvanced) {
       dom.settingsEnableAdvanced.checked = Boolean(settings.enableAdvanced);
     }
@@ -51,6 +57,7 @@ async function onLoginSuccess(api, user, refreshDataFn) {
     }
     updateAdvancedSettingsVisibility();
     updateImportExportVisibility();
+    updateFeaturedVerificationVisibility();
   } catch (err) {
     console.error("Failed to load settings:", err);
   }

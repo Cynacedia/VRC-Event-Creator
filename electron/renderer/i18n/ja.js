@@ -143,9 +143,25 @@ export const ja = {
     general: {
       title: "一般",
       minimizeToTray: "システムトレイに最小化",
+      startOnStartup: "システム起動時に起動",
+      showFeaturedVerification: "注目イベント認証を表示",
       enableAdvanced: "詳細設定を有効にする",
       enableImportExport: "イベントのインポート/エクスポート",
       autoUploadImages: "インポートしたイベント/プロファイルからギャラリー画像を自動アップロード"
+    },
+    featuredVerification: {
+      title: "注目イベント認証",
+      description: "一部のグループは注目イベントを作成する権限があります。注目イベントチェックボックスを有効にするには、下のリストからグループを選択して認証してください。グループには既存の注目イベントが必要です。",
+      selectGroup: "認証するグループを選択",
+      verifyButton: "認証",
+      verifying: "認証中...",
+      noVerifiedGroups: "認証済みグループはありません。",
+      verified: "グループの注目イベントが認証されました。",
+      selectFirst: "認証するグループを選択してください。",
+      removed: "グループを認証リストから削除しました。",
+      verifyFailed: "グループの認証に失敗しました。",
+      removeFailed: "グループの削除に失敗しました。",
+      permissionDenied: "このグループには注目イベントを作成する権限がありません。注目イベントオプションを無効にして再試行してください。"
     },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
@@ -502,6 +518,7 @@ export const ja = {
     edit: "編集",
     delete: "削除",
     rateLimitError: "レート制限。しばらく待ってから再試行してください。",
+    featuredEvent: "注目イベント",
     noMatches: "一致する項目がありません。",
     noGroupsAccess: "カレンダー権限のあるグループがありません",
     selectGroup: "グループを選択",

@@ -7,7 +7,7 @@ import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTra
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
 import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson } from "./profiles.js";
-import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
+import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility, updateFeaturedVerificationVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
 import { initDemoControls } from "./demo.js";
@@ -66,6 +66,43 @@ import { initDemoControls } from "./demo.js";
         state.modify.selectedGroupId = null;
       }
     }
+  }
+
+  function renderFeaturedVerifyDropdown() {
+    if (!dom.featuredVerifyGroup) return;
+    const groups = state.groups || [];
+    const groupsWithAccess = groups.filter(g => g.canManageCalendar);
+    const groupOptions = groupsWithAccess.map(g => ({ label: g.name, value: g.groupId }));
+    renderSelect(dom.featuredVerifyGroup, groupOptions, t("common.selectGroupPlaceholder"));
+  }
+
+  async function renderFeaturedVerifiedList() {
+    if (!dom.featuredVerifiedList) return;
+    let verifiedGroups = [];
+    try {
+      const settings = await api.getSettings();
+      verifiedGroups = settings.featuredVerifiedGroups || [];
+    } catch (err) {
+      console.error("Failed to get verified groups:", err);
+    }
+    dom.featuredVerifiedList.innerHTML = "";
+    if (verifiedGroups.length === 0) {
+      dom.featuredVerifiedList.innerHTML = `<span>${t("settings.featuredVerification.noVerifiedGroups")}</span>`;
+      return;
+    }
+    const groups = state.groups || [];
+    const removeLabel = t("common.delete");
+    verifiedGroups.forEach(groupId => {
+      const group = groups.find(g => g.groupId === groupId);
+      const groupName = group ? group.name : groupId;
+      const item = document.createElement("div");
+      item.className = "verified-group-item";
+      item.innerHTML = `
+        <span class="verified-group-name">${groupName}</span>
+        <button type="button" class="ghost verified-group-remove" data-group-id="${groupId}">${removeLabel}</button>
+      `;
+      dom.featuredVerifiedList.appendChild(item);
+    });
   }
 
   function renderLanguageSelect() {
@@ -216,6 +253,8 @@ import { initDemoControls } from "./demo.js";
       state.groups = await api.getGroups();
       state.profiles = await api.getProfiles();
       renderGroupSelects({ preserveSelection });
+      renderFeaturedVerifyDropdown();
+      void renderFeaturedVerifiedList();
       enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
       enforceGroupAccess(dom.profileAccess, dom.profileGroup.value);
       if (dom.modifyEventAccess) {
@@ -354,6 +393,7 @@ import { initDemoControls } from "./demo.js";
     };
 
     renderGroupSelects({ preserveSelection: true });
+    renderFeaturedVerifyDropdown();
     renderSelect(dom.eventCategory, CATEGORIES);
     if (selections.eventCategory) {
       dom.eventCategory.value = selections.eventCategory;
@@ -1153,6 +1193,25 @@ import { initDemoControls } from "./demo.js";
         }
       });
     }
+    if (dom.settingsStartOnStartup) {
+      dom.settingsStartOnStartup.addEventListener("change", async () => {
+        try {
+          await api.updateSettings({ startOnStartup: dom.settingsStartOnStartup.checked });
+        } catch (err) {
+          console.error("Failed to save start on startup setting:", err);
+        }
+      });
+    }
+    if (dom.settingsShowFeaturedVerification) {
+      dom.settingsShowFeaturedVerification.addEventListener("change", async () => {
+        try {
+          await api.updateSettings({ showFeaturedVerification: dom.settingsShowFeaturedVerification.checked });
+          updateFeaturedVerificationVisibility();
+        } catch (err) {
+          console.error("Failed to save featured verification setting:", err);
+        }
+      });
+    }
     if (dom.settingsEnableAdvanced) {
       dom.settingsEnableAdvanced.addEventListener("change", async () => {
         try {
@@ -1192,6 +1251,49 @@ import { initDemoControls } from "./demo.js";
           await api.updateSettings({ autoUploadImages: dom.settingsAutoUploadImages.checked });
         } catch (err) {
           console.error("Failed to save auto upload images setting:", err);
+        }
+      });
+    }
+    if (dom.featuredVerifyBtn) {
+      dom.featuredVerifyBtn.addEventListener("click", async () => {
+        const groupId = dom.featuredVerifyGroup?.value;
+        if (!groupId) {
+          showToast(t("settings.featuredVerification.selectFirst"), true);
+          return;
+        }
+        dom.featuredVerifyBtn.disabled = true;
+        dom.featuredVerifyBtn.textContent = t("settings.featuredVerification.verifying");
+        try {
+          const result = await api.verifyFeaturedGroup(groupId);
+          if (result.ok) {
+            showToast(t("settings.featuredVerification.verified"));
+            await renderFeaturedVerifiedList();
+            dom.featuredVerifyGroup.value = "";
+          } else {
+            showToast(result.error || t("settings.featuredVerification.verifyFailed"), true);
+          }
+        } catch (err) {
+          showToast(t("settings.featuredVerification.verifyFailed"), true);
+          console.error("Featured verify error:", err);
+        } finally {
+          dom.featuredVerifyBtn.disabled = false;
+          dom.featuredVerifyBtn.textContent = t("settings.featuredVerification.verifyButton");
+        }
+      });
+    }
+    if (dom.featuredVerifiedList) {
+      dom.featuredVerifiedList.addEventListener("click", async event => {
+        const removeBtn = event.target.closest(".verified-group-remove");
+        if (!removeBtn) return;
+        const groupId = removeBtn.dataset.groupId;
+        if (!groupId) return;
+        try {
+          await api.removeFeaturedGroup(groupId);
+          showToast(t("settings.featuredVerification.removed"));
+          await renderFeaturedVerifiedList();
+        } catch (err) {
+          showToast(t("settings.featuredVerification.removeFailed"), true);
+          console.error("Featured remove error:", err);
         }
       });
     }
