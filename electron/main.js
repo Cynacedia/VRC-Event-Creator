@@ -257,6 +257,12 @@ autoUpdater.on("update-downloaded", (info) => {
   }
 });
 
+// Allow the app to fully quit during updates (avoid tray/minimize intercept)
+autoUpdater.on("before-quit-for-update", () => {
+  isQuitting = true;
+  destroyTray();
+});
+
 // Force update checks in dev mode for testing
 if (IS_DEV) {
   autoUpdater.forceDevUpdateConfig = true;
@@ -1677,6 +1683,8 @@ ipcMain.handle("app:downloadUpdate", async () => {
 });
 
 ipcMain.handle("app:installUpdate", () => {
+  isQuitting = true;
+  destroyTray();
   autoUpdater.quitAndInstall(true, true);
 });
 
@@ -2914,6 +2922,10 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("before-quit", () => {
+  isQuitting = true;
 });
 
 app.on("will-quit", () => {
