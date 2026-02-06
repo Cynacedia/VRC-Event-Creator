@@ -2,6 +2,22 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [0.9.35] - 2026-02-06
+
+### Added
+- "Include in Group Fair" toggle in Create Event, Modify Event, and Templates when the group supports it (applies the `vrc_event_group_fair` tag)
+- Group Fair flag saved in templates and included in template JSON import/export
+
+### Changed
+- "Profiles" have been renamed to "Templates" throughout the UI and translations
+- Featured/Group Fair toggles now appear automatically based on group feature tags; removed the Featured Events Verification settings card
+- Auto-upload gallery images setting copy now references templates
+- App now enforces a single running instance and focuses the existing window if launched again
+
+### Fixed
+- Featured status now carries into Modify Event so the toggle reflects real featured events
+- Create Event now surfaces clear permission-revoked errors for Featured and Group Fair events
+
 ## [0.9.33] - 2026-01-29
 
 ### Added

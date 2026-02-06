@@ -4,7 +4,7 @@ export const nl = {
   nav: {
     create: "Evenement maken",
     modify: "Evenementen wijzigen",
-    profiles: "Profielen beheren",
+    profiles: "Sjablonen beheren",
     settings: "Instellingen"
   },
   auth: {
@@ -144,24 +144,9 @@ export const nl = {
       title: "Algemeen",
       minimizeToTray: "Minimaliseren naar systeemvak",
       startOnStartup: "Starten bij opstarten systeem",
-      showFeaturedVerification: "Verificatie uitgelichte evenementen tonen",
       enableAdvanced: "Geavanceerde instellingen inschakelen",
       enableImportExport: "Evenementen importeren/exporteren",
-      autoUploadImages: "Galerij-afbeeldingen automatisch uploaden van geïmporteerde evenementen/profielen"
-    },
-    featuredVerification: {
-      title: "Verificatie uitgelichte evenementen",
-      description: "Sommige groepen hebben toestemming om uitgelichte evenementen te maken. Om het selectievakje voor uitgelichte evenementen in te schakelen, verifieer je groep door deze hieronder te selecteren. De groep moet minimaal één bestaand uitgelicht evenement hebben.",
-      selectGroup: "Selecteer groep om te verifiëren",
-      verifyButton: "Verifiëren",
-      verifying: "Verifiëren...",
-      noVerifiedGroups: "Nog geen geverifieerde groepen.",
-      verified: "Groep geverifieerd voor uitgelichte evenementen.",
-      selectFirst: "Selecteer eerst een groep om te verifiëren.",
-      removed: "Groep verwijderd uit de geverifieerde lijst.",
-      verifyFailed: "Groep kon niet worden geverifieerd.",
-      removeFailed: "Groep kon niet worden verwijderd.",
-      permissionDenied: "Deze groep heeft geen toestemming om uitgelichte evenementen te maken. Schakel de optie Uitgelicht Evenement uit en probeer het opnieuw."
+      autoUploadImages: "Galerij-afbeeldingen automatisch uploaden van geïmporteerde evenementen/sjablonen"
     },
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
@@ -208,7 +193,7 @@ export const nl = {
       create: "Aanmaken"
     },
     section: {
-      groupProfile: "Groep + profiel",
+      groupProfile: "Groep + sjabloon",
       dateSelection: "Datumselectie",
       details: "Evenementdetails",
       readyTitle: "Klaar om aan te maken?",
@@ -216,7 +201,7 @@ export const nl = {
     },
     labels: {
       groupRequired: "Groep (verplicht)",
-      profileOptional: "Profiel (optioneel)",
+      profileOptional: "Sjabloon (optioneel)",
       advanced: "Geavanceerd",
       importJson: "Importeren uit JSON",
       dateSource: "Gebruik",
@@ -227,29 +212,29 @@ export const nl = {
       manualTime: "Handmatige tijd"
     },
     hints: {
-      profileDefaults: "Kies een profiel met standaardinstellingen, of laat leeg om handmatig aan te maken.",
+      profileDefaults: "Kies een sjabloon met standaardinstellingen, of laat leeg om handmatig aan te maken.",
       importJson: "Eventdetails importeren uit een JSON-bestand."
     },
     dateHints: {
-      default: "Handmatige modus is klaar. Profielen met patronen ontgrendelen datumopties.",
-      noProfile: "Geen profiel geselecteerd. Gebruik handmatige datum/tijd.",
+      default: "Handmatige modus is klaar. Sjablonen met patronen ontgrendelen datumopties.",
+      noProfile: "Geen sjabloon geselecteerd. Gebruik handmatige datum/tijd.",
       manualReady: "Handmatige modus klaar.",
       chooseGenerated: "Kies een gegenereerde datum of gebruik handmatig.",
       noUpcoming: "Geen aankomende datums gevonden.",
       loadFailed: "Kon patroondatums niet laden."
     },
-    profileHint: "Profielen zijn optioneel. Gebruik er één met standaardinstellingen, of maak alles handmatig.",
-    loadProfile: "Profiel laden (optioneel)",
-    loadProfilePlaceholder: "Selecteer een profiel",
-    clearProfile: "Profiel wissen",
+    profileHint: "Sjablonen zijn optioneel. Gebruik er één met standaardinstellingen, of maak alles handmatig.",
+    loadProfile: "Sjabloon laden (optioneel)",
+    loadProfilePlaceholder: "Selecteer een sjabloon",
+    clearProfile: "Sjabloon wissen",
     importJsonButton: "JSON importeren",
     importSuccess: "Eventgegevens geïmporteerd uit JSON.",
-    importWrongType: "Dit lijkt een profiel-JSON te zijn. Gebruik in plaats daarvan Profiel importeren.",
+    importWrongType: "Dit lijkt een sjabloon-JSON te zijn. Gebruik in plaats daarvan Sjabloon importeren.",
     exportJsonButton: "JSON exporteren",
     exportSuccess: "Eventgegevens geëxporteerd naar JSON.",
     dateSource: "Datum & tijd",
     dateSourceManual: "Handmatig",
-    dateSourcePattern: "Uit profielpatroon",
+    dateSourcePattern: "Uit sjabloonpatroon",
     dateOption: "Datum kiezen",
     patternDateLabel: "{label} - {date}",
     access: "Toegang",
@@ -262,7 +247,7 @@ export const nl = {
       roles: "Rollen",
       noRoles: "Geen rollen beschikbaar voor deze groep."
     },
-    manualProfileOption: "Handmatig (geen profiel)",
+    manualProfileOption: "Handmatig (geen sjabloon)",
     pastDateError: "Je kunt geen datum in het verleden selecteren.",
     futureDateError: "Evenementen kunnen slechts tot 1 jaar vooruit worden gepland.",
     upcomingLimitNotice: "VRChat verhindert momenteel dat we meer dan 10 evenementen per groep per uur aanmaken.",
@@ -287,7 +272,9 @@ export const nl = {
     updateRequired: "Update beschikbaar. Werk bij voordat je evenementen aanmaakt.",
     requiredSingle: "{field} is verplicht.",
     requiredMultiple: "{fields} zijn verplicht.",
-    noDateOptionsError: "Geen datumopties beschikbaar vanuit profiel."
+    noDateOptionsError: "Geen datumopties beschikbaar vanuit sjabloon.",
+    featuredPermissionRevoked: "Deze groep heeft geen toestemming meer om uitgelichte evenementen te maken.",
+    groupFairPermissionRevoked: "Deze groep heeft geen toestemming meer om evenementen op te nemen in de Groepsbeurs."
   },
   modify: {
     title: "Evenementen wijzigen",
@@ -302,12 +289,12 @@ export const nl = {
     eventImage: "Evenementafbeelding",
     noImage: "Geen afbeelding",
     untitled: "Naamloos evenement",
-    profileLabel: "Profiel laden (optioneel)",
-    profileSelect: "Selecteer een profiel",
+    profileLabel: "Sjabloon laden (optioneel)",
+    profileSelect: "Selecteer een sjabloon",
     profileLoad: "Laden",
-    profileSelectError: "Selecteer een profiel om te laden.",
-    profileLoadFailed: "Kon profiel-standaardwaarden niet laden.",
-    profileLoaded: "Profiel-standaardwaarden geladen.",
+    profileSelectError: "Selecteer een sjabloon om te laden.",
+    profileLoadFailed: "Kon sjabloon-standaardwaarden niet laden.",
+    profileLoaded: "Sjabloon-standaardwaarden geladen.",
     manualDate: "Datum wijzigen",
     manualTime: "Tijd wijzigen",
     modal: {
@@ -346,7 +333,7 @@ export const nl = {
     }
   },
   profiles: {
-    title: "Profielen beheren",
+    title: "Sjablonen beheren",
     subtitle: "Maak herbruikbare sjablonen per groep.",
     steps: {
       select: "Selecteren",
@@ -355,33 +342,33 @@ export const nl = {
       audience: "Publiek"
     },
     section: {
-      selection: "Profielselectie",
-      basics: "Profielbasis",
+      selection: "Sjabloonselectie",
+      basics: "Sjabloonbasis",
       schedule: "Schema",
       audience: "Publiek"
     },
     labels: {
       group: "Groep",
-      profile: "Profiel"
+      profile: "Sjabloon"
     },
     buttons: {
       new: "Nieuw"
     },
     importJsonButton: "JSON importeren",
-    importSuccess: "Profielgegevens geïmporteerd uit JSON.",
+    importSuccess: "Sjabloongegevens geïmporteerd uit JSON.",
     importWrongType: "Dit lijkt een evenement-JSON te zijn. Gebruik in plaats daarvan Evenement importeren.",
     exportJsonButton: "JSON exporteren",
-    exportSuccess: "Profielgegevens geëxporteerd naar JSON.",
+    exportSuccess: "Sjabloongegevens geëxporteerd naar JSON.",
     hints: {
       groupAccess: "Kies een groep met kalendertoegang.",
       patternsInfo: "Patronen worden gebruikt om aankomende datums vooraf te genereren."
     },
-    existingProfile: "Bestaand profiel",
-    existingProfilePlaceholder: "Selecteer een profiel",
-    noProfiles: "Geen profielen voor deze groep",
-    newButton: "Nieuw profiel",
-    saveButton: "Profiel opslaan",
-    displayName: "Profielnaam",
+    existingProfile: "Bestaand sjabloon",
+    existingProfilePlaceholder: "Selecteer een sjabloon",
+    noProfiles: "Geen sjablonen voor deze groep",
+    newButton: "Nieuw sjabloon",
+    saveButton: "Sjabloon opslaan",
+    displayName: "Sjabloonnaam",
     displayNamePlaceholder: "Community hangout-sjabloon",
     access: "Toegang",
     durationDefault: "Standaardtijdsduur (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const nl = {
       restoreSuccess: "{count} evenement(en) hersteld",
       restoreNone: "Geen evenementen om te herstellen",
       restoreFailed: "Evenementen herstellen mislukt",
-      restoreNoProfile: "Geen profiel geselecteerd",
+      restoreNoProfile: "Geen sjabloon geselecteerd",
       restorableCount: "{count} verwijderde evenement(en) kunnen worden hersteld"
     },
-    created: "Profiel aangemaakt.",
-    updated: "Profiel bijgewerkt.",
-    deleted: "Profiel verwijderd.",
-    confirmDelete: "Profiel \"{name}\" verwijderen?",
+    created: "Sjabloon aangemaakt.",
+    updated: "Sjabloon bijgewerkt.",
+    deleted: "Sjabloon verwijderd.",
+    confirmDelete: "Sjabloon \"{name}\" verwijderen?",
     selectGroupError: "Selecteer een groep.",
     selectGroupFirst: "Selecteer eerst een groep.",
-    selectProfileError: "Selecteer een profiel om te bewerken.",
+    selectProfileError: "Selecteer een sjabloon om te bewerken.",
     maxLanguages: "Maximaal 3 talen toegestaan.",
     durationError: "Tijdsduur moet een positief getal zijn.",
     required: "{fields} {verb} verplicht.",
@@ -519,6 +506,7 @@ export const nl = {
     delete: "Verwijderen",
     rateLimitError: "Rate-limiet bereikt. Wacht even en probeer het later opnieuw.",
     featuredEvent: "Uitgelicht evenement",
+    groupFairEvent: "Opnemen in Groepsbeurs",
     noMatches: "Geen overeenkomsten.",
     noGroupsAccess: "Geen groepen met kalendertoegang",
     selectGroup: "Groep selecteren",

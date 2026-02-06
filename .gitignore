@@ -28,3 +28,8 @@ Thumbs.db
 
 # Local dev config
 dev-app-update.yml
+target-event.json
+.gitignore
+fetch-group.js
+event-response.json
+group-response.json

@@ -4,7 +4,7 @@ export const ru = {
   nav: {
     create: "Создать событие",
     modify: "Редактировать события",
-    profiles: "Управление профилями",
+    profiles: "Управление шаблонами",
     settings: "Настройки"
   },
   auth: {
@@ -144,24 +144,9 @@ export const ru = {
       title: "Общие",
       minimizeToTray: "Свернуть в системный трей",
       startOnStartup: "Запускать при старте системы",
-      showFeaturedVerification: "Показать проверку избранных событий",
       enableAdvanced: "Включить расширенные настройки",
       enableImportExport: "Импорт/Экспорт событий",
-      autoUploadImages: "Автоматически загружать изображения галереи из импортированных событий/профилей"
-    },
-    featuredVerification: {
-      title: "Проверка избранных событий",
-      description: "Некоторые группы имеют разрешение создавать избранные события. Чтобы включить флажок избранного события, подтвердите свою группу, выбрав её ниже. В группе должно быть хотя бы одно существующее избранное событие.",
-      selectGroup: "Выберите группу для проверки",
-      verifyButton: "Проверить",
-      verifying: "Проверка...",
-      noVerifiedGroups: "Пока нет проверенных групп.",
-      verified: "Группа подтверждена для избранных событий.",
-      selectFirst: "Пожалуйста, выберите группу для проверки.",
-      removed: "Группа удалена из проверенного списка.",
-      verifyFailed: "Не удалось проверить группу.",
-      removeFailed: "Не удалось удалить группу.",
-      permissionDenied: "У этой группы нет разрешения на создание избранных событий. Пожалуйста, отключите опцию Избранное событие и попробуйте снова."
+      autoUploadImages: "Автоматически загружать изображения галереи из импортированных событий/шаблонов"
     },
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
@@ -208,7 +193,7 @@ export const ru = {
       create: "Создать"
     },
     section: {
-      groupProfile: "Группа + профиль",
+      groupProfile: "Группа + шаблон",
       dateSelection: "Выбор даты",
       details: "Детали события",
       readyTitle: "Готовы создать?",
@@ -216,7 +201,7 @@ export const ru = {
     },
     labels: {
       groupRequired: "Группа (обязательно)",
-      profileOptional: "Профиль (необязательно)",
+      profileOptional: "Шаблон (необязательно)",
       advanced: "Дополнительно",
       importJson: "Импорт из JSON",
       dateSource: "Использовать",
@@ -227,29 +212,29 @@ export const ru = {
       manualTime: "Ручное время"
     },
     hints: {
-      profileDefaults: "Выберите профиль для значений по умолчанию или оставьте пустым для ручного создания.",
+      profileDefaults: "Выберите шаблон для значений по умолчанию или оставьте пустым для ручного создания.",
       importJson: "Импортировать детали события из файла JSON."
     },
     dateHints: {
-      default: "Ручной режим готов. Профили с шаблонами открывают варианты дат.",
-      noProfile: "Профиль не выбран. Используйте ручную дату/время.",
+      default: "Ручной режим готов. Шаблоны с шаблонами открывают варианты дат.",
+      noProfile: "Шаблон не выбран. Используйте ручную дату/время.",
       manualReady: "Ручной режим готов.",
       chooseGenerated: "Выберите сгенерированную дату или используйте ручной ввод.",
       noUpcoming: "Предстоящих дат не найдено.",
       loadFailed: "Не удалось загрузить даты шаблона."
     },
-    profileHint: "Профили необязательны. Используйте для значений по умолчанию или создавайте вручную.",
-    loadProfile: "Загрузить профиль (необязательно)",
-    loadProfilePlaceholder: "Выберите профиль",
-    clearProfile: "Очистить профиль",
+    profileHint: "Шаблоны необязательны. Используйте для значений по умолчанию или создавайте вручную.",
+    loadProfile: "Загрузить шаблон (необязательно)",
+    loadProfilePlaceholder: "Выберите шаблон",
+    clearProfile: "Очистить шаблон",
     importJsonButton: "Импорт JSON",
     importSuccess: "Данные события импортированы из JSON.",
-    importWrongType: "Похоже, это JSON профиля. Пожалуйста, используйте импорт профиля.",
+    importWrongType: "Похоже, это JSON шаблона. Пожалуйста, используйте импорт шаблона.",
     exportJsonButton: "Экспорт JSON",
     exportSuccess: "Данные события экспортированы в JSON.",
     dateSource: "Дата и время",
     dateSourceManual: "Вручную",
-    dateSourcePattern: "По шаблону профиля",
+    dateSourcePattern: "По шаблону шаблона",
     dateOption: "Выберите дату",
     patternDateLabel: "{label} - {date}",
     access: "Доступ",
@@ -262,7 +247,7 @@ export const ru = {
       roles: "Роли",
       noRoles: "Для этой группы нет доступных ролей."
     },
-    manualProfileOption: "Вручную (без профиля)",
+    manualProfileOption: "Вручную (без шаблона)",
     pastDateError: "Нельзя выбрать прошедшую дату.",
     futureDateError: "События можно планировать только на 1 год вперед.",
     upcomingLimitNotice: "VRChat ограничивает каждую группу 10 предстоящими событиями.",
@@ -287,7 +272,9 @@ export const ru = {
     updateRequired: "Доступно обновление. Пожалуйста, обновите приложение перед созданием событий.",
     requiredSingle: "{field} обязателен.",
     requiredMultiple: "{fields} обязательны.",
-    noDateOptionsError: "Для профиля нет доступных дат."
+    noDateOptionsError: "Для шаблона нет доступных дат.",
+    featuredPermissionRevoked: "У этой группы больше нет разрешения создавать избранные события.",
+    groupFairPermissionRevoked: "У этой группы больше нет разрешения включать события в групповую ярмарку."
   },
   modify: {
     title: "Редактировать события",
@@ -302,12 +289,12 @@ export const ru = {
     eventImage: "Изображение события",
     noImage: "Без изображения",
     untitled: "Событие без названия",
-    profileLabel: "Загрузить профиль (необязательно)",
-    profileSelect: "Выберите профиль",
+    profileLabel: "Загрузить шаблон (необязательно)",
+    profileSelect: "Выберите шаблон",
     profileLoad: "Загрузить",
-    profileSelectError: "Выберите профиль для загрузки.",
-    profileLoadFailed: "Не удалось загрузить значения профиля.",
-    profileLoaded: "Значения профиля загружены.",
+    profileSelectError: "Выберите шаблон для загрузки.",
+    profileLoadFailed: "Не удалось загрузить значения шаблона.",
+    profileLoaded: "Значения шаблона загружены.",
     manualDate: "Изменить дату",
     manualTime: "Изменить время",
     modal: {
@@ -346,7 +333,7 @@ export const ru = {
     }
   },
   profiles: {
-    title: "Управление профилями",
+    title: "Управление шаблонами",
     subtitle: "Создавайте шаблоны для групп.",
     steps: {
       select: "Выбор",
@@ -355,33 +342,33 @@ export const ru = {
       audience: "Аудитория"
     },
     section: {
-      selection: "Выбор профиля",
-      basics: "Основы профиля",
+      selection: "Выбор шаблона",
+      basics: "Основы шаблона",
       schedule: "Расписание",
       audience: "Аудитория"
     },
     labels: {
       group: "Группа",
-      profile: "Профиль"
+      profile: "Шаблон"
     },
     buttons: {
       new: "Новый"
     },
     importJsonButton: "Импорт JSON",
-    importSuccess: "Данные профиля импортированы из JSON.",
+    importSuccess: "Данные шаблона импортированы из JSON.",
     importWrongType: "Похоже, это JSON события. Пожалуйста, используйте импорт события.",
     exportJsonButton: "Экспорт JSON",
-    exportSuccess: "Данные профиля экспортированы в JSON.",
+    exportSuccess: "Данные шаблона экспортированы в JSON.",
     hints: {
       groupAccess: "Выберите группу с доступом к календарю.",
       patternsInfo: "Шаблоны используются для предварительного создания дат."
     },
-    existingProfile: "Существующий профиль",
-    existingProfilePlaceholder: "Выберите профиль",
-    noProfiles: "В этой группе нет профилей",
-    newButton: "Новый профиль",
-    saveButton: "Сохранить профиль",
-    displayName: "Название профиля",
+    existingProfile: "Существующий шаблон",
+    existingProfilePlaceholder: "Выберите шаблон",
+    noProfiles: "В этой группе нет шаблонов",
+    newButton: "Новый шаблон",
+    saveButton: "Сохранить шаблон",
+    displayName: "Название шаблона",
     displayNamePlaceholder: "Шаблон встречи сообщества",
     access: "Доступ",
     durationDefault: "Длительность по умолчанию (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const ru = {
       restoreSuccess: "Восстановлено {count} событие(й)",
       restoreNone: "Нет событий для восстановления",
       restoreFailed: "Не удалось восстановить события",
-      restoreNoProfile: "Профиль не выбран",
+      restoreNoProfile: "Шаблон не выбран",
       restorableCount: "{count} удалённых событие(й) можно восстановить"
     },
-    created: "Профиль создан.",
-    updated: "Профиль обновлен.",
-    deleted: "Профиль удален.",
-    confirmDelete: "Удалить профиль \"{name}\"?",
+    created: "Шаблон создан.",
+    updated: "Шаблон обновлен.",
+    deleted: "Шаблон удален.",
+    confirmDelete: "Удалить шаблон \"{name}\"?",
     selectGroupError: "Выберите группу.",
     selectGroupFirst: "Сначала выберите группу.",
-    selectProfileError: "Выберите профиль для редактирования.",
+    selectProfileError: "Выберите шаблон для редактирования.",
     maxLanguages: "Разрешено максимум 3 языка.",
     durationError: "Длительность должна быть положительным числом.",
     required: "{fields} {verb} обязательны.",
@@ -519,6 +506,7 @@ export const ru = {
     delete: "Удалить",
     rateLimitError: "Ограничение скорости. Пожалуйста, подождите и попробуйте позже.",
     featuredEvent: "Избранное событие",
+    groupFairEvent: "Включить в групповую ярмарку",
     noMatches: "Совпадений нет.",
     noGroupsAccess: "Нет групп с доступом к календарю",
     selectGroup: "Выбрать группу",

@@ -4,7 +4,7 @@ export const pt = {
   nav: {
     create: "Criar Evento",
     modify: "Modificar eventos",
-    profiles: "Gerenciar Perfis",
+    profiles: "Gerenciar Modelos",
     settings: "Configurações"
   },
   auth: {
@@ -144,24 +144,9 @@ export const pt = {
       title: "Geral",
       minimizeToTray: "Minimizar para a bandeja do sistema",
       startOnStartup: "Iniciar com o sistema",
-      showFeaturedVerification: "Mostrar verificação de eventos em destaque",
       enableAdvanced: "Ativar configurações avançadas",
       enableImportExport: "Importar/Exportar Eventos",
-      autoUploadImages: "Carregar automaticamente imagens da galeria de eventos/perfis importados"
-    },
-    featuredVerification: {
-      title: "Verificação de eventos em destaque",
-      description: "Alguns grupos têm permissão para criar eventos em destaque. Para ativar a caixa de seleção de evento em destaque, verifique seu grupo selecionando-o abaixo. O grupo deve ter pelo menos um evento em destaque existente.",
-      selectGroup: "Selecionar grupo para verificar",
-      verifyButton: "Verificar",
-      verifying: "Verificando...",
-      noVerifiedGroups: "Nenhum grupo verificado ainda.",
-      verified: "Grupo verificado para eventos em destaque.",
-      selectFirst: "Por favor, selecione um grupo para verificar.",
-      removed: "Grupo removido da lista verificada.",
-      verifyFailed: "Falha ao verificar o grupo.",
-      removeFailed: "Falha ao remover o grupo.",
-      permissionDenied: "Este grupo não tem permissão para criar eventos em destaque. Por favor, desative a opção Evento em Destaque e tente novamente."
+      autoUploadImages: "Carregar automaticamente imagens da galeria de eventos/modelos importados"
     },
     saveButton: "Salvar configurações",
     saved: "Configurações salvas."
@@ -208,7 +193,7 @@ export const pt = {
       create: "Criar"
     },
     section: {
-      groupProfile: "Grupo + Perfil",
+      groupProfile: "Grupo + Modelo",
       dateSelection: "Seleção de data",
       details: "Detalhes do evento",
       readyTitle: "Pronto para criar?",
@@ -216,7 +201,7 @@ export const pt = {
     },
     labels: {
       groupRequired: "Grupo (obrigatório)",
-      profileOptional: "Perfil (opcional)",
+      profileOptional: "Modelo (opcional)",
       advanced: "Avançado",
       importJson: "Importar de JSON",
       dateSource: "Usar",
@@ -227,29 +212,29 @@ export const pt = {
       manualTime: "Hora manual"
     },
     hints: {
-      profileDefaults: "Escolha um perfil para padrões ou deixe em branco para criar manualmente.",
+      profileDefaults: "Escolha um modelo para padrões ou deixe em branco para criar manualmente.",
       importJson: "Importar detalhes do evento de um arquivo JSON."
     },
     dateHints: {
-      default: "O modo manual está pronto. Perfis com padrões liberam opções de data.",
-      noProfile: "Nenhum perfil selecionado. Use data/hora manual.",
+      default: "O modo manual está pronto. Modelos com padrões liberam opções de data.",
+      noProfile: "Nenhum modelo selecionado. Use data/hora manual.",
       manualReady: "Modo manual pronto.",
       chooseGenerated: "Escolha uma data gerada ou use manual.",
       noUpcoming: "Nenhuma data futura encontrada.",
       loadFailed: "Não foi possível carregar datas do padrão."
     },
-    profileHint: "Perfis são opcionais. Use um para padrões ou crie tudo manualmente.",
-    loadProfile: "Carregar perfil (opcional)",
-    loadProfilePlaceholder: "Selecione um perfil",
-    clearProfile: "Limpar perfil",
+    profileHint: "Modelos são opcionais. Use um para padrões ou crie tudo manualmente.",
+    loadProfile: "Carregar modelo (opcional)",
+    loadProfilePlaceholder: "Selecione um modelo",
+    clearProfile: "Limpar modelo",
     importJsonButton: "Importar JSON",
     importSuccess: "Dados do evento importados do JSON.",
-    importWrongType: "Isto parece ser um JSON de perfil. Use Importar perfil em vez disso.",
+    importWrongType: "Isto parece ser um JSON de modelo. Use Importar modelo em vez disso.",
     exportJsonButton: "Exportar JSON",
     exportSuccess: "Dados do evento exportados para JSON.",
     dateSource: "Data e hora",
     dateSourceManual: "Manual",
-    dateSourcePattern: "Do padrão do perfil",
+    dateSourcePattern: "Do padrão do modelo",
     dateOption: "Selecionar data",
     patternDateLabel: "{label} - {date}",
     access: "Acesso",
@@ -262,7 +247,7 @@ export const pt = {
       roles: "Cargos",
       noRoles: "Nenhum cargo disponível para este grupo."
     },
-    manualProfileOption: "Manual (sem perfil)",
+    manualProfileOption: "Manual (sem modelo)",
     pastDateError: "Não é possível selecionar uma data passada.",
     futureDateError: "Os eventos só podem ser agendados com até 1 ano de antecedência.",
     upcomingLimitNotice: "O VRChat atualmente limita cada grupo a 10 eventos futuros.",
@@ -287,7 +272,9 @@ export const pt = {
     updateRequired: "Atualização disponível. Atualize antes de criar eventos.",
     requiredSingle: "{field} é obrigatório.",
     requiredMultiple: "{fields} são obrigatórios.",
-    noDateOptionsError: "Nenhuma opção de data disponível no perfil."
+    noDateOptionsError: "Nenhuma opção de data disponível no modelo.",
+    featuredPermissionRevoked: "Este grupo não tem mais permissão para criar eventos em destaque.",
+    groupFairPermissionRevoked: "Este grupo não tem mais permissão para incluir eventos na Feira de Grupos."
   },
   modify: {
     title: "Modificar eventos",
@@ -302,12 +289,12 @@ export const pt = {
     eventImage: "Imagem do evento",
     noImage: "Sem imagem",
     untitled: "Evento sem título",
-    profileLabel: "Carregar perfil (opcional)",
-    profileSelect: "Selecionar um perfil",
+    profileLabel: "Carregar modelo (opcional)",
+    profileSelect: "Selecionar um modelo",
     profileLoad: "Carregar",
-    profileSelectError: "Selecione um perfil para carregar.",
-    profileLoadFailed: "Não foi possível carregar os padrões do perfil.",
-    profileLoaded: "Padrões do perfil carregados.",
+    profileSelectError: "Selecione um modelo para carregar.",
+    profileLoadFailed: "Não foi possível carregar os padrões do modelo.",
+    profileLoaded: "Padrões do modelo carregados.",
     manualDate: "Alterar data",
     manualTime: "Alterar hora",
     modal: {
@@ -346,7 +333,7 @@ export const pt = {
     }
   },
   profiles: {
-    title: "Gerenciar Perfis",
+    title: "Gerenciar Modelos",
     subtitle: "Crie modelos reutilizáveis por grupo.",
     steps: {
       select: "Selecionar",
@@ -355,33 +342,33 @@ export const pt = {
       audience: "Público"
     },
     section: {
-      selection: "Seleção de perfil",
-      basics: "Básico do perfil",
+      selection: "Seleção de modelo",
+      basics: "Básico do modelo",
       schedule: "Agenda",
       audience: "Público"
     },
     labels: {
       group: "Grupo",
-      profile: "Perfil"
+      profile: "Modelo"
     },
     buttons: {
       new: "Novo"
     },
     importJsonButton: "Importar JSON",
-    importSuccess: "Dados do perfil importados do JSON.",
+    importSuccess: "Dados do modelo importados do JSON.",
     importWrongType: "Isto parece ser um JSON de evento. Use Importar evento em vez disso.",
     exportJsonButton: "Exportar JSON",
-    exportSuccess: "Dados do perfil exportados para JSON.",
+    exportSuccess: "Dados do modelo exportados para JSON.",
     hints: {
       groupAccess: "Escolha um grupo com acesso ao calendário.",
       patternsInfo: "Padrões são usados para pré-gerar datas futuras."
     },
-    existingProfile: "Perfil existente",
-    existingProfilePlaceholder: "Selecione um perfil",
-    noProfiles: "Sem perfis para este grupo",
-    newButton: "Novo perfil",
-    saveButton: "Salvar perfil",
-    displayName: "Nome do perfil",
+    existingProfile: "Modelo existente",
+    existingProfilePlaceholder: "Selecione um modelo",
+    noProfiles: "Sem modelos para este grupo",
+    newButton: "Novo modelo",
+    saveButton: "Salvar modelo",
+    displayName: "Nome do modelo",
     displayNamePlaceholder: "Modelo de encontro da comunidade",
     access: "Acesso",
     durationDefault: "Duração padrão (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const pt = {
       restoreSuccess: "Foram restaurados {count} evento(s)",
       restoreNone: "Nenhum evento para restaurar",
       restoreFailed: "Falha ao restaurar eventos",
-      restoreNoProfile: "Nenhum perfil selecionado",
+      restoreNoProfile: "Nenhum modelo selecionado",
       restorableCount: "{count} evento(s) excluído(s) podem ser restaurados"
     },
-    created: "Perfil criado.",
-    updated: "Perfil atualizado.",
-    deleted: "Perfil excluído.",
-    confirmDelete: "Excluir perfil \"{name}\"?",
+    created: "Modelo criado.",
+    updated: "Modelo atualizado.",
+    deleted: "Modelo excluído.",
+    confirmDelete: "Excluir modelo \"{name}\"?",
     selectGroupError: "Selecione um grupo.",
     selectGroupFirst: "Selecione um grupo primeiro.",
-    selectProfileError: "Selecione um perfil para editar.",
+    selectProfileError: "Selecione um modelo para editar.",
     maxLanguages: "Máximo de 3 idiomas permitido.",
     durationError: "A duração deve ser um número positivo.",
     required: "{fields} {verb} obrigatórios.",
@@ -519,6 +506,7 @@ export const pt = {
     delete: "Excluir",
     rateLimitError: "Limite de taxa. Aguarde e tente novamente mais tarde.",
     featuredEvent: "Evento em destaque",
+    groupFairEvent: "Incluir na Feira de Grupos",
     noMatches: "Nenhuma correspondência.",
     noGroupsAccess: "Nenhum grupo com acesso ao calendário",
     selectGroup: "Selecionar grupo",

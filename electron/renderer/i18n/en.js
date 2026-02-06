@@ -4,7 +4,7 @@ export const en = {
   nav: {
     create: "Create Event",
     modify: "Modify Events",
-    profiles: "Manage Profiles",
+    profiles: "Manage Templates",
     settings: "Settings"
   },
   auth: {
@@ -144,24 +144,9 @@ export const en = {
       title: "General",
       minimizeToTray: "Minimize to system tray",
       startOnStartup: "Start on system startup",
-      showFeaturedVerification: "Show Featured Events Verification",
       enableAdvanced: "Enable advanced settings",
       enableImportExport: "Import/Export Events",
-      autoUploadImages: "Automatically upload gallery images from imported events/profiles"
-    },
-    featuredVerification: {
-      title: "Featured Events Verification",
-      description: "Some groups have permission to create featured events. To enable the Featured Event checkbox, verify your group by selecting it below. The group must have at least one existing featured event.",
-      selectGroup: "Select Group to Verify",
-      verifyButton: "Verify",
-      verifying: "Verifying...",
-      noVerifiedGroups: "No verified groups yet.",
-      verified: "Group verified for featured events.",
-      selectFirst: "Please select a group to verify.",
-      removed: "Group removed from verified list.",
-      verifyFailed: "Failed to verify group.",
-      removeFailed: "Failed to remove group.",
-      permissionDenied: "This group does not have permission to create featured events. Please disable the Featured Event option and try again."
+      autoUploadImages: "Automatically upload gallery images from imported events/templates"
     },
     saveButton: "Save Settings",
     saved: "Settings saved."
@@ -208,7 +193,7 @@ export const en = {
       create: "Create"
     },
     section: {
-      groupProfile: "Group + Profile",
+      groupProfile: "Group + Template",
       dateSelection: "Date Selection",
       details: "Event Details",
       readyTitle: "Ready to create?",
@@ -216,7 +201,7 @@ export const en = {
     },
     labels: {
       groupRequired: "Group (required)",
-      profileOptional: "Profile (optional)",
+      profileOptional: "Template (optional)",
       advanced: "Advanced",
       importJson: "Import from JSON",
       dateSource: "Use",
@@ -227,29 +212,29 @@ export const en = {
       manualTime: "Manual Time"
     },
     hints: {
-      profileDefaults: "Pick a profile for defaults, or leave blank to create manually.",
+      profileDefaults: "Pick a template for defaults, or leave blank to create manually.",
       importJson: "Import event details from a JSON file."
     },
     dateHints: {
-      default: "Manual mode is ready. Profiles with patterns unlock date options.",
-      noProfile: "No profile selected. Use manual date/time.",
+      default: "Manual mode is ready. Templates with patterns unlock date options.",
+      noProfile: "No template selected. Use manual date/time.",
       manualReady: "Manual mode ready.",
       chooseGenerated: "Choose a generated date or use manual.",
       noUpcoming: "No upcoming dates found.",
       loadFailed: "Could not load pattern dates."
     },
-    profileHint: "Profiles are optional. Use one for defaults, or create everything manually.",
-    loadProfile: "Load Profile (optional)",
-    loadProfilePlaceholder: "Select a profile",
-    clearProfile: "Clear Profile",
+    profileHint: "Templates are optional. Use one for defaults, or create everything manually.",
+    loadProfile: "Load Template (optional)",
+    loadProfilePlaceholder: "Select a template",
+    clearProfile: "Clear Template",
     importJsonButton: "Import JSON",
     importSuccess: "Event data imported from JSON.",
-    importWrongType: "This appears to be a profile JSON. Please use Import Profile instead.",
+    importWrongType: "This appears to be a template JSON. Please use Import Template instead.",
     exportJsonButton: "Export JSON",
     exportSuccess: "Event data exported to JSON.",
     dateSource: "Date & Time",
     dateSourceManual: "Manual",
-    dateSourcePattern: "From profile pattern",
+    dateSourcePattern: "From template pattern",
     dateOption: "Select Date",
     patternDateLabel: "{label} - {date}",
     access: "Access",
@@ -262,7 +247,7 @@ export const en = {
       roles: "Roles",
       noRoles: "No roles available for this group."
     },
-    manualProfileOption: "Manual (no profile)",
+    manualProfileOption: "Manual (no template)",
     pastDateError: "Cannot select a past date.",
     futureDateError: "Events can only be scheduled up to 1 year in advance.",
     upcomingLimitNotice: "VRChat currently prevents us from creating more than 10 events per-group per-hour.",
@@ -287,7 +272,9 @@ export const en = {
     updateRequired: "Update available. Please update before creating events.",
     requiredSingle: "{field} is required.",
     requiredMultiple: "{fields} are required.",
-    noDateOptionsError: "No date options available from profile."
+    noDateOptionsError: "No date options available from template.",
+    featuredPermissionRevoked: "This group no longer has permission to create featured events.",
+    groupFairPermissionRevoked: "This group no longer has permission to include events in the Group Fair."
   },
   modify: {
     title: "Modify Events",
@@ -302,12 +289,12 @@ export const en = {
     eventImage: "Event image",
     noImage: "No image",
     untitled: "Untitled event",
-    profileLabel: "Load Profile (optional)",
-    profileSelect: "Select a profile",
+    profileLabel: "Load Template (optional)",
+    profileSelect: "Select a template",
     profileLoad: "Load",
-    profileSelectError: "Select a profile to load.",
-    profileLoadFailed: "Could not load profile defaults.",
-    profileLoaded: "Profile defaults loaded.",
+    profileSelectError: "Select a template to load.",
+    profileLoadFailed: "Could not load template defaults.",
+    profileLoaded: "Template defaults loaded.",
     manualDate: "Change Date",
     manualTime: "Change Time",
     modal: {
@@ -346,7 +333,7 @@ export const en = {
     }
   },
   profiles: {
-    title: "Manage Profiles",
+    title: "Manage Templates",
     subtitle: "Create reusable templates per group.",
     steps: {
       select: "Select",
@@ -355,33 +342,33 @@ export const en = {
       audience: "Audience"
     },
     section: {
-      selection: "Profile Selection",
-      basics: "Profile Basics",
+      selection: "Template Selection",
+      basics: "Template Basics",
       schedule: "Schedule",
       audience: "Audience"
     },
     labels: {
       group: "Group",
-      profile: "Profile"
+      profile: "Template"
     },
     buttons: {
       new: "New"
     },
     importJsonButton: "Import JSON",
-    importSuccess: "Profile data imported from JSON.",
+    importSuccess: "Template data imported from JSON.",
     importWrongType: "This appears to be an event JSON. Please use Import Event instead.",
     exportJsonButton: "Export JSON",
-    exportSuccess: "Profile data exported to JSON.",
+    exportSuccess: "Template data exported to JSON.",
     hints: {
       groupAccess: "Choose a group with calendar access.",
       patternsInfo: "Patterns are used to pre-generate upcoming dates."
     },
-    existingProfile: "Existing Profile",
-    existingProfilePlaceholder: "Select a profile",
-    noProfiles: "No profiles for this group",
-    newButton: "New Profile",
-    saveButton: "Save Profile",
-    displayName: "Profile Name",
+    existingProfile: "Existing Template",
+    existingProfilePlaceholder: "Select a template",
+    noProfiles: "No templates for this group",
+    newButton: "New Template",
+    saveButton: "Save Template",
+    displayName: "Template Name",
     displayNamePlaceholder: "Community Hangout Template",
     access: "Access",
     durationDefault: "Default Duration (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const en = {
       restoreSuccess: "Restored {count} event(s)",
       restoreNone: "No events to restore",
       restoreFailed: "Failed to restore events",
-      restoreNoProfile: "No profile selected",
+      restoreNoProfile: "No template selected",
       restorableCount: "{count} deleted event(s) can be restored"
     },
-    created: "Profile created.",
-    updated: "Profile updated.",
-    deleted: "Profile deleted.",
-    confirmDelete: "Delete profile \"{name}\"?",
+    created: "Template created.",
+    updated: "Template updated.",
+    deleted: "Template deleted.",
+    confirmDelete: "Delete template \"{name}\"?",
     selectGroupError: "Select a group.",
     selectGroupFirst: "Select a group first.",
-    selectProfileError: "Select a profile to edit.",
+    selectProfileError: "Select a template to edit.",
     maxLanguages: "Maximum 3 languages allowed.",
     durationError: "Duration must be a positive number.",
     required: "{fields} {verb} required.",
@@ -519,6 +506,7 @@ export const en = {
     delete: "Delete",
     rateLimitError: "Rate limited. Please wait and try again later.",
     featuredEvent: "Featured Event",
+    groupFairEvent: "Include in Group Fair",
     noMatches: "No matches.",
     noGroupsAccess: "No groups with calendar access",
     selectGroup: "Select Group",

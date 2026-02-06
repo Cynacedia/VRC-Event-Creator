@@ -16,13 +16,6 @@ export function updateAdvancedSettingsVisibility() {
   }
 }
 
-export function updateFeaturedVerificationVisibility() {
-  const enabled = dom.settingsShowFeaturedVerification?.checked ?? false;
-  if (dom.featuredVerificationCard) {
-    dom.featuredVerificationCard.classList.toggle("is-hidden", !enabled);
-  }
-}
-
 export function updateImportExportVisibility() {
   const enabled = dom.settingsEnableImportExport?.checked ?? false;
   if (dom.eventAdvancedSection) {
@@ -709,6 +702,7 @@ export function applyManualEventDefaults(options = {}) {
     dom.eventImageId.value = "";
     dom.eventSendNotification.checked = true;
     if (dom.eventFeatured) dom.eventFeatured.checked = false;
+    if (dom.eventGroupFair) dom.eventGroupFair.checked = false;
     dom.eventDuration.value = formatDuration(120);
     updateEventDurationPreview();
     const { systemTz } = buildTimezones();
@@ -779,24 +773,31 @@ export async function handleEventGroupChange(api) {
   }
   await refreshUpcomingEventCount(api);
   // Update featured checkbox visibility based on verified groups
-  void updateEventFeaturedVisibility(api);
+  void updateEventTogglesVisibility(api);
 }
 
-async function updateEventFeaturedVisibility(api) {
-  if (!dom.eventFeaturedField) return;
+async function updateEventTogglesVisibility(api) {
+  if (!dom.eventFeaturedField || !dom.eventGroupFairField) return;
+
   const groupId = dom.eventGroup.value;
   if (!groupId) {
     dom.eventFeaturedField.classList.add("is-hidden");
+    dom.eventGroupFairField.classList.add("is-hidden");
     return;
   }
+
   try {
-    const settings = await api.getSettings();
-    const verifiedGroups = settings.featuredVerifiedGroups || [];
-    const isVerified = verifiedGroups.includes(groupId);
-    dom.eventFeaturedField.classList.toggle("is-hidden", !isVerified);
+    // Call backend to check feature flags (tags are NOT exposed to renderer)
+    const flags = await api.checkFeatureFlags(groupId);
+
+    // Show/hide toggles based on backend response
+    dom.eventFeaturedField.classList.toggle("is-hidden", !flags.hasFeaturedEvents);
+    dom.eventGroupFairField.classList.toggle("is-hidden", !flags.hasGroupFair);
+
   } catch (err) {
-    console.error("Failed to check featured verification:", err);
+    console.error("Failed to check feature flags:", err);
     dom.eventFeaturedField.classList.add("is-hidden");
+    dom.eventGroupFairField.classList.add("is-hidden");
   }
 }
 
@@ -859,6 +860,14 @@ export async function handleEventCreate(api) {
   const tags = state.event.tagInput
     ? state.event.tagInput.getTags()
     : enforceTagsInput(dom.eventTags, TAG_LIMIT, true);
+
+  // Add group fair tag if checkbox is checked
+  if (dom.eventGroupFair?.checked) {
+    if (!tags.includes("vrc_event_group_fair")) {
+      tags.push("vrc_event_group_fair");
+    }
+  }
+
   const dateSource = state.event.dateSource;
   let selectedDateIso = null;
   let manualDate = null;
@@ -1000,8 +1009,7 @@ export async function handleEventCreate(api) {
     });
     if (!result?.ok) {
       const rawMessage = result?.error?.message || "";
-      const isFeaturedPermissionError = Boolean(eventData.featured)
-        && (result?.error?.status === 403 || /featured event/i.test(rawMessage));
+
       if (isRateLimitError(result?.error)) {
         state.event.createInProgress = false;
         const rateLimitInfo = handleCreateRateLimit(groupId);
@@ -1010,13 +1018,23 @@ export async function handleEventCreate(api) {
         showToast(message, true, { duration: 8000 });
         return { success: false, message, toastShown: true };
       }
+
       state.event.createInProgress = false;
       updateEventCreateDisabled();
-      if (isFeaturedPermissionError) {
-        const message = t("settings.featuredVerification.permissionDenied");
+
+      // Handle permission revocation errors
+      if (rawMessage === "FEATURED_PERMISSION_REVOKED") {
+        const message = t("events.featuredPermissionRevoked");
         showToast(message, true);
         return { success: false, message, toastShown: true };
       }
+
+      if (rawMessage === "GROUP_FAIR_PERMISSION_REVOKED") {
+        const message = t("events.groupFairPermissionRevoked");
+        showToast(message, true);
+        return { success: false, message, toastShown: true };
+      }
+
       return { success: false, message: rawMessage || "Could not create event." };
     }
     clearRateLimit(getCreateRateLimitKey(groupId));

@@ -4,7 +4,7 @@ export const de = {
   nav: {
     create: "Event erstellen",
     modify: "Events bearbeiten",
-    profiles: "Profile verwalten",
+    profiles: "Vorlagen verwalten",
     settings: "Einstellungen"
   },
   auth: {
@@ -144,24 +144,9 @@ export const de = {
       title: "Allgemein",
       minimizeToTray: "In Systemleiste minimieren",
       startOnStartup: "Bei Systemstart starten",
-      showFeaturedVerification: "Verifizierung für hervorgehobene Events anzeigen",
       enableAdvanced: "Erweiterte Einstellungen aktivieren",
       enableImportExport: "Events importieren/exportieren",
-      autoUploadImages: "Galeriebilder aus importierten Events/Profilen automatisch hochladen"
-    },
-    featuredVerification: {
-      title: "Verifizierung für hervorgehobene Events",
-      description: "Einige Gruppen haben die Berechtigung, hervorgehobene Events zu erstellen. Um das Kontrollkästchen für hervorgehobene Events zu aktivieren, wählen Sie unten Ihre Gruppe aus. Die Gruppe muss mindestens ein bestehendes hervorgehobenes Event haben.",
-      selectGroup: "Gruppe zur Verifizierung auswählen",
-      verifyButton: "Verifizieren",
-      verifying: "Wird verifiziert...",
-      noVerifiedGroups: "Noch keine verifizierten Gruppen.",
-      verified: "Gruppe für hervorgehobene Events verifiziert.",
-      selectFirst: "Bitte wählen Sie eine Gruppe zur Verifizierung.",
-      removed: "Gruppe aus der verifizierten Liste entfernt.",
-      verifyFailed: "Gruppe konnte nicht verifiziert werden.",
-      removeFailed: "Gruppe konnte nicht entfernt werden.",
-      permissionDenied: "Diese Gruppe hat keine Berechtigung, hervorgehobene Events zu erstellen. Bitte deaktivieren Sie die Option für hervorgehobene Events und versuchen Sie es erneut."
+      autoUploadImages: "Galeriebilder aus importierten Events/Vorlagen automatisch hochladen"
     },
     saveButton: "Einstellungen speichern",
     saved: "Einstellungen gespeichert."
@@ -208,7 +193,7 @@ export const de = {
       create: "Erstellen"
     },
     section: {
-      groupProfile: "Gruppe + Profil",
+      groupProfile: "Gruppe + Vorlage",
       dateSelection: "Datumsauswahl",
       details: "Eventdetails",
       readyTitle: "Bereit zum Erstellen?",
@@ -216,7 +201,7 @@ export const de = {
     },
     labels: {
       groupRequired: "Gruppe (erforderlich)",
-      profileOptional: "Profil (optional)",
+      profileOptional: "Vorlage (optional)",
       advanced: "Erweitert",
       importJson: "Aus JSON importieren",
       dateSource: "Verwenden",
@@ -227,29 +212,29 @@ export const de = {
       manualTime: "Manuelle Uhrzeit"
     },
     hints: {
-      profileDefaults: "Wähle ein Profil für Standardwerte oder lass es leer, um manuell zu erstellen.",
+      profileDefaults: "Wähle eine Vorlage für Standardwerte oder lass es leer, um manuell zu erstellen.",
       importJson: "Eventdetails aus einer JSON-Datei importieren."
     },
     dateHints: {
-      default: "Der manuelle Modus ist bereit. Profile mit Mustern schalten Datumsoptionen frei.",
-      noProfile: "Kein Profil ausgewählt. Verwende manuelles Datum/Uhrzeit.",
+      default: "Der manuelle Modus ist bereit. Vorlagen mit Mustern schalten Datumsoptionen frei.",
+      noProfile: "Keine Vorlage ausgewählt. Verwende manuelles Datum/Uhrzeit.",
       manualReady: "Manueller Modus bereit.",
       chooseGenerated: "Wähle ein generiertes Datum oder nutze manuell.",
       noUpcoming: "Keine kommenden Termine gefunden.",
       loadFailed: "Musterdaten konnten nicht geladen werden."
     },
-    profileHint: "Profile sind optional. Verwenden Sie eines für Standardwerte oder erstellen Sie alles manuell.",
-    loadProfile: "Profil laden (optional)",
-    loadProfilePlaceholder: "Profil auswählen",
-    clearProfile: "Profil leeren",
+    profileHint: "Vorlagen sind optional. Verwenden Sie eine für Standardwerte oder erstellen Sie alles manuell.",
+    loadProfile: "Vorlage laden (optional)",
+    loadProfilePlaceholder: "Vorlage auswählen",
+    clearProfile: "Vorlage leeren",
     importJsonButton: "JSON importieren",
     importSuccess: "Eventdaten aus JSON importiert.",
-    importWrongType: "Dies scheint ein Profil-JSON zu sein. Bitte stattdessen Profil importieren verwenden.",
+    importWrongType: "Dies scheint ein Vorlagen-JSON zu sein. Bitte stattdessen Vorlage importieren verwenden.",
     exportJsonButton: "JSON exportieren",
     exportSuccess: "Eventdaten nach JSON exportiert.",
     dateSource: "Datum und Uhrzeit",
     dateSourceManual: "Manuell",
-    dateSourcePattern: "Aus Profilmuster",
+    dateSourcePattern: "Aus Vorlagenmuster",
     dateOption: "Datum auswählen",
     patternDateLabel: "{label} - {date}",
     access: "Zugriff",
@@ -262,7 +247,7 @@ export const de = {
       roles: "Rollen",
       noRoles: "Keine Rollen für diese Gruppe verfügbar."
     },
-    manualProfileOption: "Manuell (kein Profil)",
+    manualProfileOption: "Manuell (keine Vorlage)",
     pastDateError: "Vergangenes Datum kann nicht ausgewählt werden.",
     futureDateError: "Events können nur bis zu 1 Jahr im Voraus geplant werden.",
     upcomingLimitNotice: "VRChat begrenzt derzeit jede Gruppe auf 10 kommende Events.",
@@ -287,7 +272,9 @@ export const de = {
     updateRequired: "Update verfügbar. Bitte aktualisieren, bevor du Events erstellst.",
     requiredSingle: "{field} ist erforderlich.",
     requiredMultiple: "{fields} sind erforderlich.",
-    noDateOptionsError: "Keine Datumsoptionen aus dem Profil verfügbar."
+    noDateOptionsError: "Keine Datumsoptionen aus der Vorlage verfügbar.",
+    featuredPermissionRevoked: "Diese Gruppe hat keine Berechtigung mehr, hervorgehobene Events zu erstellen.",
+    groupFairPermissionRevoked: "Diese Gruppe hat keine Berechtigung mehr, Events in die Gruppenmesse aufzunehmen."
   },
   modify: {
     title: "Events bearbeiten",
@@ -302,12 +289,12 @@ export const de = {
     eventImage: "Eventbild",
     noImage: "Kein Bild",
     untitled: "Unbenanntes Event",
-    profileLabel: "Profil laden (optional)",
-    profileSelect: "Profil auswählen",
+    profileLabel: "Vorlage laden (optional)",
+    profileSelect: "Vorlage auswählen",
     profileLoad: "Laden",
-    profileSelectError: "Profil zum Laden auswählen.",
-    profileLoadFailed: "Profil-Standardwerte konnten nicht geladen werden.",
-    profileLoaded: "Profil-Standardwerte geladen.",
+    profileSelectError: "Vorlage zum Laden auswählen.",
+    profileLoadFailed: "Vorlagen-Standardwerte konnten nicht geladen werden.",
+    profileLoaded: "Vorlagen-Standardwerte geladen.",
     manualDate: "Datum ändern",
     manualTime: "Uhrzeit ändern",
     modal: {
@@ -346,7 +333,7 @@ export const de = {
     }
   },
   profiles: {
-    title: "Profile verwalten",
+    title: "Vorlagen verwalten",
     subtitle: "Erstellen Sie wiederverwendbare Vorlagen pro Gruppe.",
     steps: {
       select: "Auswahl",
@@ -355,33 +342,33 @@ export const de = {
       audience: "Publikum"
     },
     section: {
-      selection: "Profil-Auswahl",
-      basics: "Profil-Grundlagen",
+      selection: "Vorlagen-Auswahl",
+      basics: "Vorlagen-Grundlagen",
       schedule: "Zeitplan",
       audience: "Publikum"
     },
     labels: {
       group: "Gruppe",
-      profile: "Profil"
+      profile: "Vorlage"
     },
     buttons: {
       new: "Neu"
     },
     importJsonButton: "JSON importieren",
-    importSuccess: "Profildaten aus JSON importiert.",
+    importSuccess: "Vorlagendaten aus JSON importiert.",
     importWrongType: "Dies scheint ein Event-JSON zu sein. Bitte stattdessen Event importieren verwenden.",
     exportJsonButton: "JSON exportieren",
-    exportSuccess: "Profildaten nach JSON exportiert.",
+    exportSuccess: "Vorlagendaten nach JSON exportiert.",
     hints: {
       groupAccess: "Wähle eine Gruppe mit Kalenderzugriff.",
       patternsInfo: "Muster werden verwendet, um kommende Termine vorab zu erzeugen."
     },
-    existingProfile: "Vorhandenes Profil",
-    existingProfilePlaceholder: "Profil auswählen",
-    noProfiles: "Keine Profile für diese Gruppe",
-    newButton: "Neues Profil",
-    saveButton: "Profil speichern",
-    displayName: "Profilname",
+    existingProfile: "Vorhandene Vorlage",
+    existingProfilePlaceholder: "Vorlage auswählen",
+    noProfiles: "Keine Vorlagen für diese Gruppe",
+    newButton: "Neue Vorlage",
+    saveButton: "Vorlage speichern",
+    displayName: "Vorlagenname",
     displayNamePlaceholder: "Community-Hangout-Vorlage",
     access: "Zugriff",
     durationDefault: "Standarddauer (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const de = {
       restoreSuccess: "{count} Event(s) wiederhergestellt",
       restoreNone: "Keine Events zum Wiederherstellen",
       restoreFailed: "Events konnten nicht wiederhergestellt werden",
-      restoreNoProfile: "Kein Profil ausgewählt",
+      restoreNoProfile: "Keine Vorlage ausgewählt",
       restorableCount: "{count} gelöschte Event(s) können wiederhergestellt werden"
     },
-    created: "Profil erstellt.",
-    updated: "Profil aktualisiert.",
-    deleted: "Profil gelöscht.",
-    confirmDelete: "Profil \"{name}\" löschen?",
+    created: "Vorlage erstellt.",
+    updated: "Vorlage aktualisiert.",
+    deleted: "Vorlage gelöscht.",
+    confirmDelete: "Vorlage \"{name}\" löschen?",
     selectGroupError: "Gruppe auswählen.",
     selectGroupFirst: "Wählen Sie zuerst eine Gruppe aus.",
-    selectProfileError: "Profil zum Bearbeiten auswählen.",
+    selectProfileError: "Vorlage zum Bearbeiten auswählen.",
     maxLanguages: "Maximal 3 Sprachen erlaubt.",
     durationError: "Die Dauer muss eine positive Zahl sein.",
     required: "{fields} {verb} erforderlich.",
@@ -519,6 +506,7 @@ export const de = {
     delete: "Löschen",
     rateLimitError: "Ratenbegrenzung. Bitte warten Sie und versuchen Sie es später erneut.",
     featuredEvent: "Hervorgehobenes Event",
+    groupFairEvent: "In Gruppenmesse einbeziehen",
     noMatches: "Keine Treffer.",
     noGroupsAccess: "Keine Gruppen mit Kalenderzugriff",
     selectGroup: "Gruppe auswählen",

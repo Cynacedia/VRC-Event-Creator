@@ -19,6 +19,24 @@ app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
 const APP_NAME = "VRChat Event Creator";
 const IS_DEV = !app.isPackaged;
 
+// Enforce single instance
+const gotInstanceLock = app.requestSingleInstanceLock();
+if (!gotInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.show();
+      mainWindow.focus();
+    } else {
+      createWindow({ startHidden: false });
+    }
+  });
+}
+
 // Debug logging for API calls (only in dev mode)
 // Debug log file path (created after app is ready)
 let DEBUG_LOG_PATH = null;
@@ -274,6 +292,7 @@ let isQuitting = false;
 let currentUser = null;
 let profiles = {};
 let twoFactorRequest = null;
+const AUTOSTART_ARG = "--autostart";
 
 // These will be initialized after app is ready
 let DATA_DIR;
@@ -295,6 +314,7 @@ const RESERVED_THEME_PRESET_KEYS = new Set(["default", "wired", "custom", "blue"
 const groupPermissionCache = new Map();
 const groupPrivacyCache = new Map();
 const groupRolesCache = new Map();
+const groupTagsCache = new Map();
 const FAILED_GET_CACHE_MS = 15 * 60 * 1000;
 const GET_DEDUPE_WINDOW_MS = 10 * 1000;
 const failedGetRequests = new Map();
@@ -338,9 +358,7 @@ function normalizeSettings(raw) {
       enableAdvanced: false,
       enableImportExport: false,
       autoUploadImages: false,
-      startOnStartup: false,
-      showFeaturedVerification: false,
-      featuredVerifiedGroups: []
+      startOnStartup: false
     };
   }
   return {
@@ -350,9 +368,7 @@ function normalizeSettings(raw) {
     enableAdvanced: typeof raw.enableAdvanced === "boolean" ? raw.enableAdvanced : false,
     enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
     autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false,
-    startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false,
-    showFeaturedVerification: typeof raw.showFeaturedVerification === "boolean" ? raw.showFeaturedVerification : false,
-    featuredVerifiedGroups: Array.isArray(raw.featuredVerifiedGroups) ? raw.featuredVerifiedGroups : []
+    startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false
   };
 }
 
@@ -847,7 +863,8 @@ function saveSettings(nextSettings) {
   // Manage startup on login setting
   app.setLoginItemSettings({
     openAtLogin: settings.startOnStartup,
-    path: process.execPath
+    path: process.execPath,
+    args: settings.startOnStartup ? [AUTOSTART_ARG] : []
   });
 
   return settings;
@@ -965,6 +982,7 @@ function resetClient() {
   groupPermissionCache.clear();
   groupPrivacyCache.clear();
   groupRolesCache.clear();
+  groupTagsCache.clear();
   failedGetRequests.clear();
   pendingGetRequests.clear();
 }
@@ -1093,7 +1111,14 @@ function destroyTray() {
   }
 }
 
-function createWindow() {
+function shouldStartHiddenAtLogin() {
+  const loginSettings = app.getLoginItemSettings ? app.getLoginItemSettings() : {};
+  const launchedAtLogin = Boolean(loginSettings?.wasOpenedAtLogin) || process.argv.includes(AUTOSTART_ARG);
+  return launchedAtLogin && settings?.minimizeToTray;
+}
+
+function createWindow(options = {}) {
+  const { startHidden = false } = options;
   mainWindow = new BrowserWindow({
     width: 1220,
     height: 820,
@@ -1102,6 +1127,7 @@ function createWindow() {
     backgroundColor: "#0f1416",
     autoHideMenuBar: true,
     frame: false,
+    show: !startHidden,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -1111,6 +1137,10 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
+
+  if (startHidden && settings?.minimizeToTray) {
+    createTray();
+  }
 
   if (IS_DEV) {
     mainWindow.webContents.on("console-message", (event) => {
@@ -1346,30 +1376,32 @@ function mapGroupCalendarEvents(results, groupId, options = {}) {
         durationMinutes = Math.max(1, Math.round(endsAt.diff(startsAt, "minutes").minutes));
       }
       const languages = getEventField(event, "languages");
-      const platforms = getEventField(event, "platforms");
-      const tags = getEventField(event, "tags");
-      const roleIds = getEventField(event, "roleIds");
-      return {
-        id: getEventId(event),
-        groupId,
-        title: getEventField(event, "title") || "",
-        description: getEventField(event, "description") || "",
-        category: getEventField(event, "category") || "hangout",
-        accessType: getEventField(event, "accessType") || "public",
-        languages: Array.isArray(languages) ? languages : [],
-        platforms: Array.isArray(platforms) ? platforms : [],
-        tags: Array.isArray(tags) ? tags : [],
-        roleIds: Array.isArray(roleIds) ? roleIds : [],
-        imageId: getEventField(event, "imageId") || null,
-        imageUrl: getEventImageUrl(event),
-        startsAtUtc,
-        endsAtUtc,
-        createdAtUtc,
-        createdById: typeof createdByValue === "string" ? createdByValue : null,
-        durationMinutes,
-        timezone: getEventField(event, "timezone") || null
-      };
-    })
+        const platforms = getEventField(event, "platforms");
+        const tags = getEventField(event, "tags");
+        const roleIds = getEventField(event, "roleIds");
+        const featured = getEventField(event, "featured");
+        return {
+          id: getEventId(event),
+          groupId,
+          title: getEventField(event, "title") || "",
+          description: getEventField(event, "description") || "",
+          category: getEventField(event, "category") || "hangout",
+          accessType: getEventField(event, "accessType") || "public",
+          languages: Array.isArray(languages) ? languages : [],
+          platforms: Array.isArray(platforms) ? platforms : [],
+          tags: Array.isArray(tags) ? tags : [],
+          roleIds: Array.isArray(roleIds) ? roleIds : [],
+          imageId: getEventField(event, "imageId") || null,
+          imageUrl: getEventImageUrl(event),
+          startsAtUtc,
+          endsAtUtc,
+          createdAtUtc,
+          createdById: typeof createdByValue === "string" ? createdByValue : null,
+          durationMinutes,
+          timezone: getEventField(event, "timezone") || null,
+          featured: Boolean(featured)
+        };
+      })
     .sort((a, b) => {
       const aTime = Date.parse(a.startsAtUtc || a.endsAtUtc || "") || Number.POSITIVE_INFINITY;
       const bTime = Date.parse(b.startsAtUtc || b.endsAtUtc || "") || Number.POSITIVE_INFINITY;
@@ -1757,59 +1789,6 @@ ipcMain.handle("settings:set", (_, payload) => {
   return saveSettings({ ...settings, ...next });
 });
 
-ipcMain.handle("settings:verifyFeaturedGroup", async (_, groupId) => {
-  if (!groupId) {
-    return { ok: false, error: "No group ID provided" };
-  }
-  // TEST BYPASS - Remove after testing
-  const TEST_BYPASS_GROUP = "grp_e1e10383-8ee1-4e98-acd5-4eea0652e95a";
-  if (groupId === TEST_BYPASS_GROUP) {
-    const verifiedList = settings.featuredVerifiedGroups || [];
-    if (!verifiedList.includes(groupId)) {
-      verifiedList.push(groupId);
-      saveSettings({ ...settings, featuredVerifiedGroups: verifiedList });
-    }
-    return { ok: true };
-  }
-  // END TEST BYPASS
-  try {
-    debugApiCall("getGroupCalendarEvents (verifyFeatured)", { groupId, n: 100 });
-    const response = await requestGet(
-      "getGroupCalendarEvents",
-      { path: { groupId }, query: { n: 100 } },
-      () => vrchat.getGroupCalendarEvents({
-        path: { groupId },
-        query: { n: 100 }
-      })
-    );
-    debugApiResponse("getGroupCalendarEvents (verifyFeatured)", response);
-    const events = getCalendarEventList(response?.data) || [];
-    const hasFeatured = events.some(ev => ev.featured === true);
-    if (!hasFeatured) {
-      return { ok: false, error: "No featured events found for this group" };
-    }
-    // Add to verified list if not already present
-    const verifiedList = settings.featuredVerifiedGroups || [];
-    if (!verifiedList.includes(groupId)) {
-      verifiedList.push(groupId);
-      saveSettings({ ...settings, featuredVerifiedGroups: verifiedList });
-    }
-    return { ok: true };
-  } catch (err) {
-    debugApiResponse("getGroupCalendarEvents (verifyFeatured)", null, err);
-    return { ok: false, error: err.message || "Failed to verify group" };
-  }
-});
-
-ipcMain.handle("settings:removeFeaturedGroup", (_, groupId) => {
-  if (!groupId) {
-    return { ok: false, error: "No group ID provided" };
-  }
-  const verifiedList = (settings.featuredVerifiedGroups || []).filter(id => id !== groupId);
-  saveSettings({ ...settings, featuredVerifiedGroups: verifiedList });
-  return { ok: true };
-});
-
 ipcMain.handle("theme:get", () => themeStore);
 
 ipcMain.handle("theme:set", (_, payload) => {
@@ -1980,6 +1959,8 @@ ipcMain.handle("groups:list", async () => {
         debugApiResponse("getGroup", groupRes);
         permissions = groupRes.data?.myMember?.permissions || [];
         privacy = groupRes.data?.privacy;
+        const tags = groupRes.data?.tags || [];
+        groupTagsCache.set(groupId, tags);
       } catch (err) {
         debugApiResponse("getGroup", null, err);
         if (!hasPermissions) {
@@ -2009,6 +1990,40 @@ ipcMain.handle("groups:list", async () => {
     }
   }
   return enriched;
+});
+
+ipcMain.handle("groups:checkFeatureFlags", async (_, groupId) => {
+  if (!groupId) {
+    return { hasFeaturedEvents: false, hasGroupFair: false };
+  }
+
+  try {
+    // Check cache first
+    let tags = groupTagsCache.get(groupId);
+
+    // If not cached, fetch group details
+    if (!tags) {
+      debugApiCall("getGroup (checkFeatureFlags)", { groupId });
+      const groupRes = await requestGet(
+        "getGroup",
+        { path: { groupId } },
+        () => vrchat.getGroup({ path: { groupId } })
+      );
+      debugApiResponse("getGroup (checkFeatureFlags)", groupRes);
+      tags = groupRes.data?.tags || [];
+      groupTagsCache.set(groupId, tags);
+    }
+
+    // Return boolean flags, NOT the actual tags
+    return {
+      hasFeaturedEvents: tags.includes("admin_featured_events_enabled"),
+      hasGroupFair: tags.includes("admin_vrc_event_group_fair_enabled")
+    };
+  } catch (err) {
+    debugApiResponse("getGroup (checkFeatureFlags)", null, err);
+    // On error, return false for both (safe default)
+    return { hasFeaturedEvents: false, hasGroupFair: false };
+  }
 });
 
 ipcMain.handle("groups:roles", async (_, payload) => {
@@ -2140,6 +2155,35 @@ ipcMain.handle("events:create", async (_, payload) => {
       throw new Error("Missing event data.");
     }
     await ensureCalendarPermission(groupId);
+
+    // Validate admin tags if using featured or group fair
+    if (eventData.featured || eventData.tags?.includes("vrc_event_group_fair")) {
+      debugApiCall("getGroup (validateFeatures)", { groupId });
+      const groupRes = await requestGet(
+        "getGroup",
+        { path: { groupId } },
+        () => vrchat.getGroup({ path: { groupId } })
+      );
+      debugApiResponse("getGroup (validateFeatures)", groupRes);
+
+      const groupTags = groupRes.data?.tags || [];
+
+      // Validate featured event permission
+      if (eventData.featured && !groupTags.includes("admin_featured_events_enabled")) {
+        const error = new Error("FEATURED_PERMISSION_REVOKED");
+        error.code = "FEATURED_PERMISSION_REVOKED";
+        throw error;
+      }
+
+      // Validate group fair permission
+      if (eventData.tags?.includes("vrc_event_group_fair") &&
+          !groupTags.includes("admin_vrc_event_group_fair_enabled")) {
+        const error = new Error("GROUP_FAIR_PERMISSION_REVOKED");
+        error.code = "GROUP_FAIR_PERMISSION_REVOKED";
+        throw error;
+      }
+    }
+
     const requestBody = {
       title: eventData.title,
       description: eventData.description,
@@ -2838,7 +2882,8 @@ app.whenReady().then(() => {
   initializePaths();
   maybeImportProfiles();
   profiles = loadProfiles();
-  createWindow();
+  const startHidden = shouldStartHiddenAtLogin();
+  createWindow({ startHidden });
   if (IS_DEV && DEBUG_LOG_PATH) {
     console.log(`\n📄 Debug log file: ${DEBUG_LOG_PATH}\n`);
   }

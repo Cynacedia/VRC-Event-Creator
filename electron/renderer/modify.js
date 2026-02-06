@@ -943,6 +943,20 @@ async function handlePendingSave() {
   const tags = state.modify.tagInput
     ? state.modify.tagInput.getTags()
     : enforceTagsInput(dom.modifyEventTags, TAG_LIMIT, true);
+
+  // Add group fair tag if checkbox is checked
+  if (dom.modifyGroupFair?.checked) {
+    if (!tags.includes("vrc_event_group_fair")) {
+      tags.push("vrc_event_group_fair");
+    }
+  } else {
+    // Remove group fair tag if checkbox is unchecked
+    const index = tags.indexOf("vrc_event_group_fair");
+    if (index > -1) {
+      tags.splice(index, 1);
+    }
+  }
+
   const title = sanitizeText(dom.modifyEventName.value, {
     maxLength: EVENT_NAME_LIMIT,
     allowNewlines: false,
@@ -1084,6 +1098,9 @@ function applyModifyFormFromEvent(event) {
   if (dom.modifyFeatured) {
     dom.modifyFeatured.checked = Boolean(event.featured);
   }
+  if (dom.modifyGroupFair) {
+    dom.modifyGroupFair.checked = event.tags?.includes("vrc_event_group_fair") || false;
+  }
   state.modify.roleIds = Array.isArray(event.roleIds) ? event.roleIds.slice() : [];
   const { systemTz } = buildTimezones();
   const timezone = event.timezone || systemTz;
@@ -1101,23 +1118,30 @@ function applyModifyFormFromEvent(event) {
   renderModifyPlatformList();
   renderModifyProfileOptions(event.groupId);
   void renderModifyRoleRestrictions();
-  void updateModifyFeaturedVisibility(event.groupId);
+  void updateModifyTogglesVisibility(event.groupId);
 }
 
-async function updateModifyFeaturedVisibility(groupId) {
-  if (!dom.modifyFeaturedField) return;
+async function updateModifyTogglesVisibility(groupId) {
+  if (!dom.modifyFeaturedField || !dom.modifyGroupFairField) return;
+
   if (!groupId) {
     dom.modifyFeaturedField.classList.add("is-hidden");
+    dom.modifyGroupFairField.classList.add("is-hidden");
     return;
   }
+
   try {
-    const settings = await modifyApi.getSettings();
-    const verifiedGroups = settings.featuredVerifiedGroups || [];
-    const isVerified = verifiedGroups.includes(groupId);
-    dom.modifyFeaturedField.classList.toggle("is-hidden", !isVerified);
+    // Call backend to check feature flags (tags are NOT exposed to renderer)
+    const flags = await modifyApi.checkFeatureFlags(groupId);
+
+    // Show/hide toggles based on backend response
+    dom.modifyFeaturedField.classList.toggle("is-hidden", !flags.hasFeaturedEvents);
+    dom.modifyGroupFairField.classList.toggle("is-hidden", !flags.hasGroupFair);
+
   } catch (err) {
-    console.error("Failed to check featured verification:", err);
+    console.error("Failed to check feature flags:", err);
     dom.modifyFeaturedField.classList.add("is-hidden");
+    dom.modifyGroupFairField.classList.add("is-hidden");
   }
 }
 
@@ -1377,6 +1401,20 @@ async function handleModifySave() {
   const tags = state.modify.tagInput
     ? state.modify.tagInput.getTags()
     : enforceTagsInput(dom.modifyEventTags, TAG_LIMIT, true);
+
+  // Add group fair tag if checkbox is checked
+  if (dom.modifyGroupFair?.checked) {
+    if (!tags.includes("vrc_event_group_fair")) {
+      tags.push("vrc_event_group_fair");
+    }
+  } else {
+    // Remove group fair tag if checkbox is unchecked
+    const index = tags.indexOf("vrc_event_group_fair");
+    if (index > -1) {
+      tags.splice(index, 1);
+    }
+  }
+
   const title = sanitizeText(dom.modifyEventName.value, {
     maxLength: EVENT_NAME_LIMIT,
     allowNewlines: false,

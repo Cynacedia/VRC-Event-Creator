@@ -4,7 +4,7 @@ import { dom, state } from "./state.js";
 import { setStatus, showToast, setAuthState } from "./ui.js";
 import { t } from "./i18n/index.js";
 import { sanitizePassword, sanitizeUsername } from "./utils.js";
-import { updateAdvancedSettingsVisibility, updateImportExportVisibility, updateFeaturedVerificationVisibility } from "./events.js";
+import { updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 
 // ============================================================================
 // Session Management

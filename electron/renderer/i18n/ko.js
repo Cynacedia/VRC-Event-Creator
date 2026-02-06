@@ -4,7 +4,7 @@ export const ko = {
   nav: {
     create: "이벤트 만들기",
     modify: "이벤트 수정",
-    profiles: "프로필 관리",
+    profiles: "템플릿 관리",
     settings: "설정"
   },
   auth: {
@@ -144,24 +144,9 @@ export const ko = {
       title: "일반",
       minimizeToTray: "시스템 트레이로 최소화",
       startOnStartup: "시스템 시작 시 실행",
-      showFeaturedVerification: "주목 이벤트 인증 표시",
       enableAdvanced: "고급 설정 활성화",
       enableImportExport: "이벤트 가져오기/내보내기",
-      autoUploadImages: "가져온 이벤트/프로필에서 갤러리 이미지 자동 업로드"
-    },
-    featuredVerification: {
-      title: "주목 이벤트 인증",
-      description: "일부 그룹은 주목 이벤트를 만들 수 있는 권한이 있습니다. 주목 이벤트 체크박스를 활성화하려면 아래에서 그룹을 선택하여 인증하세요. 그룹에 기존 주목 이벤트가 있어야 합니다.",
-      selectGroup: "인증할 그룹 선택",
-      verifyButton: "인증",
-      verifying: "인증 중...",
-      noVerifiedGroups: "인증된 그룹이 없습니다.",
-      verified: "그룹이 주목 이벤트에 대해 인증되었습니다.",
-      selectFirst: "인증할 그룹을 선택하세요.",
-      removed: "인증 목록에서 그룹이 제거되었습니다.",
-      verifyFailed: "그룹 인증에 실패했습니다.",
-      removeFailed: "그룹 제거에 실패했습니다.",
-      permissionDenied: "이 그룹은 주목 이벤트를 만들 권한이 없습니다. 주목 이벤트 옵션을 비활성화하고 다시 시도하세요."
+      autoUploadImages: "가져온 이벤트/템플릿에서 갤러리 이미지 자동 업로드"
     },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
@@ -208,7 +193,7 @@ export const ko = {
       create: "생성"
     },
     section: {
-      groupProfile: "그룹 + 프로필",
+      groupProfile: "그룹 + 템플릿",
       dateSelection: "날짜 선택",
       details: "이벤트 세부 정보",
       readyTitle: "생성할 준비가 되었나요?",
@@ -216,7 +201,7 @@ export const ko = {
     },
     labels: {
       groupRequired: "그룹 (필수)",
-      profileOptional: "프로필 (선택)",
+      profileOptional: "템플릿 (선택)",
       advanced: "고급",
       importJson: "JSON에서 가져오기",
       dateSource: "사용",
@@ -227,29 +212,29 @@ export const ko = {
       manualTime: "수동 시간"
     },
     hints: {
-      profileDefaults: "기본값을 위해 프로필을 선택하거나, 비워두고 수동으로 생성하세요.",
+      profileDefaults: "기본값을 위해 템플릿을 선택하거나, 비워두고 수동으로 생성하세요.",
       importJson: "JSON 파일에서 이벤트 세부 정보를 가져옵니다."
     },
     dateHints: {
-      default: "수동 모드가 준비되었습니다. 패턴이 있는 프로필은 날짜 옵션을 제공합니다.",
-      noProfile: "선택된 프로필이 없습니다. 수동 날짜/시간을 사용하세요.",
+      default: "수동 모드가 준비되었습니다. 패턴이 있는 템플릿은 날짜 옵션을 제공합니다.",
+      noProfile: "선택된 템플릿이 없습니다. 수동 날짜/시간을 사용하세요.",
       manualReady: "수동 모드 준비됨.",
       chooseGenerated: "생성된 날짜를 선택하거나 수동을 사용하세요.",
       noUpcoming: "예정된 날짜가 없습니다.",
       loadFailed: "패턴 날짜를 불러올 수 없습니다."
     },
-    profileHint: "프로필은 선택 사항입니다. 기본값을 위해 사용하거나 수동으로 모두 생성하세요.",
-    loadProfile: "프로필 불러오기 (선택)",
-    loadProfilePlaceholder: "프로필 선택",
-    clearProfile: "프로필 지우기",
+    profileHint: "템플릿은 선택 사항입니다. 기본값을 위해 사용하거나 수동으로 모두 생성하세요.",
+    loadProfile: "템플릿 불러오기 (선택)",
+    loadProfilePlaceholder: "템플릿 선택",
+    clearProfile: "템플릿 지우기",
     importJsonButton: "JSON 가져오기",
     importSuccess: "JSON에서 이벤트 데이터를 가져왔습니다.",
-    importWrongType: "프로필 JSON으로 보입니다. 대신 프로필 가져오기를 사용하세요.",
+    importWrongType: "템플릿 JSON으로 보입니다. 대신 템플릿 가져오기를 사용하세요.",
     exportJsonButton: "JSON 내보내기",
     exportSuccess: "이벤트 데이터를 JSON으로 내보냈습니다.",
     dateSource: "날짜 및 시간",
     dateSourceManual: "수동",
-    dateSourcePattern: "프로필 패턴에서",
+    dateSourcePattern: "템플릿 패턴에서",
     dateOption: "날짜 선택",
     patternDateLabel: "{label} - {date}",
     access: "접근",
@@ -262,7 +247,7 @@ export const ko = {
       roles: "역할",
       noRoles: "이 그룹에 사용 가능한 역할이 없습니다."
     },
-    manualProfileOption: "수동 (프로필 없음)",
+    manualProfileOption: "수동 (템플릿 없음)",
     pastDateError: "과거 날짜는 선택할 수 없습니다.",
     futureDateError: "이벤트는 최대 1년까지만 예약할 수 있습니다.",
     upcomingLimitNotice: "VRChat은 각 그룹에 대해 예정된 이벤트를 10개로 제한합니다.",
@@ -287,7 +272,9 @@ export const ko = {
     updateRequired: "업데이트가 있습니다. 이벤트를 만들기 전에 업데이트하세요.",
     requiredSingle: "{field}은(는) 필수입니다.",
     requiredMultiple: "{fields}은(는) 필수입니다.",
-    noDateOptionsError: "프로필에서 사용할 날짜 옵션이 없습니다."
+    noDateOptionsError: "템플릿에서 사용할 날짜 옵션이 없습니다.",
+    featuredPermissionRevoked: "이 그룹은 더 이상 주목 이벤트를 생성할 권한이 없습니다.",
+    groupFairPermissionRevoked: "이 그룹은 더 이상 그룹 페어에 이벤트를 포함할 권한이 없습니다."
   },
   modify: {
     title: "이벤트 수정",
@@ -302,12 +289,12 @@ export const ko = {
     eventImage: "이벤트 이미지",
     noImage: "이미지 없음",
     untitled: "제목 없는 이벤트",
-    profileLabel: "프로필 불러오기(선택)",
-    profileSelect: "프로필 선택",
+    profileLabel: "템플릿 불러오기(선택)",
+    profileSelect: "템플릿 선택",
     profileLoad: "불러오기",
-    profileSelectError: "불러올 프로필을 선택하세요.",
-    profileLoadFailed: "프로필 기본값을 불러올 수 없습니다.",
-    profileLoaded: "프로필 기본값을 불러왔습니다.",
+    profileSelectError: "불러올 템플릿을 선택하세요.",
+    profileLoadFailed: "템플릿 기본값을 불러올 수 없습니다.",
+    profileLoaded: "템플릿 기본값을 불러왔습니다.",
     manualDate: "날짜 변경",
     manualTime: "시간 변경",
     modal: {
@@ -346,7 +333,7 @@ export const ko = {
     }
   },
   profiles: {
-    title: "프로필 관리",
+    title: "템플릿 관리",
     subtitle: "그룹별로 재사용 가능한 템플릿을 만듭니다.",
     steps: {
       select: "선택",
@@ -355,33 +342,33 @@ export const ko = {
       audience: "대상"
     },
     section: {
-      selection: "프로필 선택",
-      basics: "프로필 기본",
+      selection: "템플릿 선택",
+      basics: "템플릿 기본",
       schedule: "일정",
       audience: "대상"
     },
     labels: {
       group: "그룹",
-      profile: "프로필"
+      profile: "템플릿"
     },
     buttons: {
       new: "새로 만들기"
     },
     importJsonButton: "JSON 가져오기",
-    importSuccess: "JSON에서 프로필 데이터를 가져왔습니다.",
+    importSuccess: "JSON에서 템플릿 데이터를 가져왔습니다.",
     importWrongType: "이벤트 JSON으로 보입니다. 대신 이벤트 가져오기를 사용하세요.",
     exportJsonButton: "JSON 내보내기",
-    exportSuccess: "프로필 데이터를 JSON으로 내보냈습니다.",
+    exportSuccess: "템플릿 데이터를 JSON으로 내보냈습니다.",
     hints: {
       groupAccess: "캘린더 접근 권한이 있는 그룹을 선택하세요.",
       patternsInfo: "패턴은 예정 날짜를 미리 생성하는 데 사용됩니다."
     },
-    existingProfile: "기존 프로필",
-    existingProfilePlaceholder: "프로필 선택",
-    noProfiles: "이 그룹에 프로필이 없습니다",
-    newButton: "새 프로필",
-    saveButton: "프로필 저장",
-    displayName: "프로필 이름",
+    existingProfile: "기존 템플릿",
+    existingProfilePlaceholder: "템플릿 선택",
+    noProfiles: "이 그룹에 템플릿이 없습니다",
+    newButton: "새 템플릿",
+    saveButton: "템플릿 저장",
+    displayName: "템플릿 이름",
     displayNamePlaceholder: "커뮤니티 모임 템플릿",
     access: "접근",
     durationDefault: "기본 지속 시간 (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const ko = {
       restoreSuccess: "이벤트 {count}개를 복원했습니다",
       restoreNone: "복원할 이벤트가 없습니다",
       restoreFailed: "이벤트 복원에 실패했습니다",
-      restoreNoProfile: "프로필이 선택되지 않았습니다",
+      restoreNoProfile: "템플릿이 선택되지 않았습니다",
       restorableCount: "삭제된 이벤트 {count}개를 복원할 수 있습니다"
     },
-    created: "프로필이 생성되었습니다.",
-    updated: "프로필이 업데이트되었습니다.",
-    deleted: "프로필이 삭제되었습니다.",
-    confirmDelete: "프로필 \"{name}\"을(를) 삭제할까요?",
+    created: "템플릿이 생성되었습니다.",
+    updated: "템플릿이 업데이트되었습니다.",
+    deleted: "템플릿이 삭제되었습니다.",
+    confirmDelete: "템플릿 \"{name}\"을(를) 삭제할까요?",
     selectGroupError: "그룹을 선택하세요.",
     selectGroupFirst: "먼저 그룹을 선택하세요.",
-    selectProfileError: "편집할 프로필을 선택하세요.",
+    selectProfileError: "편집할 템플릿을 선택하세요.",
     maxLanguages: "최대 3개의 언어만 허용됩니다.",
     durationError: "기간은 양수여야 합니다.",
     required: "{fields} {verb} 필요합니다.",
@@ -519,6 +506,7 @@ export const ko = {
     delete: "삭제",
     rateLimitError: "속도 제한. 잠시 기다렸다가 다시 시도하세요.",
     featuredEvent: "주목 이벤트",
+    groupFairEvent: "그룹 페어에 포함",
     noMatches: "일치하는 항목이 없습니다.",
     noGroupsAccess: "캘린더 접근 권한이 있는 그룹이 없습니다",
     selectGroup: "그룹 선택",

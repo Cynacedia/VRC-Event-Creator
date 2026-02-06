@@ -3,8 +3,8 @@
 export const ja = {
   nav: {
     create: "イベント作成",
-    modify: "イベントを編集",
-    profiles: "プロフィール管理",
+    modify: "イベント編集",
+    profiles: "テンプレート管理",
     settings: "設定"
   },
   auth: {
@@ -144,24 +144,9 @@ export const ja = {
       title: "一般",
       minimizeToTray: "システムトレイに最小化",
       startOnStartup: "システム起動時に起動",
-      showFeaturedVerification: "注目イベント認証を表示",
       enableAdvanced: "詳細設定を有効にする",
       enableImportExport: "イベントのインポート/エクスポート",
       autoUploadImages: "インポートしたイベント/プロファイルからギャラリー画像を自動アップロード"
-    },
-    featuredVerification: {
-      title: "注目イベント認証",
-      description: "一部のグループは注目イベントを作成する権限があります。注目イベントチェックボックスを有効にするには、下のリストからグループを選択して認証してください。グループには既存の注目イベントが必要です。",
-      selectGroup: "認証するグループを選択",
-      verifyButton: "認証",
-      verifying: "認証中...",
-      noVerifiedGroups: "認証済みグループはありません。",
-      verified: "グループの注目イベントが認証されました。",
-      selectFirst: "認証するグループを選択してください。",
-      removed: "グループを認証リストから削除しました。",
-      verifyFailed: "グループの認証に失敗しました。",
-      removeFailed: "グループの削除に失敗しました。",
-      permissionDenied: "このグループには注目イベントを作成する権限がありません。注目イベントオプションを無効にして再試行してください。"
     },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
@@ -208,7 +193,7 @@ export const ja = {
       create: "作成"
     },
     section: {
-      groupProfile: "グループ + プロフィール",
+      groupProfile: "グループ + テンプレート",
       dateSelection: "日付選択",
       details: "イベント詳細",
       readyTitle: "作成の準備はできましたか？",
@@ -216,7 +201,7 @@ export const ja = {
     },
     labels: {
       groupRequired: "グループ (必須)",
-      profileOptional: "プロフィール (任意)",
+      profileOptional: "テンプレート (任意)",
       advanced: "詳細設定",
       importJson: "JSON からインポート",
       dateSource: "使用",
@@ -227,29 +212,29 @@ export const ja = {
       manualTime: "手動時刻"
     },
     hints: {
-      profileDefaults: "プロフィールを選ぶと既定値を使えます。空欄なら手動で作成します。",
+      profileDefaults: "テンプレートを選ぶと既定値を使えます。空欄なら手動で作成します。",
       importJson: "JSON ファイルからイベントの詳細をインポートします。"
     },
     dateHints: {
-      default: "手動モードは準備完了。パターン付きプロフィールで日付候補が表示されます。",
-      noProfile: "プロフィール未選択です。手動で日付/時刻を入力してください。",
+      default: "手動モードは準備完了。パターン付きテンプレートで日付候補が表示されます。",
+      noProfile: "テンプレート未選択です。手動で日付/時刻を入力してください。",
       manualReady: "手動モード準備完了。",
       chooseGenerated: "生成された日付を選ぶか手動で入力してください。",
       noUpcoming: "今後の日付が見つかりません。",
       loadFailed: "パターン日付を読み込めませんでした。"
     },
-    profileHint: "プロフィールは任意です。既定値に使うか、すべて手動で作成できます。",
-    loadProfile: "プロフィールを読み込む (任意)",
-    loadProfilePlaceholder: "プロフィールを選択",
-    clearProfile: "プロフィールをクリア",
+    profileHint: "テンプレートは任意です。デフォルト設定または手動設定が選べます。",
+    loadProfile: "テンプレートを読み込む (任意)",
+    loadProfilePlaceholder: "テンプレートを選択",
+    clearProfile: "テンプレートを削除",
     importJsonButton: "JSON をインポート",
     importSuccess: "イベントデータを JSON からインポートしました。",
-    importWrongType: "これはプロフィールの JSON のようです。代わりにプロフィールのインポートを使用してください。",
+    importWrongType: "これはテンプレートの JSON のようです。代わりにテンプレートのインポートを使用してください。",
     exportJsonButton: "JSON をエクスポート",
     exportSuccess: "イベントデータを JSON にエクスポートしました。",
     dateSource: "日時",
     dateSourceManual: "手動",
-    dateSourcePattern: "プロフィールのパターンから",
+    dateSourcePattern: "テンプレートのパターンから",
     dateOption: "日付を選択",
     patternDateLabel: "{label} - {date}",
     access: "アクセス",
@@ -262,7 +247,7 @@ export const ja = {
         roles: "ロール",
         noRoles: "このグループで利用できるロールがありません。"
     },
-    manualProfileOption: "手動 (プロフィールなし)",
+    manualProfileOption: "手動 (テンプレート無し)",
     pastDateError: "過去の日付は選択できません。",
     futureDateError: "イベントは最長1年先までしか設定できません。",
     upcomingLimitNotice: "VRChat では各グループの今後のイベントが最大10件に制限されています。",
@@ -287,7 +272,9 @@ export const ja = {
     updateRequired: "更新があります。イベントを作成する前に更新してください。",
     requiredSingle: "{field} は必須です。",
     requiredMultiple: "{fields} は必須です。",
-    noDateOptionsError: "プロフィールから日付候補がありません。"
+    noDateOptionsError: "テンプレートから日付候補がありません。",
+    featuredPermissionRevoked: "このグループには注目イベントを作成する権限がなくなりました。",
+    groupFairPermissionRevoked: "このグループにはグループフェアにイベントを含める権限がなくなりました。"
   },
   modify: {
     title: "イベントを編集",
@@ -302,12 +289,12 @@ export const ja = {
     eventImage: "イベント画像",
     noImage: "画像なし",
     untitled: "無題のイベント",
-    profileLabel: "プロフィールを読み込む（任意）",
-    profileSelect: "プロフィールを選択",
+    profileLabel: "テンプレートを読み込む（任意）",
+    profileSelect: "テンプレートを選択",
     profileLoad: "読み込み",
-    profileSelectError: "読み込むプロフィールを選択してください。",
-    profileLoadFailed: "プロフィールの既定値を読み込めませんでした。",
-    profileLoaded: "プロフィールの既定値を読み込みました。",
+    profileSelectError: "読み込むテンプレートを選択してください。",
+    profileLoadFailed: "テンプレートの既定値を読み込めませんでした。",
+    profileLoaded: "テンプレートの既定値を読み込みました。",
     manualDate: "日付を変更",
     manualTime: "時刻を変更",
     modal: {
@@ -346,7 +333,7 @@ export const ja = {
     }
   },
   profiles: {
-    title: "プロフィール管理",
+    title: "テンプレート管理",
     subtitle: "グループごとのテンプレートを作成します。",
     steps: {
       select: "選択",
@@ -355,36 +342,36 @@ export const ja = {
       audience: "対象"
     },
     section: {
-      selection: "プロフィール選択",
-      basics: "プロフィール基本",
+      selection: "テンプレート選択",
+      basics: "テンプレート基本",
       schedule: "スケジュール",
       audience: "対象"
     },
     labels: {
       group: "グループ",
-      profile: "プロフィール"
+      profile: "テンプレート"
     },
     buttons: {
       new: "新規"
     },
     importJsonButton: "JSON をインポート",
-    importSuccess: "プロフィールデータを JSON からインポートしました。",
+    importSuccess: "テンプレートデータを JSON からインポートしました。",
     importWrongType: "これはイベントの JSON のようです。代わりにイベントのインポートを使用してください。",
     exportJsonButton: "JSON をエクスポート",
-    exportSuccess: "プロフィールデータを JSON にエクスポートしました。",
+    exportSuccess: "テンプレートデータを JSON にエクスポートしました。",
     hints: {
       groupAccess: "カレンダー権限のあるグループを選択してください。",
       patternsInfo: "パターンは今後の日付を事前生成するために使用されます。"
     },
-    existingProfile: "既存プロフィール",
-    existingProfilePlaceholder: "プロフィールを選択",
-    noProfiles: "このグループにはプロフィールがありません",
-    newButton: "新規プロフィール",
-    saveButton: "プロフィールを保存",
-    displayName: "プロフィール名",
+    existingProfile: "既存テンプレート",
+    existingProfilePlaceholder: "テンプレートを選択",
+    noProfiles: "このグループにはテンプレートがありません",
+    newButton: "新規テンプレート",
+    saveButton: "テンプレートを保存",
+    displayName: "テンプレート名",
     displayNamePlaceholder: "コミュニティ交流テンプレート",
     access: "アクセス",
-    durationDefault: "既定の所要時間 (DD:HH:MM)",
+    durationDefault: "既定の所要時間 (日数：時間：分)",
     dateMode: "日付モード",
     dateModePattern: "パターン",
     dateModeManual: "手動のみ",
@@ -432,7 +419,7 @@ export const ja = {
       description: "パターンに基づいてイベントを自動投稿します。イベントは「イベントを変更」に「保留中」として表示されます。",
       enableLabel: "自動化を有効にする",
       timingLabel: "スケジュール規則",
-      frequencyLabel: "タイミング（DD:HH:MM）",
+      frequencyLabel: "タイミング（日数：時間：分）",
       timingModes: {
         before: "イベント開始前",
         after: "前のイベント終了後",
@@ -484,16 +471,16 @@ export const ja = {
       restoreSuccess: "{count} 件のイベントを復元しました",
       restoreNone: "復元できるイベントはありません",
       restoreFailed: "イベントの復元に失敗しました",
-      restoreNoProfile: "プロフィールが選択されていません",
+      restoreNoProfile: "テンプレートが選択されていません",
       restorableCount: "{count} 件の削除済みイベントを復元できます"
     },
-    created: "プロフィールを作成しました。",
-    updated: "プロフィールを更新しました。",
-    deleted: "プロフィールを削除しました。",
-    confirmDelete: "プロフィール「{name}」を削除しますか？",
+    created: "テンプレートを作成しました。",
+    updated: "テンプレートを更新しました。",
+    deleted: "テンプレートを削除しました。",
+    confirmDelete: "テンプレート「{name}」を削除しますか？",
     selectGroupError: "グループを選択してください。",
     selectGroupFirst: "最初にグループを選択してください。",
-    selectProfileError: "編集するプロフィールを選択してください。",
+    selectProfileError: "編集するテンプレートを選択してください。",
     maxLanguages: "言語は最大3つまでです。",
     durationError: "所要時間は正の数で入力してください。",
     required: "{fields} は必須です。",
@@ -519,6 +506,7 @@ export const ja = {
     delete: "削除",
     rateLimitError: "レート制限。しばらく待ってから再試行してください。",
     featuredEvent: "注目イベント",
+    groupFairEvent: "グループフェアに含める",
     noMatches: "一致する項目がありません。",
     noGroupsAccess: "カレンダー権限のあるグループがありません",
     selectGroup: "グループを選択",
@@ -565,7 +553,7 @@ export const ja = {
       imageIdPlaceholder: "例: file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
       sendNotification: "通知を送信",
       timezone: "タイムゾーン",
-      duration: "期間（DD:HH:MM）",
+      duration: "期間（日数：時間：分）",
       languages: "言語（最大3）",
       languagesHint: "{count}件選択",
       filterLanguages: "言語を検索...",

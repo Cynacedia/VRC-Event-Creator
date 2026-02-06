@@ -388,6 +388,7 @@ export function resetProfileForm() {
   dom.profileDateMode.value = "both";
   dom.profileSendNotification.checked = true;
   if (dom.profileFeatured) dom.profileFeatured.checked = false;
+  if (dom.profileGroupFair) dom.profileGroupFair.checked = false;
   state.profile.languages = ["eng"];
   state.profile.platforms = ["standalonewindows", "android"];
   state.profile.patterns = [];
@@ -447,6 +448,7 @@ export function applyProfileToForm(groupId, profileKey) {
   dom.profileDateMode.value = profile.dateMode || "both";
   dom.profileSendNotification.checked = Boolean(profile.sendNotification);
   if (dom.profileFeatured) dom.profileFeatured.checked = Boolean(profile.featured);
+  if (dom.profileGroupFair) dom.profileGroupFair.checked = Boolean(profile.groupFair);
   state.profile.languages = profile.languages ? profile.languages.slice() : [];
   state.profile.platforms = profile.platforms ? profile.platforms.slice() : [];
   state.profile.patterns = profile.patterns ? profile.patterns.slice() : [];
@@ -579,7 +581,7 @@ export function handleProfileGroupChange(api) {
   dom.profileExisting.value = "";
   updateProfileActionButtons();
   void renderProfileRoleRestrictions(api);
-  void updateProfileFeaturedVisibility(api);
+  void updateProfileTogglesVisibility(api);
 
   const wizard = getProfileWizard();
   if (wizard) {
@@ -587,21 +589,22 @@ export function handleProfileGroupChange(api) {
   }
 }
 
-async function updateProfileFeaturedVisibility(api) {
-  if (!dom.profileFeaturedField) return;
+async function updateProfileTogglesVisibility(api) {
+  if (!dom.profileFeaturedField || !dom.profileGroupFairField) return;
   const groupId = dom.profileGroup.value;
   if (!groupId) {
     dom.profileFeaturedField.classList.add("is-hidden");
+    dom.profileGroupFairField.classList.add("is-hidden");
     return;
   }
   try {
-    const settings = await api.getSettings();
-    const verifiedGroups = settings.featuredVerifiedGroups || [];
-    const isVerified = verifiedGroups.includes(groupId);
-    dom.profileFeaturedField.classList.toggle("is-hidden", !isVerified);
+    const flags = await api.checkFeatureFlags(groupId);
+    dom.profileFeaturedField.classList.toggle("is-hidden", !flags.hasFeaturedEvents);
+    dom.profileGroupFairField.classList.toggle("is-hidden", !flags.hasGroupFair);
   } catch (err) {
-    console.error("Failed to check featured verification:", err);
+    console.error("Failed to check feature flags:", err);
     dom.profileFeaturedField.classList.add("is-hidden");
+    dom.profileGroupFairField.classList.add("is-hidden");
   }
 }
 
@@ -741,6 +744,7 @@ export async function handleProfileSave(api) {
       duration,
       sendNotification: Boolean(dom.profileSendNotification.checked),
       featured: Boolean(dom.profileFeatured?.checked),
+      groupFair: Boolean(dom.profileGroupFair?.checked),
       timezone: dom.profileTimezone.value,
       dateMode: dom.profileDateMode.value,
       patterns: state.profile.patterns.slice(),
@@ -843,6 +847,8 @@ export async function handleProfileExportJson(api) {
       roleIds: profile.roleIds || [],
       imageId: profile.imageId || "",
       sendNotification: profile.sendNotification ?? false,
+      featured: profile.featured ?? false,
+      groupFair: profile.groupFair ?? false,
       duration: profile.duration || 120,
       timezone: profile.timezone || "",
       languages: profile.languages || [],
@@ -1013,6 +1019,13 @@ async function applyImportedJsonToProfileForm(data, api) {
   if (dom.profileFeatured) {
     dom.profileFeatured.checked = typeof data.featured === "boolean"
       ? data.featured
+      : false;
+  }
+
+  // Apply group fair
+  if (dom.profileGroupFair) {
+    dom.profileGroupFair.checked = typeof data.groupFair === "boolean"
+      ? data.groupFair
       : false;
   }
 

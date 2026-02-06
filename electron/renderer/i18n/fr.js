@@ -4,7 +4,7 @@ export const fr = {
   nav: {
     create: "Créer un événement",
     modify: "Modifier les événements",
-    profiles: "Gérer les profils",
+    profiles: "Gérer les modèles",
     settings: "Paramètres"
   },
   auth: {
@@ -144,24 +144,9 @@ export const fr = {
       title: "Général",
       minimizeToTray: "Réduire dans la barre d'état système",
       startOnStartup: "Démarrer au démarrage du système",
-      showFeaturedVerification: "Afficher la vérification des événements en vedette",
       enableAdvanced: "Activer les paramètres avancés",
       enableImportExport: "Importer/Exporter des événements",
-      autoUploadImages: "Télécharger automatiquement les images de galerie depuis les événements/profils importés"
-    },
-    featuredVerification: {
-      title: "Vérification des événements en vedette",
-      description: "Certains groupes ont la permission de créer des événements en vedette. Pour activer la case à cocher d'événement en vedette, vérifiez votre groupe en le sélectionnant ci-dessous. Le groupe doit avoir au moins un événement en vedette existant.",
-      selectGroup: "Sélectionner le groupe à vérifier",
-      verifyButton: "Vérifier",
-      verifying: "Vérification...",
-      noVerifiedGroups: "Aucun groupe vérifié pour le moment.",
-      verified: "Groupe vérifié pour les événements en vedette.",
-      selectFirst: "Veuillez sélectionner un groupe à vérifier.",
-      removed: "Groupe retiré de la liste vérifiée.",
-      verifyFailed: "Échec de la vérification du groupe.",
-      removeFailed: "Échec de la suppression du groupe.",
-      permissionDenied: "Ce groupe n'a pas la permission de créer des événements en vedette. Veuillez désactiver l'option Événement en vedette et réessayer."
+      autoUploadImages: "Télécharger automatiquement les images de galerie depuis les événements/modèles importés"
     },
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
@@ -208,7 +193,7 @@ export const fr = {
       create: "Créer"
     },
     section: {
-      groupProfile: "Groupe + Profil",
+      groupModèlee: "Groupe + Modèle",
       dateSelection: "Sélection de la date",
       details: "Détails de l'événement",
       readyTitle: "Prêt à créer ?",
@@ -216,7 +201,7 @@ export const fr = {
     },
     labels: {
       groupRequired: "Groupe (obligatoire)",
-      profileOptional: "Profil (facultatif)",
+      modèleeOptional: "Modèle (facultatif)",
       advanced: "Avancé",
       importJson: "Importer depuis JSON",
       dateSource: "Utiliser",
@@ -227,29 +212,29 @@ export const fr = {
       manualTime: "Heure manuelle"
     },
     hints: {
-      profileDefaults: "Choisissez un profil pour les valeurs par défaut, ou laissez vide pour créer manuellement.",
+      modèleeDefaults: "Choisissez un modèle pour les valeurs par défaut, ou laissez vide pour créer manuellement.",
       importJson: "Importer les détails de l'événement depuis un fichier JSON."
     },
     dateHints: {
-      default: "Le mode manuel est prêt. Les profils avec des modèles débloquent les options de date.",
-      noProfile: "Aucun profil sélectionné. Utilisez la date/heure manuelle.",
+      default: "Le mode manuel est prêt. Les modèles avec des modèles débloquent les options de date.",
+      noModèlee: "Aucun modèle sélectionné. Utilisez la date/heure manuelle.",
       manualReady: "Mode manuel prêt.",
       chooseGenerated: "Choisissez une date générée ou utilisez le mode manuel.",
       noUpcoming: "Aucune date à venir trouvée.",
       loadFailed: "Impossible de charger les dates du modèle."
     },
-    profileHint: "Les profils sont facultatifs. Utilisez-en un pour les valeurs par défaut ou créez tout manuellement.",
-    loadProfile: "Charger un profil (facultatif)",
-    loadProfilePlaceholder: "Sélectionner un profil",
-    clearProfile: "Effacer le profil",
+    modèleeHint: "Les modèles sont facultatifs. Utilisez-en un pour les valeurs par défaut ou créez tout manuellement.",
+    loadModèlee: "Charger un modèle (facultatif)",
+    loadModèleePlaceholder: "Sélectionner un modèle",
+    clearModèlee: "Effacer le modèle",
     importJsonButton: "Importer JSON",
     importSuccess: "Données de l'événement importées depuis JSON.",
-    importWrongType: "Ceci semble être un JSON de profil. Veuillez utiliser Importer le profil à la place.",
+    importWrongType: "Ceci semble être un JSON de modèle. Veuillez utiliser Importer le modèle à la place.",
     exportJsonButton: "Exporter JSON",
     exportSuccess: "Données de l'événement exportées vers JSON.",
     dateSource: "Date et heure",
     dateSourceManual: "Manuel",
-    dateSourcePattern: "À partir du profil",
+    dateSourcePattern: "À partir du modèle",
     dateOption: "Sélectionner une date",
     patternDateLabel: "{label} - {date}",
     access: "Accès",
@@ -262,7 +247,7 @@ export const fr = {
       roles: "Rôles",
       noRoles: "Aucun rôle disponible pour ce groupe."
     },
-    manualProfileOption: "Manuel (sans profil)",
+    manualModèleeOption: "Manuel (sans modèle)",
     pastDateError: "Impossible de sélectionner une date passée.",
     futureDateError: "Les événements ne peuvent être planifiés que jusqu'à 1 an à l'avance.",
     upcomingLimitNotice: "VRChat limite actuellement chaque groupe à 10 événements à venir.",
@@ -287,7 +272,9 @@ export const fr = {
     updateRequired: "Mise à jour disponible. Mettez à jour avant de créer des événements.",
     requiredSingle: "{field} est requis.",
     requiredMultiple: "{fields} sont requis.",
-    noDateOptionsError: "Aucune date disponible depuis le profil."
+    noDateOptionsError: "Aucune date disponible depuis le modèle.",
+    featuredPermissionRevoked: "Ce groupe n'a plus la permission de créer des événements en vedette.",
+    groupFairPermissionRevoked: "Ce groupe n'a plus la permission d'inclure des événements dans la Foire des Groupes."
   },
   modify: {
     title: "Modifier les événements",
@@ -302,12 +289,12 @@ export const fr = {
     eventImage: "Image de l'événement",
     noImage: "Aucune image",
     untitled: "Événement sans titre",
-    profileLabel: "Charger un profil (optionnel)",
-    profileSelect: "Sélectionner un profil",
-    profileLoad: "Charger",
-    profileSelectError: "Sélectionnez un profil à charger.",
-    profileLoadFailed: "Impossible de charger les valeurs du profil.",
-    profileLoaded: "Valeurs du profil chargées.",
+    modèleeLabel: "Charger un modèle (optionnel)",
+    modèleeSelect: "Sélectionner un modèle",
+    modèleeLoad: "Charger",
+    modèleeSelectError: "Sélectionnez un modèle à charger.",
+    modèleeLoadFailed: "Impossible de charger les valeurs du modèle.",
+    modèleeLoaded: "Valeurs du modèle chargées.",
     manualDate: "Changer la date",
     manualTime: "Changer l'heure",
     modal: {
@@ -345,8 +332,8 @@ export const fr = {
       editFailed: "Impossible de mettre à jour l'événement en attente."
     }
   },
-  profiles: {
-    title: "Gérer les profils",
+    profiles: {
+    title: "Gérer les modèles",
     subtitle: "Créez des modèles réutilisables par groupe.",
     steps: {
       select: "Sélection",
@@ -355,33 +342,33 @@ export const fr = {
       audience: "Public"
     },
     section: {
-      selection: "Sélection du profil",
-      basics: "Bases du profil",
+      selection: "Sélection du modèle",
+      basics: "Bases du modèle",
       schedule: "Planning",
       audience: "Public"
     },
     labels: {
       group: "Groupe",
-      profile: "Profil"
+      modèlee: "Modèle"
     },
     buttons: {
       new: "Nouveau"
     },
     importJsonButton: "Importer JSON",
-    importSuccess: "Données du profil importées depuis JSON.",
+    importSuccess: "Données du modèle importées depuis JSON.",
     importWrongType: "Ceci semble être un JSON d'événement. Veuillez utiliser Importer un événement à la place.",
     exportJsonButton: "Exporter JSON",
-    exportSuccess: "Données du profil exportées vers JSON.",
+    exportSuccess: "Données du modèle exportées vers JSON.",
     hints: {
       groupAccess: "Choisissez un groupe avec accès au calendrier.",
       patternsInfo: "Les modèles servent à pré-générer les dates à venir."
     },
-    existingProfile: "Profil existant",
-    existingProfilePlaceholder: "Sélectionner un profil",
-    noProfiles: "Aucun profil pour ce groupe",
-    newButton: "Nouveau profil",
-    saveButton: "Enregistrer le profil",
-    displayName: "Nom du profil",
+    existingModèlee: "Modèle existant",
+    existingModèleePlaceholder: "Sélectionner un modèle",
+    noModèlees: "Aucun modèle pour ce groupe",
+    newButton: "Nouveau modèle",
+    saveButton: "Enregistrer le modèle",
+    displayName: "Nom du modèle",
     displayNamePlaceholder: "Modèle de rencontre communautaire",
     access: "Accès",
     durationDefault: "Durée par défaut (DD:HH:MM)",
@@ -484,16 +471,16 @@ export const fr = {
       restoreSuccess: "{count} événement(s) restauré(s)",
       restoreNone: "Aucun événement à restaurer",
       restoreFailed: "Échec de la restauration des événements",
-      restoreNoProfile: "Aucun profil sélectionné",
+      restoreNoModèlee: "Aucun modèle sélectionné",
       restorableCount: "{count} événement(s) supprimé(s) peuvent être restauré(s)"
     },
-    created: "Profil créé.",
-    updated: "Profil mis à jour.",
-    deleted: "Profil supprimé.",
-    confirmDelete: "Supprimer le profil \"{name}\" ?",
+    created: "Modèle créé.",
+    updated: "Modèle mis à jour.",
+    deleted: "Modèle supprimé.",
+    confirmDelete: "Supprimer le modèle \"{name}\" ?",
     selectGroupError: "Sélectionnez un groupe.",
     selectGroupFirst: "Sélectionnez d'abord un groupe.",
-    selectProfileError: "Sélectionnez un profil à modifier.",
+    selectModèleeError: "Sélectionnez un modèle à modifier.",
     maxLanguages: "Maximum 3 langues autorisées.",
     durationError: "La durée doit être un nombre positif.",
     required: "{fields} {verb} requis.",
@@ -519,6 +506,7 @@ export const fr = {
     delete: "Supprimer",
     rateLimitError: "Limite de débit. Veuillez patienter et réessayer plus tard.",
     featuredEvent: "Événement en vedette",
+    groupFairEvent: "Inclure dans la Foire des Groupes",
     noMatches: "Aucune correspondance.",
     noGroupsAccess: "Aucun groupe avec accès au calendrier",
     selectGroup: "Sélectionner un groupe",

@@ -199,6 +199,12 @@
                         <span data-i18n="common.featuredEvent">Featured Event</span>
                       </label>
                     </div>
+                    <div class="field is-hidden" id="event-group-fair-field">
+                      <label class="toggle">
+                        <input id="event-group-fair" type="checkbox" />
+                        <span data-i18n="common.groupFairEvent">Include in Group Fair</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -527,6 +533,12 @@
                         <span data-i18n="common.featuredEvent">Featured Event</span>
                       </label>
                     </div>
+                    <div class="field is-hidden" id="profile-group-fair-field">
+                      <label class="toggle">
+                        <input id="profile-group-fair" type="checkbox" />
+                        <span data-i18n="common.groupFairEvent">Include in Group Fair</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -562,12 +574,6 @@
               </div>
               <div class="field">
                 <label class="toggle">
-                  <input id="settings-show-featured-verification" type="checkbox" />
-                  <span data-i18n="settings.general.showFeaturedVerification">Show Featured Events Verification</span>
-                </label>
-              </div>
-              <div class="field">
-                <label class="toggle">
                   <input id="settings-enable-advanced" type="checkbox" />
                   <span data-i18n="settings.general.enableAdvanced">Enable advanced settings</span>
                 </label>
@@ -585,27 +591,6 @@
                     <span data-i18n="settings.general.autoUploadImages">Automatically upload gallery images from imported events/profiles</span>
                   </label>
                 </div>
-              </div>
-            </div>
-
-            <div class="card is-hidden" id="featured-verification-card">
-              <h3 data-i18n="settings.featuredVerification.title">Featured Events Verification</h3>
-              <p class="helper-text-small" data-i18n="settings.featuredVerification.description">
-                Some groups have permission to create featured events. To enable the Featured Event checkbox,
-                verify your group by selecting it below. The group must have at least one existing featured event.
-              </p>
-              <div class="divider"></div>
-              <div class="field">
-                <label for="featured-verify-group" data-i18n="settings.featuredVerification.selectGroup">Select Group to Verify</label>
-                <div class="input-with-button">
-                  <select id="featured-verify-group">
-                    <option value="">-- Select a group --</option>
-                  </select>
-                  <button id="featured-verify-btn" class="ghost" type="button" data-i18n="settings.featuredVerification.verifyButton">Verify</button>
-                </div>
-              </div>
-              <div id="featured-verified-list" class="verified-groups-list">
-                <!-- Verified groups will be listed here -->
               </div>
             </div>
 
@@ -959,6 +944,12 @@
             <label class="toggle">
               <input id="modify-featured" type="checkbox" />
               <span data-i18n="common.featuredEvent">Featured Event</span>
+            </label>
+          </div>
+          <div class="field is-hidden" id="modify-group-fair-field">
+            <label class="toggle">
+              <input id="modify-group-fair" type="checkbox" />
+              <span data-i18n="common.groupFairEvent">Include in Group Fair</span>
             </label>
           </div>
         </div>
