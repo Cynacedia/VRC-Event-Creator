@@ -23,20 +23,22 @@ Erstelle und speichere gruppenbezogene Event-Vorlagen, generiere kommende Termin
 
 
 <p align="center">
-  <img src=".imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (profile to publish)" />
+  <img src=".imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event-Erstellungsablauf (Vorlage bis Veröffentlichung)" />
 </p>
 
 
 ## Funktionen
-- Profile/Vorlagen, die Event-Details pro Gruppe automatisch ausfüllen.
+- Vorlagen, die Event-Details pro Gruppe automatisch ausfüllen.
 - Generator für wiederkehrende Muster mit Listen kommender Termine und manuellem Datum/Uhrzeit-Fallback.
-- Event-Automatisierungssystem (experimentell) - veröffentlicht automatisch Events basierend auf Profilmustern.
+- Event-Automatisierungssystem (experimentell) - veröffentlicht automatisch Events basierend auf Vorlagenmustern.
 - Assistent zur Event-Erstellung für Gruppenkalender.
 - Ansicht „Events bearbeiten" für kommende Events (Raster + Bearbeitungs-Modal).
+- Unterstützt besondere Event-Optionen für Gruppen mit zusätzlichen Berechtigungen.
 - Theme Studio mit Presets und voller UI-Farbkontrolle (unterstützt #RRGGBBAA).
 - Galerieauswahl und Upload für Bild-IDs.
-- Minimierung in die Taskleiste.
-- Lokalisierung mit Sprachauswahl beim ersten Start (en, fr, es, de, ja, zh, pt, ko, ru).
+- Start beim Systemstart + Minimierung in den Infobereich.
+- Einzelinstanz-Schutz, um doppelte Starts zu verhindern.
+- Lokalisierung mit Sprachauswahl beim ersten Start (en, fr, es, de, ja, zh, pt, ko, ru, nl).
 
 ## Download
 - Releases: https://github.com/Cynacedia/VRC-Event-Creator/releases
@@ -45,7 +47,7 @@ Erstelle und speichere gruppenbezogene Event-Vorlagen, generiere kommende Termin
 Dein Passwort wird nicht gespeichert. Nur Session-Tokens werden gecacht.
 Die App speichert ihre Dateien im Electron-Benutzerdatenverzeichnis (angezeigt unter Einstellungen > Anwendungsinfo):
 
-- `profiles.json` (Profilvorlagen)
+- `profiles.json` (Event-Vorlagen)
 - `cache.json` (Session-Tokens)
 - `settings.json` (App-Einstellungen)
 - `themes.json` (Theme-Presets und benutzerdefinierte Farben)
@@ -58,13 +60,14 @@ Beim ersten Start versucht die App, eine vorhandene `profiles.json` aus dem Proj
 __**Teile keine Cache-Dateien oder App-Datenordner.**__
 
 ## Hinweise zur Nutzung
-- Profile benötigen einen Profilnamen, Eventnamen und eine Beschreibung, bevor du fortfahren kannst.
+- Vorlagen benötigen einen Vorlagennamen, Eventnamen und eine Beschreibung, bevor du fortfahren kannst.
 - Private Gruppen können nur Zugriffstyp = Gruppe verwenden.
 - Dauer verwendet DD:HH:MM und ist auf 31 Tage begrenzt.
 - Tags sind auf 5 und Sprachen auf 3 begrenzt.
 - Galerie-Uploads sind auf PNG/JPG, 64-2048 px, unter 10 MB und 64 Bilder pro Konto begrenzt.
 - VRChat begrenzt die Event-Erstellung auf 10 Events pro Stunde pro Person pro Gruppe.
 - Event-Automatisierung erfordert, dass die App läuft. Verpasste Automatisierungen können unter Events bearbeiten verwaltet werden.
+- Featured Event und andere spezielle Schalter erfordern bestimmte Gruppenberechtigungen; die Schalter erscheinen nur, wenn erlaubt.
 
 ## Fehlerbehebung
 - Login-Probleme: `cache.json` löschen und erneut anmelden (verwende den Datenordner aus Einstellungen > Anwendungsinfo).
@@ -80,6 +83,4 @@ __**Teile keine Cache-Dateien oder App-Datenordner.**__
 - Node.js 20+ (22.21.1 empfohlen)
 - npm
 - Ein VRChat-Konto mit Berechtigung, Events für mindestens eine Gruppe zu erstellen
-
-
 

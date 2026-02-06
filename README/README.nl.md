@@ -23,18 +23,20 @@ Een alles-in-één tool voor VRChat-evenementen die tijdrovend instelwerk overbo
 Maak en bewaar per-groep event-sjablonen, genereer aankomende eventdatums op basis van eenvoudige herhalingspatronen, en vul details automatisch in — ideaal om snel wekelijkse meetups, watch parties en community-evenementen te plannen.
 
 <p align="center">
-  <img src="../README/.imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (profile to publish)" />
+  <img src="../README/.imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event-creatie flow (sjabloon naar publicatie)" />
 </p>
 
 ## Functies
-- Profielen/sjablonen die eventdetails per groep automatisch invullen.
+- Sjablonen die eventdetails per groep automatisch invullen.
 - Generator voor herhalingspatronen met lijsten van aankomende datums en een handmatige datum-/tijd-terugvaloptie.
-- Evenement-automatiseringssysteem (experimenteel) — plaatst automatisch evenementen op basis van profielpatronen.
+- Evenement-automatiseringssysteem (experimenteel) — plaatst automatisch evenementen op basis van sjabloonpatronen.
 - Wizard voor het aanmaken van evenementen voor groepskalenders.
 - Weergave “Modify Events” voor aankomende evenementen (raster + bewerkvenster/modaal).
+- Ondersteunt speciale eventopties voor groepen met extra rechten.
 - Theme Studio met presets en volledige controle over UI-kleuren (ondersteunt #RRGGBBAA).
 - Gallerij-kiezer en uploadfunctie voor afbeelding-IDs.
-- Minimaliseren naar het systeemvak.
+- Starten bij systeemstart + minimaliseren naar het systeemvak.
+- Bescherming tegen meerdere instanties om dubbele starts te voorkomen.
 - Lokalisatie met taalkeuze bij eerste start (en, fr, es, de, ja, zh, pt, ko, ru, nl).
 
 ## Download
@@ -44,7 +46,7 @@ Maak en bewaar per-groep event-sjablonen, genereer aankomende eventdatums op bas
 Je wachtwoord wordt niet opgeslagen. Alleen sessietokens worden in de cache opgeslagen.
 De app slaat zijn bestanden op in de Electron user data directory (te zien in Settings > Application Info):
 
-- `profiles.json` (profielsjablonen)
+- `profiles.json` (eventsjablonen)
 - `cache.json` (sessietokens)
 - `settings.json` (app-instellingen)
 - `themes.json` (thema-presets en aangepaste kleuren)
@@ -57,13 +59,14 @@ Bij de eerste start probeert de app een bestaande `profiles.json` uit de project
 __**Deel geen cachebestanden of applicatiedatamappen.**__
 
 ## Gebruiksnotities
-- Profielen vereisen een Profielnaam, Event naam en Omschrijving voordat je verder kunt.
+- Sjablonen vereisen een Sjabloonnaam, Eventnaam en Omschrijving voordat je verder kunt.
 - Privégroepen kunnen alleen Toegangstype = Groep gebruiken.
 - Tijdsduur gebruikt **DD:HH:MM** en heeft een maximum van 31 dagen.
 - Tags zijn beperkt tot 5 en talen zijn beperkt tot 3.
 - Gallerij-uploads zijn beperkt tot PNG/JPG, 64–2048 px, onder 10 MB, en 64 afbeeldingen per account.
 - VRChat beperkt het aanmaken van events tot 10 events per uur per persoon per groep.
 - Event-automatisering vereist dat de app draait. Gemiste automations kun je beheren in Evenementen wijzigen.
+- Featured Event en andere speciale schakelaars vereisen specifieke groepsrechten; de schakelaars verschijnen alleen wanneer toegestaan.
 
 ## Probleemoplossing
 - Loginproblemen: verwijder `cache.json` en log opnieuw in (gebruik de datamap die wordt getoond in Instellingen > Applicatie Info).

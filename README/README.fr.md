@@ -23,20 +23,22 @@ Créez et enregistrez des modèles d'événements par groupe, générez des date
 
 
 <p align="center">
-  <img src=".imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (profile to publish)" />
+  <img src=".imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Flux de création d'événements (modèle vers publication)" />
 </p>
 
 
 ## Fonctionnalités
-- Profils/modèles qui préremplissent les détails des événements par groupe.
+- Modèles qui préremplissent les détails des événements par groupe.
 - Générateur de récurrences avec liste des prochaines dates et option manuelle date/heure.
-- Système d'automatisation d'événements (expérimental) - publie automatiquement des événements selon les motifs du profil.
+- Système d'automatisation d'événements (expérimental) - publie automatiquement des événements selon les motifs du modèle.
 - Assistant de création d'événements pour les calendriers de groupe.
 - Vue Modifier les événements pour les événements à venir (grille + fenêtre d'édition).
+- Prend en charge des options d’événements spéciales pour les groupes disposant de permissions supplémentaires.
 - Studio de thèmes avec préréglages et contrôle complet des couleurs UI (prend en charge #RRGGBBAA).
 - Sélecteur et téléversement d'images de galerie pour les ID d'image.
-- Réduction dans la barre d'état système.
-- Localisation avec sélection de langue au premier lancement (en, fr, es, de, ja, zh, pt, ko, ru).
+- Démarrage au lancement du système + réduction dans la zone de notification.
+- Protection mono-instance pour éviter les doubles lancements.
+- Localisation avec sélection de langue au premier lancement (en, fr, es, de, ja, zh, pt, ko, ru, nl).
 
 ## Téléchargement
 - Releases : https://github.com/Cynacedia/VRC-Event-Creator/releases
@@ -45,7 +47,7 @@ Créez et enregistrez des modèles d'événements par groupe, générez des date
 Votre mot de passe n'est pas stocké. Seuls les jetons de session sont mis en cache.
 L'application stocke ses fichiers dans le répertoire de données utilisateur d'Electron (indiqué dans Paramètres > Informations sur l'application) :
 
-- `profiles.json` (modèles de profils)
+- `profiles.json` (modèles d'événements)
 - `cache.json` (jetons de session)
 - `settings.json` (paramètres de l'application)
 - `themes.json` (préréglages de thèmes et couleurs personnalisées)
@@ -58,13 +60,14 @@ Au premier lancement, l'application tentera d'importer un `profiles.json` exista
 __**Ne partagez pas les fichiers de cache ni les dossiers de données de l'application.**__
 
 ## Notes d'utilisation
-- Les profils nécessitent un nom de profil, un nom d'événement et une description avant de continuer.
+- Les modèles nécessitent un nom de modèle, un nom d'événement et une description avant de continuer.
 - Les groupes privés ne peuvent utiliser que le type d'accès = Groupe.
 - La durée utilise DD:HH:MM et est limitée à 31 jours.
 - Les tags sont limités à 5 et les langues à 3.
 - Les téléversements de galerie sont limités à PNG/JPG, 64-2048 px, moins de 10 Mo et 64 images par compte.
 - VRChat limite la création d'événements à 10 événements par heure par personne par groupe.
 - L'automatisation d'événements nécessite que l'application soit en cours d'exécution. Les automatisations manquées peuvent être gérées dans Modifier les événements.
+- Featured Event et d’autres commutateurs spéciaux nécessitent des permissions de groupe spécifiques ; les commutateurs n’apparaissent que lorsqu’ils sont autorisés.
 
 ## Dépannage
 - Problèmes de connexion : supprimez `cache.json` et reconnectez-vous (utilisez le dossier de données indiqué dans Paramètres > Informations sur l'application).
@@ -80,5 +83,3 @@ __**Ne partagez pas les fichiers de cache ni les dossiers de données de l'appli
 - Node.js 20+ (22.21.1 recommandé)
 - npm
 - Un compte VRChat avec l'autorisation de créer des événements pour au moins un groupe
-
-

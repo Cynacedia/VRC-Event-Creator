@@ -24,19 +24,21 @@ Create and save per-group event templates, generate upcoming event dates from si
 
 
 <p align="center">
-  <img src="README/.imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (profile to publish)" />
+  <img src="README/.imgs/1MP-CE_CreationFlow-01-05-26.gif" width="900" alt="Event creation flow (template to publish)" />
 </p>
 
 
 ## Features
-- Profiles/templates that auto-fill event details per group.
+- Templates that auto-fill event details per group.
 - Recurring pattern generator with upcoming date lists and manual date/time fallback.
-- Event automation system (experimental) - automatically post events based on profile patterns.
+- Event automation system (experimental) - automatically post events based on template patterns.
 - Event creation wizard for group calendar events.
 - Modify Events view for upcoming events (grid + edit modal).
+- Supports special event options for groups that have additional permissions.
 - Theme Studio with presets and full UI color control (supports #RRGGBBAA).
 - Gallery picker and upload for image IDs.
-- Minimize to system tray.
+- Start on system startup + minimize to tray.
+- Single-instance protection to prevent duplicate launches.
 - Localization with first-run language selection (en, fr, es, de, ja, zh, pt, ko, ru, nl).
 
 ## Download
@@ -46,7 +48,7 @@ Create and save per-group event templates, generate upcoming event dates from si
 Your password is not stored. Only session tokens are cached.
 The app stores its files in the Electron user data directory (shown in the Settings > Application Info section):
 
-- `profiles.json` (profile templates)
+- `profiles.json` (event templates)
 - `cache.json` (session tokens)
 - `settings.json` (app settings)
 - `themes.json` (theme presets and custom colors)
@@ -59,13 +61,14 @@ On first launch, the app will try to import an existing `profiles.json` from the
 __**Do not share cache files or application data folders.**__
 
 ## Usage notes
-- Profiles require a Profile Name, Event Name, and Description before you can continue.
+- Templates require a Template Name, Event Name, and Description before you can continue.
 - Private groups can only use Access Type = Group.
 - Duration uses DD:HH:MM and caps at 31 days.
 - Tags are limited to 5 and languages are limited to 3.
 - Gallery uploads are limited to PNG/JPG, 64-2048 px, under 10 MB, and 64 images per account.
 - VRChat limits event creation to 10 events per-hour per-person per-group.
 - Event automation requires the app to be running. Missed automations can be managed in Modify Events.
+- Featured Event and other special toggles require specific group permissions; the toggles only appear when allowed.
 
 ## Troubleshooting
 - Login issues: delete `cache.json` and sign in again (use the data folder shown in Settings > Application Info).
