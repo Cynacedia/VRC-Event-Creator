@@ -8,19 +8,19 @@ export const ja = {
     settings: "設定"
   },
   auth: {
-    title: "ログイン",
-    subtitle: "VRChatの認証情報が必要です",
+    title: "アクセス",
+    subtitle: "VRChatの認証が必要です",
     username: "ユーザー名",
     password: "パスワード",
-    signIn: "サインイン",
+    signIn: "ログイン",
     logout: "ログアウト",
-    sessionHint: "セッションはローカルにキャッシュされます。キャッシュファイルは非公開にしてください。",
-    loggingIn: "サインイン中...",
-    loginFailed: "サインインに失敗しました。",
+    sessionHint: "セッション情報はローカル端末にて保存されております。キャッシュファイルを第三者に渡さないように！",
+    loggingIn: "ログイン中…",
+    loginFailed: "ログインに失敗しました",
     sessionChecking: "セッションを確認中...",
     sessionCheckFailed: "セッションの確認に失敗しました。",
-    loginRequired: "サインインが必要です。",
-    loggedInAs: "{name} としてサインインしました。",
+    loginRequired: "ログイン必須",
+    loggedInAs: "{name} としてログイン中",
     logoutFailed: "ログアウトに失敗しました。",
     loggedOut: "ログアウトしました。"
   },
@@ -32,7 +32,7 @@ export const ja = {
   },
     languageSetup: {
     title: "言語を選択",
-    subtitle: "開始する言語を選んでください。",
+    subtitle: "ご利用になる言語を指定して下さい",
     hint: "設定でいつでも変更できます。",
     continue: "続行"
   },
@@ -87,8 +87,8 @@ export const ja = {
         statusLabels: "ステータスとラベル",
         accent: "アクセント",
         panel: "パネル",
-        mutedText: "控えめな文字",
-        primary: "プライマリ",
+        mutedText: "ミュートテキスト",
+        primary: "主要色",
         ghost: "ゴースト",
         inputField: "入力欄",
         dropdown: "ドロップダウン",
@@ -96,9 +96,9 @@ export const ja = {
         dropdownOptionB: "ドロップダウン項目 B",
         dropdownOptionC: "ドロップダウン項目 C",
         dropdownOptionD: "ドロップダウン項目 D",
-        previewLink: "プレビューリンク",
+        previewLink: "プレビューURL",
         toastPreview: "トーストプレビューは Panel Alt を使用",
-        previewHint: "色を調整するとプレビューがリアルタイムに更新されます。"
+        previewHint: "色を調整するとリアルタイムで変化を確認できます。"
       },
       fields: {
         accent: "アクセント",
@@ -110,7 +110,7 @@ export const ja = {
         headerBg: "ヘッダー",
         overlay: "オーバーレイ",
         text: "テキスト",
-        textMuted: "控えめテキスト",
+        textMuted: "ミュートテキスト",
         link: "リンク",
         linkHover: "リンクホバー",
         button: "ボタン 1",
@@ -153,9 +153,9 @@ export const ja = {
   },
   demo: {
     controls: {
-      title: "Demo Controls",
-      updateGateLabel: "Force Update Required",
-      updateGateHint: "Blocks event creation/modification and shows update-required toasts."
+      title: "デモコントロール",
+      updateGateLabel: "強制アップデートが必要です",
+      updateGateHint: "イベント作成・編集不可、トーストにアップデート必須情報確認"
     }
   },
   trayPrompt: {
@@ -220,8 +220,8 @@ export const ja = {
       noProfile: "テンプレート未選択です。手動で日付/時刻を入力してください。",
       manualReady: "手動モード準備完了。",
       chooseGenerated: "生成された日付を選ぶか手動で入力してください。",
-      noUpcoming: "今後の日付が見つかりません。",
-      loadFailed: "パターン日付を読み込めませんでした。"
+      noUpcoming: "今後の日程を確認できませんでした",
+      loadFailed: "パターン化の日程を読み込めませんでした"
     },
     profileHint: "テンプレートは任意です。デフォルト設定または手動設定が選べます。",
     loadProfile: "テンプレートを読み込む (任意)",
@@ -250,20 +250,20 @@ export const ja = {
     manualProfileOption: "手動 (テンプレート無し)",
     pastDateError: "過去の日付は選択できません。",
     futureDateError: "イベントは最長1年先までしか設定できません。",
-    upcomingLimitNotice: "VRChat では各グループの今後のイベントが最大10件に制限されています。",
+    upcomingLimitNotice: "VRChatの制限により1時間以内に作成できるイベント件数は10件までです",
     upcomingCountGroupFallback: "このグループ",
-    upcomingCountStatus: "{group} の今後のイベント: {count}/{limit}。",
-    upcomingCountUnknown: "今後のイベント数を取得できません。",
-    upcomingCountToast: "{group} は現在 {count}/{limit} 件の今後のイベントがあります。",
-    upcomingLimitReached: "上限に達しました: {group} には今後のイベントが {limit} 件あります。1 件削除するか日程を変更してください。",
-    upcomingLimitError: "上限に達しました: {group} には今後のイベントが {limit} 件あります。1 件削除するか日程を変更してください。",
+    upcomingCountStatus: "1時間以内に作成された{group}のイベント数： {count}/{limit}",
+    upcomingCountUnknown: "制作されたイベント数の情報が取得できませんでした",
+    upcomingCountToast: "1時間以内に作成された{group}のイベント数： {count}/{limit}",
+    upcomingLimitReached: "現在イベント作成が制限されています。少し待ってから再試行してください",
+    upcomingLimitError: "イベントの作成に失敗しました。少し待ってから再試行してください",
     crossPlatformRateLimit: "レート制限。他のプラットフォームで作成された追跡されていないイベントが制限にカウントされる可能性があります。{minutes}分後に再試行してください。",
     unknownRateLimit: "レート制限。後でもう一度お試しください。",
     upcomingCountRefresh: "更新",
     createButton: "イベントを作成",
     create: {
-      warnConflicts: "競合するイベントを警告する",
-      alreadyCreating: "イベントを作成中です。お待ちください..."
+      warnConflicts: "重複してるイベントがある場合警告する",
+      alreadyCreating: "既にイベントを制作中です。少々お待ちください。"
     },
     created: "イベントを作成しました。",
     failed: "イベントを作成できませんでした。",
@@ -273,12 +273,12 @@ export const ja = {
     requiredSingle: "{field} は必須です。",
     requiredMultiple: "{fields} は必須です。",
     noDateOptionsError: "テンプレートから日付候補がありません。",
-    featuredPermissionRevoked: "このグループには注目イベントを作成する権限がなくなりました。",
-    groupFairPermissionRevoked: "このグループにはグループフェアにイベントを含める権限がなくなりました。"
+    featuredPermissionRevoked: "このグループで注目イベントを作成する権限が失われました",
+    groupFairPermissionRevoked: "このグル－プでグループフェアイベントを作成する権限が失われました"
   },
   modify: {
     title: "イベントを編集",
-    subtitle: "グループの今後のイベントを編集または削除します。",
+    subtitle: "作成済みのグループのイベントを編集、または削除",
     groupLabel: "グループ",
     showPending: "保留中を表示",
     countEmpty: "今後のイベント情報を取得できません。",
@@ -321,9 +321,9 @@ export const ja = {
       edit: "編集",
       cancel: "キャンセル",
       publishAt: "公開日: {time}",
-      missedHint: "この自動化は見逃されました。今すぐ投稿するか削除してください。",
-      queuedDisabled: "Queued by rate limits. Post Now is disabled.",
-      queuedHint: "Queued by rate limits. Waiting to publish.",
+      missedHint: "この自動化イベントは正常にスケジュールすることが出来ませんでした。今すぐ投稿するか削除してください",
+      queuedDisabled: "レート制限により待機中。「今すぐ投稿」を無効化しました",
+      queuedHint: "レート制限により待機中。投稿待ちです",
       posted: "イベントが正常に投稿されました。",
       postFailed: "イベントを投稿できませんでした。",
       cancelled: "予定イベントがキャンセルされました。",
@@ -371,12 +371,12 @@ export const ja = {
     displayName: "テンプレート名",
     displayNamePlaceholder: "コミュニティ交流テンプレート",
     access: "アクセス",
-    durationDefault: "既定の所要時間 (日数：時間：分)",
+    durationDefault: "既定の所要時間（DD:HH:MM）",
     dateMode: "日付モード",
     dateModePattern: "パターン",
     dateModeManual: "手動のみ",
     dateModeBoth: "パターン + 手動",
-    sendNotificationDefault: "既定で通知を送信",
+    sendNotificationDefault: "デフォルトで通知を送信",
     patterns: {
       title: "繰り返しパターン",
       addButton: "パターン追加",
@@ -416,10 +416,10 @@ export const ja = {
     },
     automation: {
       title: "自動化（実験的）",
-      description: "パターンに基づいてイベントを自動投稿します。イベントは「イベントを変更」に「保留中」として表示されます。",
+      description: "自動投稿を使うにはアプリケーションを開いておく必要があります。自動投稿を逃した場合は「イベントを変更」のタブから処理できます",
       enableLabel: "自動化を有効にする",
       timingLabel: "スケジュール規則",
-      frequencyLabel: "タイミング（日数：時間：分）",
+      frequencyLabel: "タイミング（DD:HH:MM）",
       timingModes: {
         before: "イベント開始前",
         after: "前のイベント終了後",
@@ -439,7 +439,7 @@ export const ja = {
         count: "固定回数"
       },
       repeatCount: "作成数",
-      disclaimer: "自動化にはアプリの実行が必要です。見逃した自動化は「イベントを変更」タブから処理できます。",
+      disclaimer: "自動投稿を使うにはアプリケーションを開いておく必要があります。自動投稿を逃した場合は「イベントを変更」のタブから処理できます",
       patternsRequired: "自動化には少なくとも1つのパターンが必要です",
       confirmTitle: "自動化を有効にしますか？",
       confirmEnable: "自動化にはイベントを投稿するためにアプリの実行が必要です。見逃した自動化は「イベントを変更」タブから処理できます。",
@@ -459,9 +459,9 @@ export const ja = {
         monthly: "毎月{day}日{time}"
       },
       helpers: {
-        offsetDays: "イベントを投稿する日数を設定します",
-        offsetHours: "イベントを投稿する時間を設定します",
-        offsetMinutes: "イベントを投稿する分数を設定します",
+        offsetDays: "イベントを投稿する日程の日数を前後に調整",
+        offsetHours: "イベントを投稿する時間を一時間単位で前後に調整",
+        offsetMinutes: "イベントを投稿する時間を一分単位で前後に調整",
         monthlyDay: "29～31日は短い月の最終日になります",
         monthlyTime: "毎月イベントが投稿される時刻を設定します"
       },
@@ -567,7 +567,7 @@ export const ja = {
     next: "次へ"
   },
   conflict: {
-    title: "イベントの競合",
+    title: "イベントの重複",
     message: "イベント「{title}」はすでにこの時間に予定されています。",
     changeTime: "時間を再選択",
     continue: "そのまま作成"

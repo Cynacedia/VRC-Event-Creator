@@ -85,4 +85,10 @@ __**Do not share cache files or application data folders.**__
 - npm
 - A VRChat account with permission to create events for at least one group
 
+---
 
+## Special Thanks
+- [🌸potato🌸](https://x.com/potatovrc) — Japanese translations
+- Garvas — French translations
+- Sometsuki — Portuguese translations
+- All [GitHub contributors](https://github.com/Cynacedia/VRC-Event-Creator/graphs/contributors)

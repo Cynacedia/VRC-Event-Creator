@@ -2,6 +2,11 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.0.0] - 2026-02-20
+
+### Changed
+- Updated Japanese translations — thank you to [🌸potato🌸](https://x.com/potatovrc) for the contribution!
+
 ## [0.9.35] - 2026-02-06
 
 ### Added
