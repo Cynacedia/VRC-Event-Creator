@@ -35,7 +35,7 @@
 - 即将到来的活动编辑视图（网格 + 编辑弹窗）。
 - 支持拥有额外权限的群组使用特殊活动选项。
 - 主题工作室，内置预设并支持完整界面配色（支持 #RRGGBBAA）。
-- Discord 集成 - 在创建 VRChat 活动时自动创建 Discord 活动。（[配置指南](Discord%20Setup/DISCORD_SETUP.en.md)）
+- Discord 集成 - 在创建 VRChat 活动时自动创建 Discord 活动。（[配置指南](Discord%20Setup/DISCORD_SETUP.zh.md)）
 - 图库选择与图片 ID 上传。
 - 开机自启 + 最小化到系统托盘。
 - 单实例保护，防止重复启动。

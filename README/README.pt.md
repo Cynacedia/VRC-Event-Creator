@@ -35,7 +35,7 @@ Crie e salve modelos de eventos por grupo, gere datas futuras a partir de padrõ
 - Tela de modificar eventos para próximos eventos (grade + modal de edição).
 - Suporta opções especiais de eventos para grupos com permissões adicionais.
 - Estúdio de temas com presets e controle total de cores da UI (suporta #RRGGBBAA).
-- Integração com o Discord - cria automaticamente eventos no Discord junto com os eventos do VRChat. ([Guia de configuração](Discord%20Setup/DISCORD_SETUP.en.md))
+- Integração com o Discord - cria automaticamente eventos no Discord junto com os eventos do VRChat. ([Guia de configuração](Discord%20Setup/DISCORD_SETUP.pt.md))
 - Seletor e upload de imagens da galeria para IDs de imagem.
 - Iniciar com o sistema + minimizar para a bandeja do sistema.
 - Proteção de instância única para evitar lançamentos duplicados.

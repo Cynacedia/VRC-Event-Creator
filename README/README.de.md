@@ -35,7 +35,7 @@ Erstelle und speichere gruppenbezogene Event-Vorlagen, generiere kommende Termin
 - Ansicht „Events bearbeiten" für kommende Events (Raster + Bearbeitungs-Modal).
 - Unterstützt besondere Event-Optionen für Gruppen mit zusätzlichen Berechtigungen.
 - Theme Studio mit Presets und voller UI-Farbkontrolle (unterstützt #RRGGBBAA).
-- Discord-Integration - erstellt automatisch Discord-Events zusammen mit VRChat-Events. ([Einrichtungsanleitung](Discord%20Setup/DISCORD_SETUP.en.md))
+- Discord-Integration - erstellt automatisch Discord-Events zusammen mit VRChat-Events. ([Einrichtungsanleitung](Discord%20Setup/DISCORD_SETUP.de.md))
 - Galerieauswahl und Upload für Bild-IDs.
 - Start beim Systemstart + Minimierung in den Infobereich.
 - Einzelinstanz-Schutz, um doppelte Starts zu verhindern.

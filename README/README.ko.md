@@ -35,7 +35,7 @@
 - 예정된 이벤트들의 보기 및 수정 (그리드 + 편집 모달)
 - 특별한 권한이 있는 그룹을 위한 추가적인 이벤트 옵션
 - 프리셋이 포함된 테마 스튜디오와 전체 UI 색상 제어(#RRGGBBAA 지원)
-- Discord 연동 - VRChat 이벤트와 함께 Discord 이벤트를 자동으로 생성 ([설정 가이드](Discord%20Setup/DISCORD_SETUP.en.md))
+- Discord 연동 - VRChat 이벤트와 함께 Discord 이벤트를 자동으로 생성 ([설정 가이드](Discord%20Setup/DISCORD_SETUP.ko.md))
 - VRChat 갤러리 시스템의 이미지 ID를 통한 사진 선택 및 업로드
 - 시스템 시작 시 실행 + 시스템 트레이로 최소화
 - 단일 인스턴스 보호로 중복 실행 방지

@@ -35,7 +35,7 @@ Crea y guarda plantillas de eventos por grupo, genera fechas próximas a partir 
 - Vista de modificar eventos para próximos eventos (rejilla + modal de edición).
 - Admite opciones especiales de eventos para grupos con permisos adicionales.
 - Estudio de temas con presets y control total de colores de la UI (compatible con #RRGGBBAA).
-- Integración con Discord - crea automáticamente eventos de Discord junto con los eventos de VRChat. ([Guía de configuración](Discord%20Setup/DISCORD_SETUP.en.md))
+- Integración con Discord - crea automáticamente eventos de Discord junto con los eventos de VRChat. ([Guía de configuración](Discord%20Setup/DISCORD_SETUP.es.md))
 - Selector y subida de imágenes de galería para IDs de imagen.
 - Inicio con el sistema + minimizar a la bandeja del sistema.
 - Protección de instancia única para evitar lanzamientos duplicados.

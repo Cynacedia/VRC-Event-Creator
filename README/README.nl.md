@@ -34,7 +34,7 @@ Maak en bewaar per-groep event-sjablonen, genereer aankomende eventdatums op bas
 - Weergave “Modify Events” voor aankomende evenementen (raster + bewerkvenster/modaal).
 - Ondersteunt speciale eventopties voor groepen met extra rechten.
 - Theme Studio met presets en volledige controle over UI-kleuren (ondersteunt #RRGGBBAA).
-- Discord-integratie - maakt automatisch Discord-evenementen aan naast VRChat-evenementen. ([Installatiegids](Discord%20Setup/DISCORD_SETUP.en.md))
+- Discord-integratie - maakt automatisch Discord-evenementen aan naast VRChat-evenementen. ([Installatiegids](Discord%20Setup/DISCORD_SETUP.nl.md))
 - Gallerij-kiezer en uploadfunctie voor afbeelding-IDs.
 - Starten bij systeemstart + minimaliseren naar het systeemvak.
 - Bescherming tegen meerdere instanties om dubbele starts te voorkomen.
