@@ -2,6 +2,11 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.1.1] - 2026-03-08
+
+### Fixed
+- Resync button now also checks GitHub for app updates
+
 ## [1.1.0] - 2026-03-08
 
 ### Added

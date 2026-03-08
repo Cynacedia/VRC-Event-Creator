@@ -249,6 +249,7 @@ import { initDemoControls } from "./demo.js";
       dom.statusPill.setAttribute("aria-disabled", "true");
     }
     const ok = await refreshData({ preserveSelection: true });
+    void checkForUpdates();
     if (ok) {
       showToast("Synced successfully.");
     }
