@@ -2271,10 +2271,10 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
   const mapped = mapGroupCalendarEvents(results, groupId, { upcomingOnly, includeNonEditable });
   if (automationEngine.isInitialized() && upcomingOnly && mapped.length < 100) {
     const reconcileResult = automationEngine.reconcilePublishedEvents(groupId, mapped);
-    if (reconcileResult.removed || reconcileResult.updated) {
+    if (reconcileResult.removed || reconcileResult.updated || reconcileResult.reconciled) {
       debugLog(
         "Automation",
-        `Reconciled published events for ${groupId}: ${reconcileResult.updated} updated, ${reconcileResult.removed} removed`
+        `Reconciled events for ${groupId}: ${reconcileResult.updated} updated, ${reconcileResult.removed} removed, ${reconcileResult.reconciled || 0} duplicates caught`
       );
     }
   }
@@ -2950,6 +2950,13 @@ app.whenReady().then(() => {
         if (mainWindow) {
           const eventDetails = automationEngine.resolveEventDetails(pendingEvent.id, profiles);
           mainWindow.webContents.send("automation:created", { pendingEvent, eventId, eventDetails });
+        }
+        // Regenerate pending events to top-up the queue after a successful post.
+        // This keeps the automation self-sustaining as events get published.
+        const { groupId, profileKey } = pendingEvent;
+        const profile = profiles?.[groupId]?.profiles?.[profileKey];
+        if (profile?.automation?.enabled) {
+          automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

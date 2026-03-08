@@ -2,6 +2,13 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.0.1] - 2026-03-07
+
+### Fixed
+- Automation engine now regenerates pending events after each successful automated post, making automation self-sustaining instead of stopping after the initial batch
+- "After" timing mode no longer gets permanently stuck when publish times fall in the past due to stale state — recovers by scheduling 5 minutes from now if the event is still in the future
+- Automation now reconciles scheduled pending events against existing VRChat events to prevent duplicate posting (matches on start time, title, description, category, and access type)
+
 ## [1.0.0] - 2026-02-20
 
 ### Changed

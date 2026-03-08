@@ -776,9 +776,15 @@ function calculatePendingEvents(groupId, profileKey, profile, maxEvents = 10, op
       publishTime = new Date(maxPublishTime);
     }
 
-    // Skip if publish time is in the past
+    // If publish time is in the past but event start is still in the future,
+    // recover by scheduling soon instead of skipping. This prevents "after" mode
+    // from getting permanently stuck when lastSuccess is stale.
     if (publishTime <= now) {
-      continue;
+      if (eventStartTime.getTime() > now.getTime() + MIN_BUFFER_MS) {
+        publishTime = new Date(now.getTime() + 5 * 60 * 1000);
+      } else {
+        continue;
+      }
     }
 
     // Create pending event object (dynamic - only store references, not full details)
@@ -1758,11 +1764,46 @@ function reconcilePublishedEvents(groupId, upcomingEvents = []) {
     return false;
   });
 
-  if (removed || updated) {
+  // Second pass: check scheduled pending events against existing VRChat events.
+  // If an event with the same start time AND title already exists, mark the pending
+  // event as published to prevent duplicate posting.
+  let reconciled = 0;
+  for (const event of pendingEvents) {
+    if (event.groupId !== groupId || event.status !== "scheduled") {
+      continue;
+    }
+    const startKey = event.eventStartsAt;
+    if (!startKey) {
+      continue;
+    }
+    const candidates = eventsByStart.get(startKey) || [];
+    if (!candidates.length) {
+      continue;
+    }
+    const resolved = resolveEventDetails(event.id);
+    if (!resolved?.title) {
+      continue;
+    }
+    const matching = candidates.filter(candidate =>
+      candidate?.title === resolved.title &&
+      candidate?.description === resolved.description &&
+      candidate?.category === resolved.category &&
+      candidate?.accessType === resolved.accessType
+    );
+    if (matching.length > 0) {
+      cancelJob(event.id);
+      event.status = "published";
+      event.eventId = matching[0].id || null;
+      reconciled += 1;
+      debugLogFn("Automation", `Reconciled scheduled event ${event.id} with existing VRChat event ${event.eventId}`);
+    }
+  }
+
+  if (removed || updated || reconciled) {
     savePendingEvents();
   }
 
-  return { ok: true, removed, updated };
+  return { ok: true, removed, updated, reconciled };
 }
 
 /**
