@@ -157,6 +157,12 @@
                           <span data-i18n="common.fields.sendNotification">Send Notification</span>
                         </label>
                       </div>
+                      <div class="field is-hidden" id="event-discord-sync-field">
+                        <label class="toggle">
+                          <input id="event-discord-sync-check" type="checkbox" checked />
+                          <span data-i18n="settings.discord.syncLabel">Sync to Discord</span>
+                        </label>
+                      </div>
                     </div>
                     <div class="grid two">
                       <div class="field">
@@ -378,6 +384,12 @@
                         <span data-i18n="profiles.sendNotificationDefault">Send Notification by default</span>
                       </label>
                     </div>
+                    <div class="field is-hidden" id="discord-sync-field">
+                      <label class="toggle">
+                        <input id="discord-sync-check" type="checkbox" checked />
+                        <span data-i18n="settings.discord.syncLabel">Sync to Discord</span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -573,10 +585,13 @@
                 </label>
               </div>
               <div class="field">
-                <label class="toggle">
-                  <input id="settings-enable-advanced" type="checkbox" />
-                  <span data-i18n="settings.general.enableAdvanced">Enable advanced settings</span>
-                </label>
+                <div class="toggle-with-caret">
+                  <label class="toggle">
+                    <input id="settings-enable-advanced" type="checkbox" />
+                    <span data-i18n="settings.general.enableAdvanced">Enable advanced settings</span>
+                  </label>
+                  <button id="settings-advanced-caret" class="caret-toggle is-hidden" type="button" aria-label="Expand"></button>
+                </div>
               </div>
               <div id="settings-advanced-options" class="advanced-options is-hidden">
                 <div class="field">
@@ -590,6 +605,44 @@
                     <input id="settings-auto-upload-images" type="checkbox" />
                     <span data-i18n="settings.general.autoUploadImages">Automatically upload gallery images from imported events/profiles</span>
                   </label>
+                </div>
+                <div class="divider"></div>
+                <div class="field">
+                  <div class="toggle-with-caret">
+                    <label class="toggle">
+                      <input id="settings-discord-enabled" type="checkbox" />
+                      <span data-i18n="settings.discord.enable">Enable Discord integration</span>
+                    </label>
+                    <button id="discord-settings-caret" class="caret-toggle is-hidden" type="button" aria-label="Expand"></button>
+                  </div>
+                </div>
+                <div id="discord-settings-panel" class="is-hidden">
+                  <p class="hint discord-description" data-i18n="settings.discord.description">Automatically create Discord Events when VRChat events are posted. Configure per group below.</p>
+                  <div id="discord-configured-list" class="discord-configured-list"></div>
+                  <div class="field">
+                    <label for="discord-group-select" data-i18n="settings.discord.groupLabel">Group</label>
+                    <select id="discord-group-select"></select>
+                  </div>
+                  <div id="discord-group-config" class="is-hidden">
+                    <div class="discord-fields-row">
+                      <div class="field discord-field-half">
+                        <label for="discord-bot-token" data-i18n="settings.discord.tokenLabel">Bot Token</label>
+                        <div class="input-with-button">
+                          <input id="discord-bot-token" type="password" autocomplete="off" placeholder="Paste your bot token" data-i18n-placeholder="settings.discord.tokenPlaceholder" />
+                          <button id="discord-token-toggle" class="ghost compact-button" type="button">Show</button>
+                        </div>
+                      </div>
+                      <div class="field discord-field-half">
+                        <label for="discord-guild-id" data-i18n="settings.discord.guildLabel">Server ID</label>
+                        <input id="discord-guild-id" type="text" placeholder="e.g. 123456789012345678" data-i18n-placeholder="settings.discord.guildPlaceholder" />
+                      </div>
+                    </div>
+                    <div class="discord-actions">
+                      <button id="discord-test-btn" class="ghost compact-button" type="button" data-i18n="settings.discord.testButton">Verify Bot Token</button>
+                      <span id="discord-test-result" class="hint"></span>
+                      <button id="discord-save-btn" class="ghost compact-button" type="button" data-i18n="settings.discord.saveButton">Save</button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

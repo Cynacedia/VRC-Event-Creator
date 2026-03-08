@@ -148,6 +148,27 @@ export const ko = {
       enableImportExport: "이벤트 가져오기/내보내기",
       autoUploadImages: "가져온 이벤트/템플릿에서 갤러리 이미지 자동 업로드"
     },
+    discord: {
+      title: "Discord 연동",
+      enable: "Discord 연동 활성화",
+      description: "VRChat 이벤트 생성 시 Discord 이벤트를 자동으로 만듭니다.",
+      profileHint: "이 템플릿의 이벤트가 Discord에도 게시됩니다.",
+      tokenLabel: "봇 토큰",
+      tokenPlaceholder: "봇 토큰 붙여넣기",
+      guildLabel: "서버 ID",
+      guildPlaceholder: "예: 123456789012345678",
+      testButton: "봇 토큰 확인",
+      testSuccess: "{botName}(으)로 연결됨",
+      testFailed: "연결 실패. 봇 토큰을 확인해 주세요.",
+      tokenMissing: "먼저 봇 토큰을 입력해 주세요.",
+      groupLabel: "그룹",
+      selectGroup: "그룹 선택...",
+      saveButton: "저장",
+      saved: "Discord 설정이 저장되었습니다.",
+      syncLabel: "Discord에 동기화",
+      syncSuccess: "\"{title}\" Discord 이벤트가 생성되었습니다",
+      syncFailed: "\"{title}\" Discord 동기화 실패: {error}"
+    },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
   },

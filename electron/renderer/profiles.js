@@ -6,6 +6,7 @@ import { enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput,
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
 
 let roleFetchToken = 0;
+let _discordApi = null;
 
 function getDurationUnits() {
   return {
@@ -406,6 +407,9 @@ export function resetProfileForm() {
   if (dom.automationRestoreCount) {
     dom.automationRestoreCount.textContent = "";
   }
+
+  // Reset Discord sync
+  if (dom.discordSyncCheck) dom.discordSyncCheck.checked = true;
 }
 
 // Apply profile data to form
@@ -455,6 +459,12 @@ export function applyProfileToForm(groupId, profileKey) {
 
   // Apply automation settings
   applyAutomationToForm(profile.automation);
+
+  // Apply Discord sync setting (existing templates must explicitly opt in)
+  if (dom.discordSyncCheck) {
+    dom.discordSyncCheck.checked = profile.discordSync === true;
+  }
+  updateDiscordVisibility();
 }
 
 // Update profile action buttons visibility
@@ -582,6 +592,7 @@ export function handleProfileGroupChange(api) {
   updateProfileActionButtons();
   void renderProfileRoleRestrictions(api);
   void updateProfileTogglesVisibility(api);
+  updateDiscordVisibility();
 
   const wizard = getProfileWizard();
   if (wizard) {
@@ -748,7 +759,8 @@ export async function handleProfileSave(api) {
       timezone: dom.profileTimezone.value,
       dateMode: dom.profileDateMode.value,
       patterns: state.profile.patterns.slice(),
-      automation: getAutomationFromForm()
+      automation: getAutomationFromForm(),
+      discordSync: dom.discordSyncCheck ? dom.discordSyncCheck.checked : true
     }
   };
 
@@ -1087,4 +1099,214 @@ async function applyImportedJsonToProfileForm(data, api) {
 
   // Return success with flag to update UI
   return { success: true, needsUiUpdate: true };
+}
+
+// --- Discord integration UI ---
+
+/** Check if a group has Discord configured. */
+function isGroupDiscordConfigured(groupId) {
+  if (!groupId || state.settings?.discordEnabled !== true) return false;
+  const groupData = (state.profiles || {})[groupId];
+  return !!(groupData?.discordBotToken && groupData?.discordGuildId);
+}
+
+/** Show/hide Discord panel in settings and sync toggle in profile editor.
+ * @param {object} [options]
+ * @param {boolean} [options.expandPanel] - Force expand/collapse the Discord settings panel.
+ */
+export function updateDiscordVisibility({ expandPanel } = {}) {
+  const enabled = state.settings?.discordEnabled === true;
+  // Show/hide the caret based on whether the setting is enabled
+  if (dom.discordSettingsCaret) {
+    dom.discordSettingsCaret.classList.toggle("is-hidden", !enabled);
+  }
+  if (dom.discordSettingsPanel) {
+    if (!enabled) {
+      dom.discordSettingsPanel.classList.add("is-hidden");
+      if (dom.discordSettingsCaret) dom.discordSettingsCaret.classList.remove("is-expanded");
+    } else if (expandPanel === true) {
+      dom.discordSettingsPanel.classList.remove("is-hidden");
+      if (dom.discordSettingsCaret) dom.discordSettingsCaret.classList.add("is-expanded");
+    } else if (expandPanel === false) {
+      dom.discordSettingsPanel.classList.add("is-hidden");
+      if (dom.discordSettingsCaret) dom.discordSettingsCaret.classList.remove("is-expanded");
+    }
+    // If expandPanel is undefined (e.g. on load), panel stays hidden, caret stays collapsed
+  }
+  // Profile editor sync toggle
+  if (dom.discordSyncField) {
+    dom.discordSyncField.classList.toggle("is-hidden", !isGroupDiscordConfigured(dom.profileGroup?.value));
+  }
+  // Create Event sync toggle
+  if (dom.eventDiscordSyncField) {
+    dom.eventDiscordSyncField.classList.toggle("is-hidden", !isGroupDiscordConfigured(dom.eventGroup?.value));
+  }
+}
+
+/** Populate the Discord group selector (only groups with calendar access). */
+export function renderDiscordGroupSelect() {
+  if (!dom.discordGroupSelect) return;
+  const groups = (state.groups || []).filter(g => g.canManageCalendar);
+  dom.discordGroupSelect.innerHTML = "";
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = t("settings.discord.selectGroup") || "Select a group...";
+  dom.discordGroupSelect.appendChild(placeholder);
+
+  groups.forEach(g => {
+    const opt = document.createElement("option");
+    opt.value = g.groupId;
+    opt.textContent = g.name || g.groupId;
+    dom.discordGroupSelect.appendChild(opt);
+  });
+
+  if (dom.discordGroupConfig) dom.discordGroupConfig.classList.add("is-hidden");
+  renderDiscordConfiguredList();
+}
+
+/** Render the list of groups that already have Discord configured. */
+function renderDiscordConfiguredList() {
+  if (!dom.discordConfiguredList) return;
+  const groups = (state.groups || []).filter(g => g.canManageCalendar);
+  const profiles = state.profiles || {};
+
+  const configured = groups.filter(g => {
+    const groupData = profiles[g.groupId];
+    return groupData?.discordGuildId;
+  });
+
+  dom.discordConfiguredList.innerHTML = "";
+  if (!configured.length) return;
+
+  configured.forEach(g => {
+    const tag = document.createElement("span");
+    tag.className = "discord-configured-tag";
+    tag.title = `${g.name} — click to edit`;
+
+    const label = document.createElement("span");
+    label.className = "discord-configured-tag-label";
+    label.textContent = g.name;
+    tag.appendChild(label);
+
+    const remove = document.createElement("button");
+    remove.className = "discord-configured-tag-remove";
+    remove.textContent = "\u00d7";
+    remove.title = "Remove Discord config";
+    tag.appendChild(remove);
+
+    // Click tag to jump to editing that group
+    tag.addEventListener("click", () => {
+      if (dom.discordGroupSelect) {
+        dom.discordGroupSelect.value = g.groupId;
+        dom.discordGroupSelect.dispatchEvent(new Event("change"));
+      }
+    });
+
+    // Click X to clear Discord config for this group
+    remove.addEventListener("click", async e => {
+      e.stopPropagation();
+      if (!_discordApi) return;
+      await _discordApi.discordUpdateGroupDiscord({
+        groupId: g.groupId,
+        discordBotToken: "",
+        discordGuildId: ""
+      });
+      try { state.profiles = await _discordApi.getProfiles(); } catch { /* ignore */ }
+      renderDiscordConfiguredList();
+      // If we just deleted the currently selected group, clear the config panel
+      if (dom.discordGroupSelect?.value === g.groupId) {
+        if (dom.discordBotToken) dom.discordBotToken.value = "";
+        if (dom.discordGuildId) dom.discordGuildId.value = "";
+        if (dom.discordTestResult) dom.discordTestResult.textContent = "";
+      }
+    });
+
+    dom.discordConfiguredList.appendChild(tag);
+  });
+}
+
+/** Load group-level Discord config when a group is selected. */
+async function loadDiscordGroupConfig(api) {
+  const groupId = dom.discordGroupSelect?.value;
+  if (!groupId) {
+    if (dom.discordGroupConfig) dom.discordGroupConfig.classList.add("is-hidden");
+    return;
+  }
+  if (dom.discordGroupConfig) dom.discordGroupConfig.classList.remove("is-hidden");
+
+  const config = await api.discordGetGroupDiscord(groupId);
+  if (dom.discordBotToken) dom.discordBotToken.value = config.botToken || "";
+  if (dom.discordGuildId) dom.discordGuildId.value = config.guildId || "";
+  if (dom.discordTestResult) dom.discordTestResult.textContent = "";
+}
+
+/** Save group-level Discord config (bot token + guild ID). */
+async function saveDiscordGroupConfig(api) {
+  const groupId = dom.discordGroupSelect?.value;
+  if (!groupId) return;
+
+  await api.discordUpdateGroupDiscord({
+    groupId,
+    discordBotToken: dom.discordBotToken?.value || "",
+    discordGuildId: dom.discordGuildId?.value?.trim() || ""
+  });
+
+  // Refresh profiles so the configured list updates
+  try {
+    state.profiles = await api.getProfiles();
+  } catch { /* ignore */ }
+  renderDiscordConfiguredList();
+}
+
+/** Wire up Discord UI events. Call once during init. */
+export function initDiscordUI(api) {
+  _discordApi = api;
+
+  // Token show/hide toggle
+  if (dom.discordTokenToggle && dom.discordBotToken) {
+    dom.discordTokenToggle.addEventListener("click", () => {
+      const isPassword = dom.discordBotToken.type === "password";
+      dom.discordBotToken.type = isPassword ? "text" : "password";
+      dom.discordTokenToggle.textContent = isPassword ? "Hide" : "Show";
+    });
+  }
+
+  // Group selector change
+  if (dom.discordGroupSelect) {
+    dom.discordGroupSelect.addEventListener("change", () => loadDiscordGroupConfig(api));
+  }
+
+  // Test connection button
+  if (dom.discordTestBtn) {
+    dom.discordTestBtn.addEventListener("click", async () => {
+      const token = dom.discordBotToken?.value;
+      if (!token) {
+        if (dom.discordTestResult) dom.discordTestResult.textContent = t("settings.discord.tokenMissing");
+        return;
+      }
+      if (dom.discordTestResult) dom.discordTestResult.textContent = "...";
+      dom.discordTestBtn.disabled = true;
+      try {
+        const result = await api.discordTestConnection(token);
+        if (dom.discordTestResult) {
+          dom.discordTestResult.textContent = result.ok
+            ? t("settings.discord.testSuccess").replace("{botName}", result.botName)
+            : (result.error || t("settings.discord.testFailed"));
+        }
+      } catch {
+        if (dom.discordTestResult) dom.discordTestResult.textContent = t("settings.discord.testFailed");
+      }
+      dom.discordTestBtn.disabled = false;
+    });
+  }
+
+  // Save button
+  if (dom.discordSaveBtn) {
+    dom.discordSaveBtn.addEventListener("click", async () => {
+      await saveDiscordGroupConfig(api);
+      const { showToast } = await import("./ui.js");
+      showToast(t("settings.discord.saved") || "Discord settings saved.");
+    });
+  }
 }

@@ -35,6 +35,7 @@ Erstelle und speichere gruppenbezogene Event-Vorlagen, generiere kommende Termin
 - Ansicht „Events bearbeiten" für kommende Events (Raster + Bearbeitungs-Modal).
 - Unterstützt besondere Event-Optionen für Gruppen mit zusätzlichen Berechtigungen.
 - Theme Studio mit Presets und voller UI-Farbkontrolle (unterstützt #RRGGBBAA).
+- Discord-Integration - erstellt automatisch Discord-Events zusammen mit VRChat-Events. ([Einrichtungsanleitung](Discord%20Setup/DISCORD_SETUP.en.md))
 - Galerieauswahl und Upload für Bild-IDs.
 - Start beim Systemstart + Minimierung in den Infobereich.
 - Einzelinstanz-Schutz, um doppelte Starts zu verhindern.
@@ -56,6 +57,8 @@ Die App speichert ihre Dateien im Electron-Benutzerdatenverzeichnis (angezeigt u
 
 Du kannst das Datenverzeichnis mit der Umgebungsvariable `VRC_EVENT_DATA_DIR` überschreiben.
 Beim ersten Start versucht die App, eine vorhandene `profiles.json` aus dem Projektordner zu importieren.
+
+Bot-Tokens (für die Discord-Integration) werden mit dem sicheren Speicher deines Betriebssystems verschlüsselt gespeichert. Sie werden ausschließlich direkt an die Discord-API gesendet.
 
 __**Teile keine Cache-Dateien oder App-Datenordner.**__
 

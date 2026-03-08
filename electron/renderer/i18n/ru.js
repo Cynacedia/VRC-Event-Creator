@@ -148,6 +148,27 @@ export const ru = {
       enableImportExport: "Импорт/Экспорт событий",
       autoUploadImages: "Автоматически загружать изображения галереи из импортированных событий/шаблонов"
     },
+    discord: {
+      title: "Интеграция с Discord",
+      enable: "Включить интеграцию с Discord",
+      description: "Автоматически создаёт мероприятия в Discord при создании событий VRChat.",
+      profileHint: "События из этого шаблона также будут опубликованы в Discord.",
+      tokenLabel: "Токен бота",
+      tokenPlaceholder: "Вставьте токен бота",
+      guildLabel: "ID сервера",
+      guildPlaceholder: "напр. 123456789012345678",
+      testButton: "Проверить токен",
+      testSuccess: "Подключено как {botName}",
+      testFailed: "Ошибка подключения. Проверьте токен бота.",
+      tokenMissing: "Сначала введите токен бота.",
+      groupLabel: "Группа",
+      selectGroup: "Выберите группу...",
+      saveButton: "Сохранить",
+      saved: "Настройки Discord сохранены.",
+      syncLabel: "Синхронизировать с Discord",
+      syncSuccess: "Мероприятие Discord создано для «{title}»",
+      syncFailed: "Синхронизация с Discord не удалась для «{title}»: {error}"
+    },
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
   },

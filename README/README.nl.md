@@ -34,6 +34,7 @@ Maak en bewaar per-groep event-sjablonen, genereer aankomende eventdatums op bas
 - Weergave “Modify Events” voor aankomende evenementen (raster + bewerkvenster/modaal).
 - Ondersteunt speciale eventopties voor groepen met extra rechten.
 - Theme Studio met presets en volledige controle over UI-kleuren (ondersteunt #RRGGBBAA).
+- Discord-integratie - maakt automatisch Discord-evenementen aan naast VRChat-evenementen. ([Installatiegids](Discord%20Setup/DISCORD_SETUP.en.md))
 - Gallerij-kiezer en uploadfunctie voor afbeelding-IDs.
 - Starten bij systeemstart + minimaliseren naar het systeemvak.
 - Bescherming tegen meerdere instanties om dubbele starts te voorkomen.
@@ -55,6 +56,8 @@ De app slaat zijn bestanden op in de Electron user data directory (te zien in Se
 
 Je kunt de data directory overschrijven met de `VRC_EVENT_DATA_DIR` environment variable.
 Bij de eerste start probeert de app een bestaande `profiles.json` uit de projectmap te importeren.
+
+Bot-tokens (voor de Discord-integratie) worden versleuteld opgeslagen met de beveiligde opslag van je besturingssysteem. Ze worden uitsluitend rechtstreeks naar de Discord-API verzonden.
 
 __**Deel geen cachebestanden of applicatiedatamappen.**__
 

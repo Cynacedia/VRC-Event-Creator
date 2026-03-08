@@ -2,6 +2,21 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.1.0] - 2026-03-08
+
+### Added
+- **Discord Integration** - Automatically create Discord Events when VRChat events are created (manual or automated)
+  - Per-group bot token and server ID configuration with encrypted token storage (OS secure storage)
+  - Per-template and per-event "Sync to Discord" toggle for granular control
+  - "Verify Bot Token" button to test bot connectivity before saving
+  - Collapsible settings panels for Advanced Settings and Discord Integration
+  - Discord setup guides in English and Japanese
+- Translations for all Discord integration strings across all 10 supported languages
+
+### Changed
+- Advanced Settings and Discord Integration panels now use collapsible carets (expand/collapse independent of the enable checkbox, collapsed by default on restart)
+- Existing templates default to Discord sync off (must opt in); new templates and manual events default to on
+
 ## [1.0.1] - 2026-03-07
 
 ### Fixed

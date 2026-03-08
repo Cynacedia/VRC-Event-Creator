@@ -148,6 +148,27 @@ export const nl = {
       enableImportExport: "Evenementen importeren/exporteren",
       autoUploadImages: "Galerij-afbeeldingen automatisch uploaden van geïmporteerde evenementen/sjablonen"
     },
+    discord: {
+      title: "Discord-integratie",
+      enable: "Discord-integratie inschakelen",
+      description: "Maakt automatisch Discord-evenementen aan bij het aanmaken van VRChat-evenementen.",
+      profileHint: "Evenementen van dit sjabloon worden ook op Discord geplaatst.",
+      tokenLabel: "Bot-token",
+      tokenPlaceholder: "Plak het bot-token",
+      guildLabel: "Server-ID",
+      guildPlaceholder: "bijv. 123456789012345678",
+      testButton: "Bot-token verifiëren",
+      testSuccess: "Verbonden als {botName}",
+      testFailed: "Verbinding mislukt. Controleer het bot-token.",
+      tokenMissing: "Voer eerst een bot-token in.",
+      groupLabel: "Groep",
+      selectGroup: "Selecteer een groep...",
+      saveButton: "Opslaan",
+      saved: "Discord-instellingen opgeslagen.",
+      syncLabel: "Synchroniseren met Discord",
+      syncSuccess: "Discord-evenement aangemaakt voor \"{title}\"",
+      syncFailed: "Discord-synchronisatie mislukt voor \"{title}\": {error}"
+    },
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
   },

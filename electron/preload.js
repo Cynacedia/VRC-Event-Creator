@@ -76,6 +76,17 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   },
   onProfilesUpdated: callback => {
     ipcRenderer.on("profiles:updated", (_, data) => callback(data));
+  },
+
+  // Discord integration
+  discordTestConnection: botToken => ipcRenderer.invoke("discord:testConnection", botToken),
+  discordUpdateGroupDiscord: payload => ipcRenderer.invoke("discord:updateGroupDiscord", payload),
+  discordGetGroupDiscord: groupId => ipcRenderer.invoke("discord:getGroupDiscord", groupId),
+  onDiscordSyncFailed: callback => {
+    ipcRenderer.on("discord:syncFailed", (_, data) => callback(data));
+  },
+  onDiscordSyncSuccess: callback => {
+    ipcRenderer.on("discord:syncSuccess", (_, data) => callback(data));
   }
 });
 

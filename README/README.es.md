@@ -35,6 +35,7 @@ Crea y guarda plantillas de eventos por grupo, genera fechas próximas a partir 
 - Vista de modificar eventos para próximos eventos (rejilla + modal de edición).
 - Admite opciones especiales de eventos para grupos con permisos adicionales.
 - Estudio de temas con presets y control total de colores de la UI (compatible con #RRGGBBAA).
+- Integración con Discord - crea automáticamente eventos de Discord junto con los eventos de VRChat. ([Guía de configuración](Discord%20Setup/DISCORD_SETUP.en.md))
 - Selector y subida de imágenes de galería para IDs de imagen.
 - Inicio con el sistema + minimizar a la bandeja del sistema.
 - Protección de instancia única para evitar lanzamientos duplicados.
@@ -56,6 +57,8 @@ La aplicación almacena sus archivos en el directorio de datos de usuario de Ele
 
 Puedes sobrescribir el directorio de datos con la variable de entorno `VRC_EVENT_DATA_DIR`.
 En el primer inicio, la aplicación intentará importar un `profiles.json` existente desde la carpeta del proyecto.
+
+Los tokens de bot (para la integración con Discord) se cifran en reposo usando el almacenamiento seguro de tu sistema operativo. Nunca se envían a ningún lugar excepto directamente a la API de Discord.
 
 __**No compartas archivos de caché ni carpetas de datos de la aplicación.**__
 

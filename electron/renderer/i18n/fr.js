@@ -148,6 +148,27 @@ export const fr = {
       enableImportExport: "Importer/Exporter des événements",
       autoUploadImages: "Télécharger automatiquement les images de galerie depuis les événements/modèles importés"
     },
+    discord: {
+      title: "Intégration Discord",
+      enable: "Activer l'intégration Discord",
+      description: "Crée automatiquement des événements Discord lors de la création d'événements VRChat.",
+      profileHint: "Les événements de ce modèle seront également publiés sur Discord.",
+      tokenLabel: "Jeton du bot",
+      tokenPlaceholder: "Collez le jeton du bot",
+      guildLabel: "ID du serveur",
+      guildPlaceholder: "ex. 123456789012345678",
+      testButton: "Vérifier le jeton",
+      testSuccess: "Connecté en tant que {botName}",
+      testFailed: "Échec de la connexion. Vérifiez le jeton du bot.",
+      tokenMissing: "Veuillez d'abord entrer un jeton de bot.",
+      groupLabel: "Groupe",
+      selectGroup: "Sélectionner un groupe...",
+      saveButton: "Enregistrer",
+      saved: "Paramètres Discord enregistrés.",
+      syncLabel: "Synchroniser avec Discord",
+      syncSuccess: "Événement Discord créé pour « {title} »",
+      syncFailed: "Synchronisation Discord échouée pour « {title} » : {error}"
+    },
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
   },

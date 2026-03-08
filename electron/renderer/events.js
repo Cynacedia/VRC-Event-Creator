@@ -4,15 +4,32 @@ import { buildTimezones, ensureTimezoneOption, enforceTagsInput, sanitizeText, f
 import { EVENT_DESCRIPTION_LIMIT, EVENT_NAME_LIMIT, LANGUAGES, PLATFORMS, TAG_LIMIT } from "./config.js";
 import { t, getCurrentLanguage, getLanguageDisplayName } from "./i18n/index.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
+import { updateDiscordVisibility } from "./profiles.js";
 
 const EVENT_HOURLY_LIMIT = 10;
 const EVENT_HOURLY_WINDOW_MS = 60 * 60 * 1000;
 const CREATE_RATE_LIMIT_BASE_KEY = "events:create";
 
-export function updateAdvancedSettingsVisibility() {
+export function updateAdvancedSettingsVisibility({ expand } = {}) {
   const enabled = dom.settingsEnableAdvanced?.checked ?? false;
+  // Show/hide the caret based on whether the setting is enabled
+  if (dom.settingsAdvancedCaret) {
+    dom.settingsAdvancedCaret.classList.toggle("is-hidden", !enabled);
+  }
   if (dom.settingsAdvancedOptions) {
-    dom.settingsAdvancedOptions.classList.toggle("is-hidden", !enabled);
+    if (!enabled) {
+      // Disabled: always hide panel and collapse caret
+      dom.settingsAdvancedOptions.classList.add("is-hidden");
+      if (dom.settingsAdvancedCaret) dom.settingsAdvancedCaret.classList.remove("is-expanded");
+    } else if (expand === true) {
+      // Explicitly requested expand (e.g. just enabled the checkbox)
+      dom.settingsAdvancedOptions.classList.remove("is-hidden");
+      if (dom.settingsAdvancedCaret) dom.settingsAdvancedCaret.classList.add("is-expanded");
+    } else if (expand === false) {
+      dom.settingsAdvancedOptions.classList.add("is-hidden");
+      if (dom.settingsAdvancedCaret) dom.settingsAdvancedCaret.classList.remove("is-expanded");
+    }
+    // If expand is undefined (e.g. on load), panel stays hidden, caret stays collapsed
   }
 }
 
@@ -713,6 +730,7 @@ export function applyManualEventDefaults(options = {}) {
     state.event.roleIds = [];
     renderEventLanguageList();
     renderEventPlatformList();
+    if (dom.eventDiscordSyncCheck) dom.eventDiscordSyncCheck.checked = true;
   }
   updateDateMode(null);
   updateDateOptions(null, null);
@@ -774,6 +792,7 @@ export async function handleEventGroupChange(api) {
   await refreshUpcomingEventCount(api);
   // Update featured checkbox visibility based on verified groups
   void updateEventTogglesVisibility(api);
+  updateDiscordVisibility();
 }
 
 async function updateEventTogglesVisibility(api) {
@@ -934,7 +953,8 @@ export async function handleEventCreate(api) {
     tags,
     imageId: dom.eventImageId.value.trim() || null,
     sendCreationNotification: Boolean(dom.eventSendNotification.checked),
-    featured: Boolean(dom.eventFeatured?.checked)
+    featured: Boolean(dom.eventFeatured?.checked),
+    discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true
   };
   if (eventData.accessType === "group") {
     eventData.roleIds = (state.event.roleIds || []).filter(id => typeof id === "string" && id.trim());
@@ -1159,6 +1179,10 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   updateDateMode(profile);
   updateDateOptions(api, profile);
   void renderEventRoleRestrictions(api);
+  // Apply template's Discord sync preference
+  if (dom.eventDiscordSyncCheck) {
+    dom.eventDiscordSyncCheck.checked = profile.discordSync === true;
+  }
 }
 
 function getProfileLabel(profileKey, profile) {

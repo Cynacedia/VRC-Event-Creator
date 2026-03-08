@@ -178,6 +178,7 @@ export const dom = {
   settingsShowFeaturedVerification: document.getElementById("settings-show-featured-verification"),
   featuredVerificationCard: document.getElementById("featured-verification-card"),
   settingsEnableAdvanced: document.getElementById("settings-enable-advanced"),
+  settingsAdvancedCaret: document.getElementById("settings-advanced-caret"),
   settingsAdvancedOptions: document.getElementById("settings-advanced-options"),
   settingsEnableImportExport: document.getElementById("settings-enable-import-export"),
   settingsAutoUploadImages: document.getElementById("settings-auto-upload-images"),
@@ -223,7 +224,24 @@ export const dom = {
   // Automation confirm overlay
   automationConfirmOverlay: document.getElementById("automation-confirm-overlay"),
   automationConfirmOk: document.getElementById("automation-confirm-ok"),
-  automationConfirmCancel: document.getElementById("automation-confirm-cancel")
+  automationConfirmCancel: document.getElementById("automation-confirm-cancel"),
+  // Discord elements
+  settingsDiscordEnabled: document.getElementById("settings-discord-enabled"),
+  discordSettingsCaret: document.getElementById("discord-settings-caret"),
+  discordSettingsPanel: document.getElementById("discord-settings-panel"),
+  discordGroupSelect: document.getElementById("discord-group-select"),
+  discordGroupConfig: document.getElementById("discord-group-config"),
+  discordBotToken: document.getElementById("discord-bot-token"),
+  discordTokenToggle: document.getElementById("discord-token-toggle"),
+  discordGuildId: document.getElementById("discord-guild-id"),
+  discordTestBtn: document.getElementById("discord-test-btn"),
+  discordTestResult: document.getElementById("discord-test-result"),
+  discordSaveBtn: document.getElementById("discord-save-btn"),
+  discordConfiguredList: document.getElementById("discord-configured-list"),
+  discordSyncField: document.getElementById("discord-sync-field"),
+  discordSyncCheck: document.getElementById("discord-sync-check"),
+  eventDiscordSyncField: document.getElementById("event-discord-sync-field"),
+  eventDiscordSyncCheck: document.getElementById("event-discord-sync-check")
 };
 
 export const state = {
@@ -232,6 +250,7 @@ export const state = {
     rateLimits: {}
   },
   session: {},
+  settings: {},
   user: null,
   groups: [],
   groupRoles: {},

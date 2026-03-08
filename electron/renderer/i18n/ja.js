@@ -148,6 +148,27 @@ export const ja = {
       enableImportExport: "イベントのインポート/エクスポート",
       autoUploadImages: "インポートしたイベント/プロファイルからギャラリー画像を自動アップロード"
     },
+    discord: {
+      title: "Discord連携",
+      enable: "Discord連携を有効にする",
+      description: "VRChatイベントの作成時に、Discordイベントを自動的に作成します。",
+      profileHint: "このテンプレートのイベントはDiscordにも投稿されます。",
+      tokenLabel: "Botトークン",
+      tokenPlaceholder: "Botトークンを貼り付け",
+      guildLabel: "サーバーID",
+      guildPlaceholder: "例: 123456789012345678",
+      testButton: "Botトークンを検証",
+      testSuccess: "{botName} として接続しました",
+      testFailed: "接続に失敗しました。Botトークンを確認してください。",
+      tokenMissing: "先にBotトークンを入力してください。",
+      groupLabel: "グループ",
+      selectGroup: "グループを選択...",
+      saveButton: "保存",
+      saved: "Discord設定を保存しました。",
+      syncLabel: "Discordに同期",
+      syncSuccess: "「{title}」のDiscordイベントを作成しました",
+      syncFailed: "「{title}」のDiscord同期に失敗しました: {error}"
+    },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
   },

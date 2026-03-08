@@ -148,6 +148,27 @@ export const zh = {
       enableImportExport: "导入/导出活动",
       autoUploadImages: "自动上传导入活动/模板中的图库图片"
     },
+    discord: {
+      title: "Discord 集成",
+      enable: "启用 Discord 集成",
+      description: "创建 VRChat 活动时自动创建 Discord 活动。",
+      profileHint: "此模板的活动也会发布到 Discord。",
+      tokenLabel: "机器人令牌",
+      tokenPlaceholder: "粘贴机器人令牌",
+      guildLabel: "服务器 ID",
+      guildPlaceholder: "例如 123456789012345678",
+      testButton: "验证令牌",
+      testSuccess: "已连接为 {botName}",
+      testFailed: "连接失败，请检查机器人令牌。",
+      tokenMissing: "请先输入机器人令牌。",
+      groupLabel: "群组",
+      selectGroup: "选择群组...",
+      saveButton: "保存",
+      saved: "Discord 设置已保存。",
+      syncLabel: "同步到 Discord",
+      syncSuccess: "已为「{title}」创建 Discord 活动",
+      syncFailed: "「{title}」的 Discord 同步失败：{error}"
+    },
     saveButton: "保存设置",
     saved: "设置已保存。"
   },

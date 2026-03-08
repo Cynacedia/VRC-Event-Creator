@@ -35,6 +35,7 @@ Créez et enregistrez des modèles d'événements par groupe, générez des date
 - Vue Modifier les événements pour les événements à venir (grille + fenêtre d'édition).
 - Prend en charge des options d’événements spéciales pour les groupes disposant de permissions supplémentaires.
 - Studio de thèmes avec préréglages et contrôle complet des couleurs UI (prend en charge #RRGGBBAA).
+- Intégration Discord - crée automatiquement des événements Discord en parallèle des événements VRChat. ([Guide de configuration](Discord%20Setup/DISCORD_SETUP.en.md))
 - Sélecteur et téléversement d'images de galerie pour les ID d'image.
 - Démarrage au lancement du système + réduction dans la zone de notification.
 - Protection mono-instance pour éviter les doubles lancements.
@@ -56,6 +57,8 @@ L'application stocke ses fichiers dans le répertoire de données utilisateur d'
 
 Vous pouvez remplacer le répertoire de données avec la variable d'environnement `VRC_EVENT_DATA_DIR`.
 Au premier lancement, l'application tentera d'importer un `profiles.json` existant depuis le dossier du projet.
+
+Les tokens de bot (pour l'intégration Discord) sont chiffrés au repos à l'aide du stockage sécurisé de votre système d'exploitation. Ils ne sont jamais envoyés ailleurs que directement à l'API Discord.
 
 __**Ne partagez pas les fichiers de cache ni les dossiers de données de l'application.**__
 

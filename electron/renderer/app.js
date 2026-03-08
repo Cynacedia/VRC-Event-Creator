@@ -6,7 +6,7 @@ import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, se
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson } from "./profiles.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI } from "./profiles.js";
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
@@ -223,6 +223,7 @@ import { initDemoControls } from "./demo.js";
       }
       renderProfileList(api);
       renderEventProfileOptions(api);
+      renderDiscordGroupSelect();
       void renderEventRoleRestrictions(api);
       void renderProfileRoleRestrictions(api);
       await refreshUpcomingEventCount(api);
@@ -1179,10 +1180,20 @@ import { initDemoControls } from "./demo.js";
           } else {
             await api.updateSettings({ enableAdvanced: true });
           }
-          updateAdvancedSettingsVisibility();
+          // Expand on enable, collapse on disable
+          updateAdvancedSettingsVisibility({ expand: enabled });
         } catch (err) {
           console.error("Failed to save advanced settings:", err);
         }
+      });
+    }
+    // Advanced settings caret toggle
+    if (dom.settingsAdvancedCaret) {
+      dom.settingsAdvancedCaret.addEventListener("click", () => {
+        const isExpanded = dom.settingsAdvancedCaret.classList.contains("is-expanded");
+        updateAdvancedSettingsVisibility({ expand: !isExpanded });
+        // Refresh Discord caret visibility when advanced panel is expanded
+        updateDiscordVisibility();
       });
     }
     if (dom.settingsEnableImportExport) {
@@ -1204,6 +1215,41 @@ import { initDemoControls } from "./demo.js";
         }
       });
     }
+    // Discord integration toggle
+    if (dom.settingsDiscordEnabled) {
+      dom.settingsDiscordEnabled.addEventListener("change", async () => {
+        try {
+          const enabled = dom.settingsDiscordEnabled.checked;
+          await api.updateSettings({ discordEnabled: enabled });
+          state.settings.discordEnabled = enabled;
+          // Expand on enable, collapse on disable
+          updateDiscordVisibility({ expandPanel: enabled });
+          if (enabled) renderDiscordGroupSelect();
+        } catch (err) {
+          console.error("Failed to save Discord setting:", err);
+        }
+      });
+    }
+    // Discord settings caret toggle
+    if (dom.discordSettingsCaret) {
+      dom.discordSettingsCaret.addEventListener("click", () => {
+        const isExpanded = dom.discordSettingsCaret.classList.contains("is-expanded");
+        updateDiscordVisibility({ expandPanel: !isExpanded });
+      });
+    }
+    // Discord sync event listeners
+    if (api.onDiscordSyncSuccess) {
+      api.onDiscordSyncSuccess(({ eventTitle }) => {
+        showToast(t("settings.discord.syncSuccess").replace("{title}", eventTitle));
+      });
+    }
+    if (api.onDiscordSyncFailed) {
+      api.onDiscordSyncFailed(({ eventTitle, error }) => {
+        showToast(t("settings.discord.syncFailed").replace("{title}", eventTitle).replace("{error}", error), true);
+      });
+    }
+    // Initialize Discord UI (token toggle, test button, auto-save)
+    initDiscordUI(api);
     if (dom.eventImagePicker) {
       dom.eventImagePicker.addEventListener("click", () => openGalleryPicker(dom.eventImageId));
     }

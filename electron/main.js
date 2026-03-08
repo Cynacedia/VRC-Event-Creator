@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, dialog, nativeImage, Tray, Menu } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, dialog, nativeImage, Tray, Menu, safeStorage } = require("electron");
 const { autoUpdater } = require("electron-updater");
 
 const path = require("path");
@@ -8,6 +8,7 @@ const { VRChat } = require("vrchat");
 const { KeyvFile } = require("keyv-file");
 const { generateDateOptionsFromPatterns, safeZone } = require("./core/date-utils");
 const automationEngine = require("./core/automation-engine");
+const discord = require("./core/discord");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -358,7 +359,8 @@ function normalizeSettings(raw) {
       enableAdvanced: false,
       enableImportExport: false,
       autoUploadImages: false,
-      startOnStartup: false
+      startOnStartup: false,
+      discordEnabled: false
     };
   }
   return {
@@ -368,7 +370,8 @@ function normalizeSettings(raw) {
     enableAdvanced: typeof raw.enableAdvanced === "boolean" ? raw.enableAdvanced : false,
     enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
     autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false,
-    startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false
+    startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false,
+    discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false
   };
 }
 
@@ -870,6 +873,110 @@ function saveSettings(nextSettings) {
   return settings;
 }
 
+// --- Discord token encryption helpers ---
+
+function encryptToken(plainText) {
+  if (!plainText) return "";
+  if (safeStorage.isEncryptionAvailable()) {
+    const encrypted = safeStorage.encryptString(plainText);
+    return "enc:" + encrypted.toString("base64");
+  }
+  return plainText;
+}
+
+function decryptToken(stored) {
+  if (!stored) return "";
+  if (stored.startsWith("enc:") && safeStorage.isEncryptionAvailable()) {
+    try {
+      const buffer = Buffer.from(stored.slice(4), "base64");
+      return safeStorage.decryptString(buffer);
+    } catch (err) {
+      debugLog("discord", "Failed to decrypt token:", err.message);
+      return "";
+    }
+  }
+  // Plain text fallback (not yet encrypted, or encryption unavailable)
+  return stored;
+}
+
+// --- Discord sync helper ---
+
+function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+  if (!settings.discordEnabled) return;
+
+  const groupData = profiles[groupId];
+  if (!groupData) return;
+
+  const botToken = decryptToken(groupData.discordBotToken);
+  const guildId = groupData.discordGuildId;
+  if (!botToken || !guildId) return;
+
+  // Check event-level opt-out (from Create Event form)
+  if (eventData?.discordSync === false) return;
+
+  // Check profile-level opt-in (existing templates must explicitly enable)
+  const profile = groupData.profiles?.[profileKey];
+  if (profile && profile.discordSync !== true) return;
+
+  // Resolve image base64 if available (non-blocking)
+  const imagePromise = eventData.imageId
+    ? getImageBase64ForDiscord(eventData.imageId).catch(() => null)
+    : Promise.resolve(null);
+
+  imagePromise.then(imageBase64 => {
+    return discord.createDiscordScheduledEvent({
+      botToken,
+      guildId,
+      name: eventData.title,
+      description: eventData.description,
+      startTime: startsAtUtc,
+      endTime: endsAtUtc,
+      imageBase64
+    });
+  }).then(result => {
+    if (!result.ok) {
+      debugLog("discord", "Failed to create Discord event:", result.error);
+      if (mainWindow) {
+        mainWindow.webContents.send("discord:syncFailed", {
+          eventTitle: eventData.title,
+          error: result.error
+        });
+      }
+    } else {
+      debugLog("discord", "Discord event created:", result.eventId);
+      if (mainWindow) {
+        mainWindow.webContents.send("discord:syncSuccess", {
+          eventTitle: eventData.title
+        });
+      }
+    }
+  }).catch(err => {
+    debugLog("discord", "Discord sync error:", err.message);
+  });
+}
+
+async function getImageBase64ForDiscord(imageId) {
+  if (!imageId) return null;
+  // Try to read from gallery cache first
+  const cachePath = path.join(GALLERY_CACHE_DIR, `${imageId}.png`);
+  if (fs.existsSync(cachePath)) {
+    const data = fs.readFileSync(cachePath);
+    return `data:image/png;base64,${data.toString("base64")}`;
+  }
+  // Download from VRChat API
+  const imageUrl = `https://api.vrchat.cloud/api/1/file/${imageId}/1`;
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) return null;
+    const buffer = Buffer.from(await response.arrayBuffer());
+    const contentType = response.headers.get("content-type") || "image/png";
+    return `data:${contentType};base64,${buffer.toString("base64")}`;
+  } catch (err) {
+    debugLog("discord", "Failed to fetch image for Discord:", err.message);
+    return null;
+  }
+}
+
 function maybeImportProfiles() {
   if (fs.existsSync(PROFILES_PATH)) {
     return;
@@ -945,6 +1052,8 @@ function normalizeProfiles(raw) {
     });
     output[groupId] = {
       groupName: groupData.groupName || "Unknown Group",
+      discordBotToken: typeof groupData.discordBotToken === "string" ? groupData.discordBotToken : "",
+      discordGuildId: typeof groupData.discordGuildId === "string" ? groupData.discordGuildId : "",
       profiles: normalizedProfiles
     };
   });
@@ -1789,6 +1898,33 @@ ipcMain.handle("settings:set", (_, payload) => {
   return saveSettings({ ...settings, ...next });
 });
 
+// --- Discord IPC handlers ---
+
+ipcMain.handle("discord:testConnection", async (_, botToken) => {
+  if (!botToken) return { ok: false, error: "No bot token provided." };
+  return discord.testBotConnection(botToken);
+});
+
+ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, discordGuildId }) => {
+  if (!groupId || !profiles[groupId]) return { ok: false, error: "Group not found." };
+  if (typeof discordBotToken === "string") {
+    profiles[groupId].discordBotToken = encryptToken(discordBotToken);
+  }
+  if (typeof discordGuildId === "string") {
+    profiles[groupId].discordGuildId = discordGuildId;
+  }
+  saveProfiles(profiles);
+  return { ok: true };
+});
+
+ipcMain.handle("discord:getGroupDiscord", (_, groupId) => {
+  if (!groupId || !profiles[groupId]) return { botToken: "", guildId: "" };
+  return {
+    botToken: decryptToken(profiles[groupId].discordBotToken || ""),
+    guildId: profiles[groupId].discordGuildId || ""
+  };
+});
+
 ipcMain.handle("theme:get", () => themeStore);
 
 ipcMain.handle("theme:set", (_, payload) => {
@@ -2219,6 +2355,8 @@ ipcMain.handle("events:create", async (_, payload) => {
         automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
       }
     }
+    // Discord sync (fire-and-forget, never blocks VRC event creation)
+    tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
@@ -2957,6 +3095,14 @@ app.whenReady().then(() => {
         const profile = profiles?.[groupId]?.profiles?.[profileKey];
         if (profile?.automation?.enabled) {
           automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
+        }
+        // Discord sync for automated events
+        const details = automationEngine.resolveEventDetails(pendingEvent.id, profiles);
+        if (details) {
+          const startTime = new Date(pendingEvent.eventStartsAt);
+          const durationMs = (details.duration || 120) * 60 * 1000;
+          const endTime = new Date(startTime.getTime() + durationMs);
+          tryDiscordSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

@@ -148,6 +148,27 @@ export const de = {
       enableImportExport: "Events importieren/exportieren",
       autoUploadImages: "Galeriebilder aus importierten Events/Vorlagen automatisch hochladen"
     },
+    discord: {
+      title: "Discord-Integration",
+      enable: "Discord-Integration aktivieren",
+      description: "Erstellt automatisch Discord-Events, wenn VRChat-Events erstellt werden.",
+      profileHint: "Events aus dieser Vorlage werden auch auf Discord gepostet.",
+      tokenLabel: "Bot-Token",
+      tokenPlaceholder: "Bot-Token einfügen",
+      guildLabel: "Server-ID",
+      guildPlaceholder: "z.B. 123456789012345678",
+      testButton: "Bot-Token überprüfen",
+      testSuccess: "Verbunden als {botName}",
+      testFailed: "Verbindung fehlgeschlagen. Überprüfe den Bot-Token.",
+      tokenMissing: "Bitte zuerst einen Bot-Token eingeben.",
+      groupLabel: "Gruppe",
+      selectGroup: "Gruppe auswählen...",
+      saveButton: "Speichern",
+      saved: "Discord-Einstellungen gespeichert.",
+      syncLabel: "Mit Discord synchronisieren",
+      syncSuccess: "Discord-Event erstellt für \"{title}\"",
+      syncFailed: "Discord-Synchronisierung fehlgeschlagen für \"{title}\": {error}"
+    },
     saveButton: "Einstellungen speichern",
     saved: "Einstellungen gespeichert."
   },

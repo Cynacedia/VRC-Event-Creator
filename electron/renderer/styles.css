@@ -2754,6 +2754,126 @@ input[type="color"]::-moz-color-swatch {
   flex-shrink: 0;
 }
 
+.toggle-with-caret {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.caret-toggle {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: var(--text-12);
+  line-height: 1;
+  transition: transform 0.2s, color 0.15s;
+}
+
+.caret-toggle::after {
+  content: "\25B6";
+}
+
+.caret-toggle.is-expanded::after {
+  content: "\25BC";
+}
+
+.caret-toggle:hover {
+  color: var(--text);
+}
+
+.discord-description {
+  margin-bottom: 12px;
+}
+
+#discord-group-config {
+  margin-top: 6px;
+}
+
+.discord-configured-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 10px;
+}
+
+.discord-configured-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: var(--text-12);
+  background: var(--bg-accent-subtle, rgba(255, 255, 255, 0.08));
+  color: var(--text-secondary);
+  max-width: 200px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.discord-configured-tag:hover {
+  background: var(--accent-soft, rgba(31, 195, 173, 0.2));
+}
+
+.discord-configured-tag-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.discord-configured-tag-remove {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--text-12);
+  line-height: 1;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.discord-configured-tag:hover .discord-configured-tag-remove {
+  opacity: 1;
+}
+
+.discord-configured-tag-remove:hover {
+  color: var(--danger);
+}
+
+.discord-fields-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.discord-field-half {
+  flex: 1;
+  min-width: 0;
+}
+
+.discord-field-half .input-with-button {
+  width: 100%;
+}
+
+.discord-field-half .input-with-button input {
+  flex: 1;
+  min-width: 0;
+}
+
+.discord-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.discord-actions .hint {
+  flex: 1;
+}
+
 .verified-groups-list {
   margin-top: 12px;
   font-size: var(--text-12);
