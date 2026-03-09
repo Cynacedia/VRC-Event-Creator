@@ -2,6 +2,12 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.1.3] - 2026-03-08
+
+### Fixed
+- Status pill "Resync" hover text now displays in the active language instead of always showing English
+- Added `common.resync` translation key to all 10 language files
+
 ## [1.1.2] - 2026-03-08
 
 ### Fixed

@@ -978,7 +978,7 @@ import { initDemoControls } from "./demo.js";
       dom.statusPill.addEventListener("mouseenter", () => {
         if (!updateInfo.available && !updateInfo.downloading && state.user && !resyncInProgress && initialSyncComplete) {
           dom.statusPill.dataset.hover = "resync";
-          dom.statusPill.textContent = "Resync";
+          dom.statusPill.textContent = t("common.resync");
         }
       });
       dom.statusPill.addEventListener("mouseleave", () => {

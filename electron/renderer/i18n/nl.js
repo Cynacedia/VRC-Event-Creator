@@ -514,6 +514,7 @@ export const nl = {
     error: "Fout",
     offline: "Offline",
     online: "Online",
+    resync: "Hersynchroniseren",
     update: "Update",
     updating: "Bezig met bijwerken",
     updateReady: "Herstarten",

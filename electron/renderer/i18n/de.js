@@ -514,6 +514,7 @@ export const de = {
     error: "Fehler",
     offline: "Nicht verbunden",
     online: "Verbunden",
+    resync: "Neu synchronisieren",
     update: "Aktualisieren",
     updating: "Aktualisiere",
     updateReady: "Neustart",

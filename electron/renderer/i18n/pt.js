@@ -514,6 +514,7 @@ export const pt = {
     error: "Erro",
     offline: "Offline",
     online: "Online",
+    resync: "Ressincronizar",
     update: "Atualizar",
     updating: "Atualizando",
     updateReady: "Reiniciar",

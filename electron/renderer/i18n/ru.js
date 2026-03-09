@@ -514,6 +514,7 @@ export const ru = {
     error: "Ошибка",
     offline: "Офлайн",
     online: "Онлайн",
+    resync: "Повторная синхронизация",
     update: "Обновить",
     updating: "Обновление",
     updateReady: "Перезапуск",

@@ -514,6 +514,7 @@ export const ja = {
     error: "エラー",
     offline: "オフライン",
     online: "オンライン",
+    resync: "再同期",
     update: "更新",
     updating: "更新中",
     updateReady: "再起動",

@@ -514,6 +514,7 @@ export const en = {
     error: "Error",
     offline: "Offline",
     online: "Online",
+    resync: "Resync",
     update: "Update",
     updating: "Updating",
     updateReady: "Restart",

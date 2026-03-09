@@ -514,6 +514,7 @@ export const ko = {
     error: "오류",
     offline: "오프라인",
     online: "온라인",
+    resync: "재동기화",
     update: "업데이트",
     updating: "업데이트 중",
     updateReady: "다시 시작",

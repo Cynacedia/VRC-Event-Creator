@@ -514,6 +514,7 @@ export const zh = {
     error: "错误",
     offline: "离线",
     online: "在线",
+    resync: "重新同步",
     update: "更新",
     updating: "更新中",
     updateReady: "重启",
