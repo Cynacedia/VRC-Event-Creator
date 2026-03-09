@@ -2,6 +2,11 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.1.2] - 2026-03-08
+
+### Fixed
+- Disabled CSS `text-transform: uppercase` for CJK languages (Japanese, Chinese, Korean) so Latin brand names like "Discord" render with their original casing instead of all-caps
+
 ## [1.1.1] - 2026-03-08
 
 ### Fixed

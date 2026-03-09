@@ -2899,3 +2899,9 @@ input[type="color"]::-moz-color-swatch {
   font-size: var(--text-11);
   padding: 2px 6px;
 }
+
+/* CJK languages have no uppercase concept — disable text-transform so
+   Latin brand names (e.g. "Discord") render with their original casing. */
+:lang(ja) *, :lang(zh) *, :lang(ko) * {
+  text-transform: none !important;
+}
