@@ -863,12 +863,14 @@ function saveSettings(nextSettings) {
     destroyTray();
   }
 
-  // Manage startup on login setting
-  app.setLoginItemSettings({
-    openAtLogin: settings.startOnStartup,
-    path: process.execPath,
-    args: settings.startOnStartup ? [AUTOSTART_ARG] : []
-  });
+  // Manage startup on login setting (only for packaged builds)
+  if (!IS_DEV) {
+    app.setLoginItemSettings({
+      openAtLogin: settings.startOnStartup,
+      path: process.execPath,
+      args: settings.startOnStartup ? [AUTOSTART_ARG] : []
+    });
+  }
 
   return settings;
 }
