@@ -11,6 +11,9 @@ const automationEngine = require("./core/automation-engine");
 const discord = require("./core/discord");
 const ics = require("./core/ics");
 const webhook = require("./core/webhook");
+const debugModule = require("./core/debug-log");
+const galleryCacheModule = require("./core/gallery-cache");
+const themeStoreModule = require("./core/theme-store");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -40,207 +43,18 @@ if (!gotInstanceLock) {
   });
 }
 
-// Debug logging for API calls (only in dev mode)
-// Debug log file path (created after app is ready)
-let DEBUG_LOG_PATH = null;
-
+// Debug logging — delegated to core/debug-log.js
 function initDebugLog() {
-  if (!IS_DEV) return;
-  const logDir = app.getPath("userData");
-  DEBUG_LOG_PATH = path.join(logDir, "debug-api.json");
-  // Initialize with empty array
-  try {
-    fs.writeFileSync(DEBUG_LOG_PATH, "[\n", "utf8");
-  } catch (e) {
-    // Ignore
-  }
+  debugModule.init(app.getPath("userData"), IS_DEV);
 }
 
-let debugLogFirstEntry = true;
+const finalizeDebugLog = debugModule.finalize;
+const debugLog = debugModule.log;
+const debugApiCall = debugModule.apiCall;
+const normalizeVersion = debugModule.normalizeVersion;
+const compareVersions = debugModule.compareVersions;
 
-function writeDebugLog(entry) {
-  if (!IS_DEV || !DEBUG_LOG_PATH) return;
-  try {
-    // Sanitize entry to prevent potential issues
-    const sanitized = typeof entry === 'object' && entry !== null ? entry : { data: String(entry) };
-
-    // Validate and sanitize JSON before writing to prevent injection attacks
-    // This creates a safe copy by serializing and parsing, removing any functions or dangerous content
-    let safeData;
-    try {
-      const jsonString = JSON.stringify(sanitized, (key, value) => {
-        // Filter out functions and symbols which could be dangerous
-        if (typeof value === 'function' || typeof value === 'symbol') {
-          return undefined;
-        }
-        // Limit string length to prevent DoS via extremely large strings
-        if (typeof value === 'string' && value.length > 10000) {
-          return value.substring(0, 10000) + '... [truncated]';
-        }
-        return value;
-      });
-      safeData = jsonString;
-    } catch (jsonError) {
-      // If JSON serialization fails, create a safe error log entry
-      safeData = JSON.stringify({
-        type: 'log',
-        timestamp: new Date().toISOString(),
-        message: 'Failed to serialize log entry',
-        error: String(jsonError)
-      });
-    }
-
-    const prefix = debugLogFirstEntry ? "" : ",\n";
-    debugLogFirstEntry = false;
-    // codeql[js/http-to-file-access] - Data is sanitized through JSON.stringify replacer function that filters dangerous content
-    fs.appendFileSync(DEBUG_LOG_PATH, prefix + safeData, "utf8");
-  } catch (e) {
-    // Ignore write errors
-  }
-}
-
-function finalizeDebugLog() {
-  if (!IS_DEV || !DEBUG_LOG_PATH) return;
-  try {
-    fs.appendFileSync(DEBUG_LOG_PATH, "\n]", "utf8");
-  } catch (e) {
-    // Ignore
-  }
-}
-
-// ANSI color codes for terminal output
-const DEBUG_COLORS = {
-  reset: "\x1b[0m",
-  bright: "\x1b[1m",
-  dim: "\x1b[2m",
-  cyan: "\x1b[36m",
-  yellow: "\x1b[33m",
-  green: "\x1b[32m",
-  red: "\x1b[31m",
-  magenta: "\x1b[35m",
-  blue: "\x1b[34m",
-  bgBlue: "\x1b[44m",
-  bgGreen: "\x1b[42m",
-  bgRed: "\x1b[41m",
-  bgYellow: "\x1b[43m",
-  white: "\x1b[37m"
-};
-
-function debugLog(context, ...args) {
-  if (IS_DEV) {
-    const timestamp = new Date().toISOString();
-    const timeStr = `${DEBUG_COLORS.dim}${timestamp}${DEBUG_COLORS.reset}`;
-    console.log(`${timeStr} ${DEBUG_COLORS.cyan}[${context}]${DEBUG_COLORS.reset}`, ...args);
-    // Write JSON entry to log file
-    writeDebugLog({
-      type: "log",
-      timestamp,
-      context,
-      message: args.map(a => typeof a === "object" ? a : String(a))
-    });
-  }
-}
-
-function debugApiCall(name, params) {
-  if (IS_DEV) {
-    const timestamp = new Date().toISOString();
-    const divider = `${DEBUG_COLORS.blue}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
-    const header = `${DEBUG_COLORS.bgBlue}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ▶ API REQUEST: ${name} ${DEBUG_COLORS.reset}`;
-    console.log("");
-    console.log(divider);
-    console.log(header);
-    console.log(divider);
-    console.log(`${DEBUG_COLORS.yellow}Parameters:${DEBUG_COLORS.reset}`);
-    console.log(JSON.stringify(params, null, 2));
-    // Write JSON entry to log file
-    writeDebugLog({
-      type: "request",
-      timestamp,
-      api: name,
-      params
-    });
-  }
-}
-
-function normalizeVersion(version) {
-  return String(version || "").trim().replace(/^v/i, "");
-}
-
-function compareVersions(a, b) {
-  const left = normalizeVersion(a).split(".").map(part => parseInt(part, 10) || 0);
-  const right = normalizeVersion(b).split(".").map(part => parseInt(part, 10) || 0);
-  const length = Math.max(left.length, right.length);
-  for (let i = 0; i < length; i += 1) {
-    const leftValue = left[i] || 0;
-    const rightValue = right[i] || 0;
-    if (leftValue > rightValue) {
-      return 1;
-    }
-    if (leftValue < rightValue) {
-      return -1;
-    }
-  }
-  return 0;
-}
-
-function debugApiResponse(name, response, error = null) {
-  if (IS_DEV) {
-    const timestamp = new Date().toISOString();
-    if (error) {
-      const divider = `${DEBUG_COLORS.red}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
-      const header = `${DEBUG_COLORS.bgRed}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ✖ API ERROR: ${name} ${DEBUG_COLORS.reset}`;
-      console.log(divider);
-      console.log(header);
-      console.log(divider);
-      console.log(`${DEBUG_COLORS.red}Status:${DEBUG_COLORS.reset} ${error?.response?.status || "N/A"} ${error?.response?.statusText || ""}`);
-      console.log(`${DEBUG_COLORS.red}Message:${DEBUG_COLORS.reset} ${error?.message || "Unknown error"}`);
-      if (error?.response?.data) {
-        console.log(`${DEBUG_COLORS.red}Response Data:${DEBUG_COLORS.reset}`);
-        console.log(JSON.stringify(error.response.data, null, 2));
-      }
-      if (error?.stack) {
-        console.log(`${DEBUG_COLORS.dim}Stack: ${error.stack}${DEBUG_COLORS.reset}`);
-      }
-      console.log(divider);
-      console.log("");
-      // Write JSON entry to log file
-      writeDebugLog({
-        type: "error",
-        timestamp,
-        api: name,
-        status: error?.response?.status || null,
-        statusText: error?.response?.statusText || null,
-        message: error?.message || "Unknown error",
-        responseData: error?.response?.data || null
-      });
-    } else {
-      const divider = `${DEBUG_COLORS.green}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
-      const header = `${DEBUG_COLORS.bgGreen}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ✔ API RESPONSE: ${name} ${DEBUG_COLORS.reset}`;
-      console.log(divider);
-      console.log(header);
-      console.log(divider);
-      console.log(`${DEBUG_COLORS.green}Status:${DEBUG_COLORS.reset} ${response?.status || "N/A"} ${response?.statusText || ""}`);
-      console.log(`${DEBUG_COLORS.green}Data Type:${DEBUG_COLORS.reset} ${typeof response?.data}`);
-      if (response?.data && typeof response.data === "object") {
-        const keys = Array.isArray(response.data) ? `Array[${response.data.length}]` : Object.keys(response.data).join(", ");
-        console.log(`${DEBUG_COLORS.green}Data Keys:${DEBUG_COLORS.reset} ${keys}`);
-      }
-      console.log(`${DEBUG_COLORS.magenta}Response Data:${DEBUG_COLORS.reset}`);
-      console.log(JSON.stringify(response?.data, null, 2));
-      console.log(divider);
-      console.log("");
-      // Write JSON entry to log file
-      writeDebugLog({
-        type: "response",
-        timestamp,
-        api: name,
-        status: response?.status || null,
-        statusText: response?.statusText || null,
-        data: response?.data || null
-      });
-    }
-  }
-}
+const debugApiResponse = debugModule.apiResponse;
 const pkg = (() => {
   const pkgPath = path.join(__dirname, "..", "package.json");
   return JSON.parse(fs.readFileSync(pkgPath, "utf8"));
@@ -302,18 +116,12 @@ let DATA_DIR;
 let PROFILES_PATH;
 let CACHE_PATH;
 let SETTINGS_PATH;
-let THEMES_PATH;
 let PENDING_EVENTS_PATH;
 let AUTOMATION_STATE_PATH;
 let GALLERY_CACHE_DIR;
 let GALLERY_MANIFEST_PATH;
 let settings;
 let vrchat;
-let themeStore;
-let THEME_PRESETS_DIR;
-let THEME_PRESETS_SEED_PATH;
-let THEME_PRESETS_BUNDLED_DIR;
-const RESERVED_THEME_PRESET_KEYS = new Set(["default", "wired", "custom", "blue"]);
 const groupPermissionCache = new Map();
 const groupPrivacyCache = new Map();
 const groupRolesCache = new Map();
@@ -336,19 +144,29 @@ function initializePaths() {
   PROFILES_PATH = path.join(DATA_DIR, "profiles.json");
   CACHE_PATH = path.join(DATA_DIR, "cache.json");
   SETTINGS_PATH = path.join(DATA_DIR, "settings.json");
-  THEMES_PATH = path.join(DATA_DIR, "themes.json");
   PENDING_EVENTS_PATH = path.join(DATA_DIR, "pending-events.json");
   AUTOMATION_STATE_PATH = path.join(DATA_DIR, "automation-state.json");
   GALLERY_CACHE_DIR = path.join(DATA_DIR, "gallery-cache");
   GALLERY_MANIFEST_PATH = path.join(GALLERY_CACHE_DIR, "manifest.json");
-  THEME_PRESETS_DIR = path.join(DATA_DIR, "themes");
-  THEME_PRESETS_SEED_PATH = path.join(THEME_PRESETS_DIR, ".seeded");
-  THEME_PRESETS_BUNDLED_DIR = path.join(__dirname, "themes");
+  galleryCacheModule.init({
+    cacheDir: GALLERY_CACHE_DIR,
+    manifestPath: GALLERY_MANIFEST_PATH,
+    getVrchat: () => vrchat,
+    debugLog: debugLog
+  });
   settings = loadSettings();
-  const rawThemeStore = loadThemeStoreRaw();
-  themeStore = normalizeThemeStore(rawThemeStore);
-  seedThemePresets();
-  migrateThemeStorePresets(rawThemeStore);
+  themeStoreModule.init({
+    themesPath: path.join(DATA_DIR, "themes.json"),
+    presetsDir: path.join(DATA_DIR, "themes"),
+    seedPath: path.join(DATA_DIR, "themes", ".seeded"),
+    bundledDir: path.join(__dirname, "themes"),
+    getMainWindow: () => mainWindow,
+    dialog
+  });
+  const rawThemeStore = themeStoreModule.loadThemeStoreRaw();
+  themeStoreModule.setThemeStore(themeStoreModule.normalizeThemeStore(rawThemeStore));
+  themeStoreModule.seedThemePresets();
+  themeStoreModule.migrateThemeStorePresets(rawThemeStore);
   vrchat = createClient();
 }
 
@@ -407,473 +225,7 @@ function loadSettings() {
   }
 }
 
-// Gallery cache helper functions
-function ensureGalleryCacheDir() {
-  try {
-    fs.mkdirSync(GALLERY_CACHE_DIR, { recursive: true });
-  } catch (err) {
-    debugLog("galleryCache", "Failed to create cache directory:", err.message);
-  }
-}
-
-function loadGalleryCacheManifest() {
-  try {
-    const raw = JSON.parse(fs.readFileSync(GALLERY_MANIFEST_PATH, "utf8"));
-    if (raw.version !== 1) return { version: 1, images: {} };
-    return raw;
-  } catch {
-    return { version: 1, images: {} };
-  }
-}
-
-function saveGalleryCacheManifest(manifest) {
-  try {
-    ensureGalleryCacheDir();
-    fs.writeFileSync(GALLERY_MANIFEST_PATH, JSON.stringify(manifest, null, 2), "utf8");
-  } catch (err) {
-    debugLog("galleryCache", "Failed to save manifest:", err.message);
-  }
-}
-
-async function downloadGalleryImage(imageId, _remoteUrl, mimeType) {
-  try {
-    ensureGalleryCacheDir();
-    const ext = mimeType === "image/png" ? ".png" : ".jpg";
-    const localFileName = `${imageId}${ext}`;
-    const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
-
-    // Validate that the resolved path is within the cache directory (prevent path traversal)
-    const normalizedPath = path.normalize(localPath);
-    const normalizedCacheDir = path.normalize(GALLERY_CACHE_DIR);
-    if (!normalizedPath.startsWith(normalizedCacheDir)) {
-      debugLog("galleryCache", `Invalid path detected for ${imageId}`);
-      return null;
-    }
-
-    // Use SDK's authenticated downloadFileVersion method
-    // First get file info to determine version
-    const fileRes = await vrchat.getFile({
-      path: { fileId: imageId },
-      throwOnError: false
-    });
-    const file = fileRes?.data;
-    if (!file || !file.versions?.length) {
-      debugLog("galleryCache", `No file data or versions for ${imageId}`);
-      return null;
-    }
-
-    const lastVersion = file.versions[file.versions.length - 1];
-    const versionNum = lastVersion?.version ?? 1;
-
-    debugLog("galleryCache", `Downloading ${imageId} version ${versionNum} via SDK`);
-
-    const downloadRes = await vrchat.downloadFileVersion({
-      path: { fileId: imageId, versionId: versionNum },
-      throwOnError: false
-    });
-
-    const blob = downloadRes?.data;
-    if (!blob) {
-      debugLog("galleryCache", `Failed to download ${imageId}: no blob data`);
-      return null;
-    }
-
-    const arrayBuffer = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-    if (buffer.length > MAX_IMAGE_SIZE) {
-      debugLog("galleryCache", `Downloaded image too large for ${imageId}: ${buffer.length} bytes`);
-      return null;
-    }
-
-    // Verify buffer contains valid image data by checking magic bytes
-    const isValidImage =
-      (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) || // PNG
-      (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) || // JPEG
-      (buffer.length >= 12 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50); // WebP
-
-    if (!isValidImage) {
-      debugLog("galleryCache", `Invalid image data for ${imageId}`);
-      return null;
-    }
-
-    fs.writeFileSync(localPath, buffer);
-
-    const manifest = loadGalleryCacheManifest();
-    manifest.images[imageId] = {
-      localPath: localFileName,
-      cachedAt: Date.now(),
-      lastAccessed: Date.now(),
-      size: buffer.length,
-      mimeType
-    };
-    saveGalleryCacheManifest(manifest);
-
-    debugLog("galleryCache", `Cached image: ${imageId} (${buffer.length} bytes)`);
-    return localFileName;
-  } catch (err) {
-    debugLog("galleryCache", `Error caching ${imageId}:`, err.message);
-    return null;
-  }
-}
-
-function getCachedImageAsDataUrl(imageId) {
-  try {
-    const manifest = loadGalleryCacheManifest();
-    const entry = manifest.images[imageId];
-    if (!entry) return null;
-
-    const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
-    if (!fs.existsSync(localPath)) {
-      // File missing, remove from manifest
-      delete manifest.images[imageId];
-      saveGalleryCacheManifest(manifest);
-      return null;
-    }
-
-    const buffer = fs.readFileSync(localPath);
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${entry.mimeType};base64,${base64}`;
-
-    // Update last accessed time
-    entry.lastAccessed = Date.now();
-    saveGalleryCacheManifest(manifest);
-
-    return dataUrl;
-  } catch (err) {
-    debugLog("galleryCache", `Error reading cached image ${imageId}:`, err.message);
-    return null;
-  }
-}
-
-function cleanGalleryCache(maxAgeDays = 30) {
-  try {
-    const manifest = loadGalleryCacheManifest();
-    const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-    let removed = 0;
-
-    for (const [imageId, entry] of Object.entries(manifest.images)) {
-      const age = now - (entry.lastAccessed || entry.cachedAt);
-      if (age > maxAgeMs) {
-        const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
-        try {
-          fs.unlinkSync(localPath);
-        } catch { /* ignore */ }
-        delete manifest.images[imageId];
-        removed++;
-      }
-    }
-
-    if (removed > 0) {
-      saveGalleryCacheManifest(manifest);
-      debugLog("galleryCache", `Cleaned ${removed} stale cache entries`);
-    }
-    return removed;
-  } catch (err) {
-    debugLog("galleryCache", "Error cleaning cache:", err.message);
-    return 0;
-  }
-}
-
-function removeDeletedFromGalleryCache(currentImageIds) {
-  try {
-    const manifest = loadGalleryCacheManifest();
-    const currentSet = new Set(currentImageIds);
-    let removed = 0;
-
-    for (const cachedId of Object.keys(manifest.images)) {
-      if (!currentSet.has(cachedId)) {
-        const entry = manifest.images[cachedId];
-        const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
-        try {
-          fs.unlinkSync(localPath);
-        } catch { /* ignore */ }
-        delete manifest.images[cachedId];
-        removed++;
-      }
-    }
-
-    if (removed > 0) {
-      saveGalleryCacheManifest(manifest);
-      debugLog("galleryCache", `Removed ${removed} deleted images from cache`);
-    }
-    return removed;
-  } catch (err) {
-    debugLog("galleryCache", "Error removing deleted images:", err.message);
-    return 0;
-  }
-}
-
-function loadThemeStoreRaw() {
-  try {
-    return JSON.parse(fs.readFileSync(THEMES_PATH, "utf8"));
-  } catch (err) {
-    return {};
-  }
-}
-
-function normalizeThemeStore(raw) {
-  let selectedPreset = typeof raw?.selectedPreset === "string" ? raw.selectedPreset : "default";
-  if (selectedPreset === "blue") {
-    selectedPreset = "default";
-  }
-  const customColors = raw?.customColors && typeof raw.customColors === "object" ? raw.customColors : null;
-  return { selectedPreset, customColors };
-}
-
-function saveThemeStore(nextStore) {
-  themeStore = normalizeThemeStore(nextStore);
-  fs.writeFileSync(THEMES_PATH, JSON.stringify(themeStore, null, 2));
-  return themeStore;
-}
-
-function sanitizeThemePresetKey(value) {
-  return String(value || "")
-    .trim()
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
-    .trim();
-}
-
-function ensureThemePresetDir() {
-  if (!THEME_PRESETS_DIR) {
-    return;
-  }
-  fs.mkdirSync(THEME_PRESETS_DIR, { recursive: true });
-}
-
-function loadSeededThemeKeys() {
-  try {
-    if (fs.existsSync(THEME_PRESETS_SEED_PATH)) {
-      const content = fs.readFileSync(THEME_PRESETS_SEED_PATH, "utf8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
-        return new Set(parsed.map(k => String(k).toLowerCase()));
-      }
-    }
-  } catch (err) {
-    // Ignore read errors
-  }
-  return new Set();
-}
-
-function saveSeededThemeKeys(keys) {
-  try {
-    fs.writeFileSync(THEME_PRESETS_SEED_PATH, JSON.stringify(Array.from(keys)));
-  } catch (err) {
-    // Ignore write errors
-  }
-}
-
-function seedThemePresets() {
-  if (!THEME_PRESETS_DIR || !THEME_PRESETS_BUNDLED_DIR) {
-    return;
-  }
-  if (!fs.existsSync(THEME_PRESETS_BUNDLED_DIR)) {
-    return;
-  }
-  ensureThemePresetDir();
-  const seededKeys = loadSeededThemeKeys();
-  const bundled = fs.readdirSync(THEME_PRESETS_BUNDLED_DIR)
-    .filter(file => file.toLowerCase().endsWith(".json"));
-  bundled.forEach(file => {
-    const key = path.basename(file, ".json").toLowerCase();
-    // Skip if already seeded
-    if (seededKeys.has(key)) {
-      return;
-    }
-    const source = path.join(THEME_PRESETS_BUNDLED_DIR, file);
-    const target = path.join(THEME_PRESETS_DIR, file);
-    try {
-      fs.copyFileSync(source, target);
-      seededKeys.add(key);
-    } catch (err) {
-      // Ignore copy errors
-    }
-  });
-  saveSeededThemeKeys(seededKeys);
-}
-
-function readThemePresetFile(filePath) {
-  try {
-    const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    const key = path.basename(filePath, ".json");
-    if (!key || RESERVED_THEME_PRESET_KEYS.has(key.toLowerCase())) {
-      return null;
-    }
-    let colors = null;
-    if (raw?.colors && typeof raw.colors === "object") {
-      colors = raw.colors;
-    } else if (raw && typeof raw === "object" && !raw.name) {
-      colors = raw;
-    }
-    if (!colors || typeof colors !== "object") {
-      return null;
-    }
-    const name = typeof raw?.name === "string" && raw.name.trim() ? raw.name.trim() : key;
-    return { key, name, colors };
-  } catch (err) {
-    return null;
-  }
-}
-
-function loadThemePresets() {
-  if (!THEME_PRESETS_DIR) {
-    return [];
-  }
-  ensureThemePresetDir();
-  let files = [];
-  try {
-    files = fs.readdirSync(THEME_PRESETS_DIR).filter(file => file.toLowerCase().endsWith(".json"));
-  } catch (err) {
-    return [];
-  }
-  const presets = [];
-  files.forEach(file => {
-    const preset = readThemePresetFile(path.join(THEME_PRESETS_DIR, file));
-    if (preset) {
-      presets.push(preset);
-    }
-  });
-  return presets;
-}
-
-function writeThemePresetFile({ key, name, colors, allowOverwrite }) {
-  ensureThemePresetDir();
-  const safeName = typeof name === "string" ? name.trim() : "";
-  if (!safeName) {
-    throw new Error("Theme name required.");
-  }
-  let baseKey = sanitizeThemePresetKey(key || safeName);
-  if (!baseKey || RESERVED_THEME_PRESET_KEYS.has(baseKey.toLowerCase())) {
-    baseKey = sanitizeThemePresetKey(safeName) || "theme";
-  }
-  let finalKey = baseKey;
-  let targetPath = path.join(THEME_PRESETS_DIR, `${finalKey}.json`);
-  if (!allowOverwrite || !fs.existsSync(targetPath)) {
-    let index = 1;
-    while (fs.existsSync(targetPath) || RESERVED_THEME_PRESET_KEYS.has(finalKey.toLowerCase())) {
-      finalKey = `${baseKey}-${index}`;
-      targetPath = path.join(THEME_PRESETS_DIR, `${finalKey}.json`);
-      index += 1;
-    }
-  }
-  const payload = { name: safeName, colors: colors || {} };
-  fs.writeFileSync(targetPath, JSON.stringify(payload, null, 2));
-  return { key: finalKey, name: safeName, colors: payload.colors };
-}
-
-function saveThemePreset(payload) {
-  const name = typeof payload?.name === "string" ? payload.name.trim() : "";
-  const colors = payload?.colors && typeof payload.colors === "object" ? payload.colors : null;
-  if (!name || !colors) {
-    throw new Error("Invalid theme preset.");
-  }
-  const key = typeof payload?.key === "string" ? sanitizeThemePresetKey(payload.key) : "";
-  const allowOverwrite = Boolean(key && !RESERVED_THEME_PRESET_KEYS.has(key.toLowerCase()));
-  const result = writeThemePresetFile({ key: allowOverwrite ? key : null, name, colors, allowOverwrite });
-  return { presets: loadThemePresets(), selectedKey: result.key };
-}
-
-function deleteThemePreset(key) {
-  const safeKey = sanitizeThemePresetKey(key);
-  if (!safeKey || RESERVED_THEME_PRESET_KEYS.has(safeKey.toLowerCase())) {
-    return { presets: loadThemePresets() };
-  }
-  const targetPath = path.join(THEME_PRESETS_DIR, `${safeKey}.json`);
-  if (fs.existsSync(targetPath)) {
-    fs.unlinkSync(targetPath);
-  }
-  return { presets: loadThemePresets() };
-}
-
-async function importThemePreset() {
-  if (!mainWindow) {
-    return { ok: false, error: { code: "NO_WINDOW" } };
-  }
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ["openFile"],
-    title: "Import Theme",
-    filters: [{ name: "Theme JSON", extensions: ["json"] }]
-  });
-  if (result.canceled || !result.filePaths.length) {
-    return { ok: false, cancelled: true };
-  }
-  const filePath = result.filePaths[0];
-  let raw = null;
-  try {
-    raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch (err) {
-    return { ok: false, error: { code: "FILE_INVALID" } };
-  }
-  let colors = null;
-  if (raw?.colors && typeof raw.colors === "object") {
-    colors = raw.colors;
-  } else if (raw && typeof raw === "object") {
-    colors = raw;
-  }
-  if (!colors || typeof colors !== "object") {
-    return { ok: false, error: { code: "FILE_INVALID" } };
-  }
-  const fallbackName = path.basename(filePath, ".json");
-  const name = typeof raw?.name === "string" && raw.name.trim()
-    ? raw.name.trim()
-    : fallbackName || "Theme";
-  const saved = saveThemePreset({ name, colors });
-  return { ok: true, presets: saved.presets, selectedKey: saved.selectedKey };
-}
-
-async function exportThemePreset(payload) {
-  if (!mainWindow) {
-    return { ok: false, error: { code: "NO_WINDOW" } };
-  }
-  const name = typeof payload?.name === "string" ? payload.name.trim() : "";
-  const colors = payload?.colors && typeof payload.colors === "object" ? payload.colors : null;
-  if (!colors) {
-    return { ok: false, error: { code: "THEME_INVALID" } };
-  }
-  const defaultName = sanitizeThemePresetKey(name) || "theme";
-  const result = await dialog.showSaveDialog(mainWindow, {
-    title: "Export Theme",
-    defaultPath: `${defaultName}.json`,
-    filters: [{ name: "Theme JSON", extensions: ["json"] }]
-  });
-  if (result.canceled || !result.filePath) {
-    return { ok: false, cancelled: true };
-  }
-  const filePath = result.filePath.toLowerCase().endsWith(".json")
-    ? result.filePath
-    : `${result.filePath}.json`;
-  const payloadData = { name: name || defaultName, colors };
-  fs.writeFileSync(filePath, JSON.stringify(payloadData, null, 2));
-  return { ok: true };
-}
-
-function migrateThemeStorePresets(rawStore) {
-  const presets = rawStore?.presets && typeof rawStore.presets === "object" ? rawStore.presets : null;
-  if (!presets || !Object.keys(presets).length) {
-    return;
-  }
-  ensureThemePresetDir();
-  let selected = themeStore.selectedPreset;
-  Object.entries(presets).forEach(([name, colors]) => {
-    if (!name || typeof colors !== "object") {
-      return;
-    }
-    const result = writeThemePresetFile({
-      key: name,
-      name,
-      colors,
-      allowOverwrite: false
-    });
-    if (selected && selected.toLowerCase() === name.toLowerCase()) {
-      selected = result.key;
-    }
-  });
-  themeStore.selectedPreset = selected || themeStore.selectedPreset;
-  saveThemeStore(themeStore);
-}
+// Gallery cache — delegated to core/gallery-cache.js (initialized in initializePaths)
 
 function saveSettings(nextSettings) {
   settings = normalizeSettings(nextSettings);
@@ -2178,30 +1530,30 @@ ipcMain.handle("calendar:selectSaveDir", async () => {
   return { ok: true, dir };
 });
 
-ipcMain.handle("theme:get", () => themeStore);
+ipcMain.handle("theme:get", () => themeStoreModule.getThemeStore());
 
 ipcMain.handle("theme:set", (_, payload) => {
-  return saveThemeStore(payload);
+  return themeStoreModule.saveThemeStore(payload);
 });
 
 ipcMain.handle("themePresets:get", () => {
-  return { presets: loadThemePresets() };
+  return { presets: themeStoreModule.loadThemePresets() };
 });
 
 ipcMain.handle("themePresets:save", (_, payload) => {
-  return saveThemePreset(payload);
+  return themeStoreModule.saveThemePreset(payload);
 });
 
 ipcMain.handle("themePresets:delete", (_, key) => {
-  return deleteThemePreset(key);
+  return themeStoreModule.deleteThemePreset(key);
 });
 
 ipcMain.handle("themePresets:import", async () => {
-  return importThemePreset();
+  return themeStoreModule.importThemePreset();
 });
 
 ipcMain.handle("themePresets:export", async (_, payload) => {
-  return exportThemePreset(payload);
+  return themeStoreModule.exportThemePreset(payload);
 });
 
 ipcMain.handle("events:importJson", async () => {
@@ -2796,7 +2148,7 @@ ipcMain.handle("files:listGallery", async (_, payload) => {
   // Cache invalidation: remove images no longer in gallery
   if (offset === 0) {
     const currentIds = mappedFiles.map(f => f.id);
-    removeDeletedFromGalleryCache(currentIds);
+    galleryCacheModule.removeDeletedFromGalleryCache(currentIds);
   }
 
   return mappedFiles;
@@ -2973,7 +2325,7 @@ ipcMain.handle("files:uploadGalleryBase64", async (_, payload) => {
 ipcMain.handle("gallery:getCachedImage", async (_, payload) => {
   const { imageId } = payload || {};
   if (!imageId) return null;
-  return getCachedImageAsDataUrl(imageId);
+  return galleryCacheModule.getCachedImageAsDataUrl(imageId);
 });
 
 ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
@@ -2981,7 +2333,7 @@ ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
   if (!imageId) return null;
 
   // First check if already cached
-  let dataUrl = getCachedImageAsDataUrl(imageId);
+  let dataUrl = galleryCacheModule.getCachedImageAsDataUrl(imageId);
   if (dataUrl) return dataUrl;
 
   // Not cached, try to download using authenticated SDK method
@@ -3035,7 +2387,7 @@ ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
     }
 
     // Save to cache
-    ensureGalleryCacheDir();
+    galleryCacheModule.ensureGalleryCacheDir();
     const ext = mimeType === "image/png" ? ".png" : ".jpg";
     const localFileName = `${imageId}${ext}`;
     const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
@@ -3051,16 +2403,16 @@ ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
     fs.writeFileSync(localPath, buffer);
 
     // Update manifest
-    const manifest = loadGalleryCacheManifest();
+    const manifest = galleryCacheModule.loadGalleryCacheManifest();
     manifest.images[imageId] = {
       localPath: localFileName,
       mimeType,
       cachedAt: new Date().toISOString()
     };
-    saveGalleryCacheManifest(manifest);
+    galleryCacheModule.saveGalleryCacheManifest(manifest);
 
     debugLog("gallery", `Cached ${imageId} successfully`);
-    return getCachedImageAsDataUrl(imageId);
+    return galleryCacheModule.getCachedImageAsDataUrl(imageId);
   } catch (err) {
     debugLog("gallery", `Failed to fetch image ${imageId}:`, err.message);
     return null;
@@ -3087,7 +2439,7 @@ ipcMain.handle("gallery:checkImageExists", async (_, payload) => {
 ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {
   const { imageIds } = payload || {};
   if (!Array.isArray(imageIds)) return {};
-  const manifest = loadGalleryCacheManifest();
+  const manifest = galleryCacheModule.loadGalleryCacheManifest();
   const status = {};
   for (const id of imageIds) {
     status[id] = !!manifest.images[id];
@@ -3097,14 +2449,14 @@ ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {
 
 ipcMain.handle("gallery:cleanCache", async (_, payload) => {
   const { maxAgeDays } = payload || {};
-  return cleanGalleryCache(maxAgeDays || 30);
+  return galleryCacheModule.cleanGalleryCache(maxAgeDays || 30);
 });
 
 ipcMain.handle("gallery:triggerBackgroundCache", async (_, payload) => {
   const { images } = payload || {};
   if (!Array.isArray(images) || images.length === 0) return;
 
-  const manifest = loadGalleryCacheManifest();
+  const manifest = galleryCacheModule.loadGalleryCacheManifest();
   const toDownload = images.filter(img => !manifest.images[img.id] && img.previewUrl);
 
   if (toDownload.length === 0) return;
@@ -3112,7 +2464,7 @@ ipcMain.handle("gallery:triggerBackgroundCache", async (_, payload) => {
   // Download images in background with throttling
   setImmediate(async () => {
     for (const img of toDownload) {
-      await downloadGalleryImage(img.id, img.previewUrl, img.mimeType || "image/png");
+      await galleryCacheModule.downloadGalleryImage(img.id, img.previewUrl, img.mimeType || "image/png");
       // Throttle: 100ms delay between downloads to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 100));
     }
