@@ -87,6 +87,22 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   },
   onDiscordSyncSuccess: callback => {
     ipcRenderer.on("discord:syncSuccess", (_, data) => callback(data));
+  },
+
+  // Calendar / Webhook integration
+  webhookTest: webhookUrl => ipcRenderer.invoke("webhook:test", webhookUrl),
+  webhookUpdateGroupWebhook: payload => ipcRenderer.invoke("webhook:updateGroupWebhook", payload),
+  webhookGetGroupWebhook: groupId => ipcRenderer.invoke("webhook:getGroupWebhook", groupId),
+  calendarSaveIcs: payload => ipcRenderer.invoke("calendar:generateAndSave", payload),
+  calendarSelectSaveDir: () => ipcRenderer.invoke("calendar:selectSaveDir"),
+  onWebhookSyncFailed: callback => {
+    ipcRenderer.on("webhook:syncFailed", (_, data) => callback(data));
+  },
+  onWebhookSyncSuccess: callback => {
+    ipcRenderer.on("webhook:syncSuccess", (_, data) => callback(data));
+  },
+  onCalendarAutoSaved: callback => {
+    ipcRenderer.on("calendar:autoSaved", (_, data) => callback(data));
   }
 });
 

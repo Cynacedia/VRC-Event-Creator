@@ -6,7 +6,7 @@ import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, se
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI } from "./profiles.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI, updateCalendarVisibility, renderCalendarReminders, readCalendarRemindersFromDom } from "./profiles.js";
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
@@ -224,6 +224,8 @@ import { initDemoControls } from "./demo.js";
       renderProfileList(api);
       renderEventProfileOptions(api);
       renderDiscordGroupSelect();
+      updateDiscordVisibility();
+      updateCalendarVisibility();
       void renderEventRoleRestrictions(api);
       void renderProfileRoleRestrictions(api);
       await refreshUpcomingEventCount(api);
@@ -411,6 +413,15 @@ import { initDemoControls } from "./demo.js";
       renderPatternList();
       renderUpcomingEventCountLabel();
       syncModifyLocalization();
+      // Re-render reminder dropdowns with updated translations
+      if (dom.profileCalendarRemindersList) {
+        const current = readCalendarRemindersFromDom(dom.profileCalendarRemindersList);
+        if (current.length) renderCalendarReminders(dom.profileCalendarRemindersList, current);
+      }
+      if (dom.eventCalendarRemindersList) {
+        const current = readCalendarRemindersFromDom(dom.eventCalendarRemindersList);
+        if (current.length) renderCalendarReminders(dom.eventCalendarRemindersList, current);
+      }
 
     const profileKey = dom.eventProfile.value;
     const groupId = dom.eventGroup.value;
@@ -1247,6 +1258,86 @@ import { initDemoControls } from "./demo.js";
     if (api.onDiscordSyncFailed) {
       api.onDiscordSyncFailed(({ eventTitle, error }) => {
         showToast(t("settings.discord.syncFailed").replace("{title}", eventTitle).replace("{error}", error), true);
+      });
+    }
+    // Calendar integration toggle (in Advanced Settings)
+    if (dom.settingsCalendarEnabled) {
+      dom.settingsCalendarEnabled.addEventListener("change", async () => {
+        try {
+          const enabled = dom.settingsCalendarEnabled.checked;
+          await api.updateSettings({ calendarEnabled: enabled });
+          state.settings.calendarEnabled = enabled;
+          updateDiscordVisibility();
+          updateCalendarVisibility();
+          // Show/hide save directory field
+          if (dom.calendarSaveDirField) {
+            dom.calendarSaveDirField.classList.toggle("is-hidden", !enabled);
+          }
+        } catch (err) {
+          console.error("Failed to save calendar setting:", err);
+        }
+      });
+    }
+    // Calendar save directory browse button
+    if (dom.calendarSaveDirBtn) {
+      dom.calendarSaveDirBtn.addEventListener("click", async () => {
+        const result = await api.calendarSelectSaveDir();
+        if (result.ok && result.dir) {
+          if (dom.calendarSaveDir) dom.calendarSaveDir.value = result.dir;
+          state.settings.calendarSaveDir = result.dir;
+        }
+      });
+    }
+    // Auto-save toast listener
+    if (api.onCalendarAutoSaved) {
+      api.onCalendarAutoSaved(({ eventTitle, filePath }) => {
+        showToast((t("settings.calendar.autoSaved") || "Calendar file saved: {filePath}").replace("{filePath}", filePath).replace("{title}", eventTitle));
+      });
+    }
+    // Profile calendar sync toggle — show/hide reminders card
+    if (dom.calendarSyncCheck) {
+      dom.calendarSyncCheck.addEventListener("change", () => updateCalendarVisibility());
+    }
+    // Profile calendar reminders enabled toggle — show/hide rows
+    if (dom.profileCalendarRemindersEnabled) {
+      dom.profileCalendarRemindersEnabled.addEventListener("change", () => {
+        const show = dom.profileCalendarRemindersEnabled.checked;
+        if (dom.profileCalendarRemindersList) dom.profileCalendarRemindersList.classList.toggle("is-hidden", !show);
+        if (dom.profileCalendarReminderAdd) dom.profileCalendarReminderAdd.classList.toggle("is-hidden", !show);
+        if (dom.profileCalendarRemindersHint) dom.profileCalendarRemindersHint.classList.toggle("is-hidden", !show);
+      });
+    }
+    // Profile calendar reminder add button
+    if (dom.profileCalendarReminderAdd) {
+      dom.profileCalendarReminderAdd.addEventListener("click", () => {
+        const current = readCalendarRemindersFromDom(dom.profileCalendarRemindersList);
+        renderCalendarReminders(dom.profileCalendarRemindersList, [...current, { value: 30, unit: "minutes" }]);
+      });
+    }
+    // Event calendar create toggle — show/hide reminders option
+    if (dom.eventCalendarCreateCheck) {
+      dom.eventCalendarCreateCheck.addEventListener("change", () => updateCalendarVisibility());
+    }
+    // Event calendar reminders enabled toggle — show/hide rows
+    if (dom.eventCalendarRemindersEnabled) {
+      dom.eventCalendarRemindersEnabled.addEventListener("change", () => updateCalendarVisibility());
+    }
+    // Event calendar reminder add button
+    if (dom.eventCalendarReminderAdd) {
+      dom.eventCalendarReminderAdd.addEventListener("click", () => {
+        const current = readCalendarRemindersFromDom(dom.eventCalendarRemindersList);
+        renderCalendarReminders(dom.eventCalendarRemindersList, [...current, { value: 30, unit: "minutes" }]);
+      });
+    }
+    // Webhook sync toast listeners
+    if (api.onWebhookSyncSuccess) {
+      api.onWebhookSyncSuccess(({ eventTitle }) => {
+        showToast((t("settings.calendar.syncSuccess") || "Calendar file sent for \"{title}\"").replace("{title}", eventTitle));
+      });
+    }
+    if (api.onWebhookSyncFailed) {
+      api.onWebhookSyncFailed(({ eventTitle, error }) => {
+        showToast((t("settings.calendar.syncFailed") || "Calendar file delivery failed for \"{title}\": {error}").replace("{title}", eventTitle).replace("{error}", error), true);
       });
     }
     // Initialize Discord UI (token toggle, test button, auto-save)

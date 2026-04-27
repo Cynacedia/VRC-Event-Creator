@@ -9,6 +9,8 @@ const { KeyvFile } = require("keyv-file");
 const { generateDateOptionsFromPatterns, safeZone } = require("./core/date-utils");
 const automationEngine = require("./core/automation-engine");
 const discord = require("./core/discord");
+const ics = require("./core/ics");
+const webhook = require("./core/webhook");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -316,6 +318,7 @@ const groupPermissionCache = new Map();
 const groupPrivacyCache = new Map();
 const groupRolesCache = new Map();
 const groupTagsCache = new Map();
+const groupIconCache = new Map();
 const FAILED_GET_CACHE_MS = 15 * 60 * 1000;
 const GET_DEDUPE_WINDOW_MS = 10 * 1000;
 const failedGetRequests = new Map();
@@ -349,6 +352,20 @@ function initializePaths() {
   vrchat = createClient();
 }
 
+function normalizeCalendarReminders(raw) {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [{ value: 30, unit: "minutes" }];
+  }
+  const validUnits = ["minutes", "hours", "days"];
+  const normalized = raw
+    .filter(r => r && typeof r === "object" && typeof r.value === "number" && validUnits.includes(r.unit))
+    .map(r => ({
+      value: Math.max(1, Math.min(r.unit === "days" ? 7 : r.unit === "hours" ? 168 : 10080, Math.floor(r.value))),
+      unit: r.unit
+    }));
+  return normalized.length ? normalized : [{ value: 30, unit: "minutes" }];
+}
+
 function normalizeSettings(raw) {
   // Only preserve the specific settings fields we define - ignore any other fields
   if (!raw || typeof raw !== "object") {
@@ -360,7 +377,10 @@ function normalizeSettings(raw) {
       enableImportExport: false,
       autoUploadImages: false,
       startOnStartup: false,
-      discordEnabled: false
+      discordEnabled: false,
+      calendarEnabled: false,
+      calendarSaveDir: "",
+      calendarReminders: [{ value: 30, unit: "minutes" }]
     };
   }
   return {
@@ -371,7 +391,10 @@ function normalizeSettings(raw) {
     enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
     autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false,
     startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false,
-    discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false
+    discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false,
+    calendarEnabled: typeof raw.calendarEnabled === "boolean" ? raw.calendarEnabled : false,
+    calendarSaveDir: typeof raw.calendarSaveDir === "string" ? raw.calendarSaveDir : "",
+    calendarReminders: normalizeCalendarReminders(raw.calendarReminders)
   };
 }
 
@@ -979,6 +1002,169 @@ async function getImageBase64ForDiscord(imageId) {
   }
 }
 
+// --- Calendar / Webhook sync helper ---
+
+async function getImageBufferForWebhook(fileId) {
+  if (!fileId) return null;
+  // Try gallery cache first (event images are often pre-cached)
+  const cachePath = path.join(GALLERY_CACHE_DIR, `${fileId}.png`);
+  if (fs.existsSync(cachePath)) {
+    return fs.readFileSync(cachePath);
+  }
+  // Download via authenticated VRChat SDK
+  try {
+    const fileRes = await vrchat.getFile({
+      path: { fileId },
+      throwOnError: false
+    });
+    const file = fileRes?.data;
+    if (!file || !file.versions?.length) return null;
+    const versionNum = file.versions[file.versions.length - 1]?.version ?? 1;
+    const downloadRes = await vrchat.downloadFileVersion({
+      path: { fileId, versionId: versionNum },
+      throwOnError: false
+    });
+    const blob = downloadRes?.data;
+    if (!blob) return null;
+    return Buffer.from(await blob.arrayBuffer());
+  } catch (err) {
+    debugLog("webhook", "Failed to fetch image for webhook:", err.message);
+    return null;
+  }
+}
+
+function truncateText(str, maxLength) {
+  if (!str || str.length <= maxLength) return str || "";
+  return str.slice(0, maxLength - 3) + "...";
+}
+
+function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+  if (!settings.calendarEnabled) return;
+
+  // Calendar creation must be enabled for this event
+  if (eventData?.calendarCreate === false) return;
+
+  const groupData = profiles[groupId];
+  if (!groupData) return;
+
+  // Check profile-level opt-in for calendar
+  const profile = groupData.profiles?.[profileKey];
+  if (profile && profile.calendarSync !== true) return;
+
+  // Determine delivery method: webhook or auto-save
+  const webhookUrl = decryptToken(groupData.webhookUrl);
+  const useWebhook = webhookUrl && eventData?.discordSync !== false;
+
+  // Resolve reminders: from eventData (per-event), fallback to profile, fallback to default
+  let reminders = [];
+  if (eventData?.calendarRemindersEnabled && Array.isArray(eventData.calendarReminders)) {
+    reminders = eventData.calendarReminders;
+  } else if (profile?.calendarRemindersEnabled && Array.isArray(profile.calendarReminders)) {
+    reminders = profile.calendarReminders;
+  }
+
+  // Generate deterministic UID
+  const startMs = new Date(startsAtUtc).getTime();
+  const uid = `${groupId}-${startMs}@vrceventcreator`;
+
+  // Generate ICS content
+  const icsContent = ics.generateIcsString({
+    title: eventData.title,
+    description: eventData.description || "",
+    startTime: startsAtUtc,
+    endTime: endsAtUtc,
+    location: "VRChat",
+    uid,
+    sequence: 0,
+    reminders
+  });
+
+  // Build filename: "Event Name - [YYYY-MM-DD].ics"
+  const safeTitle = (eventData.title || "event").replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+  const dateTag = new Date(startsAtUtc).toISOString().slice(0, 10);
+  const filename = `${safeTitle} - ${dateTag}.ics`;
+
+  if (useWebhook) {
+    // --- Webhook delivery path ---
+    const startUnix = Math.floor(new Date(startsAtUtc).getTime() / 1000);
+    const endUnix = Math.floor(new Date(endsAtUtc).getTime() / 1000);
+
+    const embed = {
+      title: eventData.title,
+      description: truncateText(eventData.description || "", 300),
+      color: 0x1FC3AD,
+      fields: [
+        { name: "\uD83D\uDCC6", value: `<t:${startUnix}:D>`, inline: true },
+        { name: "\uD83D\uDD50", value: `<t:${startUnix}:t> \u2014 <t:${endUnix}:t>`, inline: true },
+        { name: "\uD83D\uDC65", value: groupData.groupName || "VRChat Group", inline: true }
+      ]
+    };
+
+    // Resolve event image + group icon (non-blocking, parallel)
+    const imagePromise = eventData.imageId
+      ? getImageBufferForWebhook(eventData.imageId).catch(() => null)
+      : Promise.resolve(null);
+    const iconId = groupData.groupIconId || groupIconCache.get(groupId) || "";
+    const iconPromise = iconId
+      ? getImageBufferForWebhook(iconId).catch(() => null)
+      : Promise.resolve(null);
+
+    Promise.all([imagePromise, iconPromise]).then(([imageBuffer, iconBuffer]) => {
+      if (imageBuffer) {
+        embed.image = { url: "attachment://banner.png" };
+      }
+      if (iconBuffer) {
+        embed.thumbnail = { url: "attachment://icon.png" };
+      }
+      return webhook.sendWebhookWithIcs({
+        webhookUrl,
+        icsContent,
+        filename,
+        embed,
+        imageBuffer,
+        imageFilename: imageBuffer ? "banner.png" : null,
+        iconBuffer,
+        iconFilename: iconBuffer ? "icon.png" : null,
+        avatarUrl: `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`
+      });
+    }).then(result => {
+      if (!result.ok) {
+        debugLog("calendar", "Failed to send webhook:", result.error);
+        if (mainWindow) {
+          mainWindow.webContents.send("webhook:syncFailed", {
+            eventTitle: eventData.title,
+            error: result.error
+          });
+        }
+      } else {
+        debugLog("calendar", "Webhook sent for:", eventData.title);
+        if (mainWindow) {
+          mainWindow.webContents.send("webhook:syncSuccess", {
+            eventTitle: eventData.title
+          });
+        }
+      }
+    }).catch(err => {
+      debugLog("calendar", "Webhook sync error:", err.message);
+    });
+  } else if (settings.calendarSaveDir) {
+    // --- Auto-save path (no webhook configured) ---
+    try {
+      const savePath = path.join(settings.calendarSaveDir, filename);
+      fs.writeFileSync(savePath, icsContent, "utf8");
+      debugLog("calendar", "ICS auto-saved:", savePath);
+      if (mainWindow) {
+        mainWindow.webContents.send("calendar:autoSaved", {
+          eventTitle: eventData.title,
+          filePath: savePath
+        });
+      }
+    } catch (err) {
+      debugLog("calendar", "ICS auto-save failed:", err.message);
+    }
+  }
+}
+
 function maybeImportProfiles() {
   if (fs.existsSync(PROFILES_PATH)) {
     return;
@@ -1054,8 +1240,10 @@ function normalizeProfiles(raw) {
     });
     output[groupId] = {
       groupName: groupData.groupName || "Unknown Group",
+      groupIconId: typeof groupData.groupIconId === "string" ? groupData.groupIconId : "",
       discordBotToken: typeof groupData.discordBotToken === "string" ? groupData.discordBotToken : "",
       discordGuildId: typeof groupData.discordGuildId === "string" ? groupData.discordGuildId : "",
+      webhookUrl: typeof groupData.webhookUrl === "string" ? groupData.webhookUrl : "",
       profiles: normalizedProfiles
     };
   });
@@ -1927,6 +2115,69 @@ ipcMain.handle("discord:getGroupDiscord", (_, groupId) => {
   };
 });
 
+// --- Calendar / Webhook IPC handlers ---
+
+ipcMain.handle("webhook:test", async (_, webhookUrl) => {
+  if (!webhookUrl) return { ok: false, error: "No webhook URL provided." };
+  return webhook.testWebhook(webhookUrl);
+});
+
+ipcMain.handle("webhook:updateGroupWebhook", (_, { groupId, webhookUrl }) => {
+  if (!groupId || !profiles[groupId]) return { ok: false, error: "Group not found." };
+  if (typeof webhookUrl === "string") {
+    profiles[groupId].webhookUrl = encryptToken(webhookUrl);
+  }
+  saveProfiles(profiles);
+  return { ok: true };
+});
+
+ipcMain.handle("webhook:getGroupWebhook", (_, groupId) => {
+  if (!groupId || !profiles[groupId]) return { webhookUrl: "" };
+  return {
+    webhookUrl: decryptToken(profiles[groupId].webhookUrl || "")
+  };
+});
+
+ipcMain.handle("calendar:generateAndSave", async (_, { eventData, startsAtUtc, endsAtUtc, groupId }) => {
+  const startMs = new Date(startsAtUtc).getTime();
+  const uid = `${groupId}-${startMs}@vrceventcreator`;
+  const icsContent = ics.generateIcsString({
+    title: eventData.title,
+    description: eventData.description || "",
+    startTime: startsAtUtc,
+    endTime: endsAtUtc,
+    location: "VRChat",
+    uid,
+    sequence: 0,
+    reminders: (eventData.calendarRemindersEnabled && Array.isArray(eventData.calendarReminders)) ? eventData.calendarReminders : []
+  });
+  const safeTitle = (eventData.title || "event").replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+  const dateTag = new Date(startsAtUtc).toISOString().slice(0, 10);
+  if (!mainWindow) return { ok: false, error: "No window." };
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Save Calendar File",
+    defaultPath: `${safeTitle} - ${dateTag}.ics`,
+    filters: [{ name: "iCalendar File", extensions: ["ics"] }]
+  });
+  if (result.canceled || !result.filePath) return { ok: false, cancelled: true };
+  fs.writeFileSync(result.filePath, icsContent, "utf8");
+  return { ok: true };
+});
+
+ipcMain.handle("calendar:selectSaveDir", async () => {
+  if (!mainWindow) return { ok: false };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select Calendar Save Directory",
+    properties: ["openDirectory", "createDirectory"],
+    defaultPath: settings.calendarSaveDir || app.getPath("documents")
+  });
+  if (result.canceled || !result.filePaths?.length) return { ok: false, cancelled: true };
+  const dir = result.filePaths[0];
+  settings.calendarSaveDir = dir;
+  saveSettings(settings);
+  return { ok: true, dir };
+});
+
 ipcMain.handle("theme:get", () => themeStore);
 
 ipcMain.handle("theme:set", (_, payload) => {
@@ -2078,6 +2329,7 @@ ipcMain.handle("groups:list", async () => {
   const enriched = [];
   for (const group of limitedGroups) {
     const groupId = group.groupId || group.id;
+    if (groupId && group.iconId) groupIconCache.set(groupId, group.iconId);
     if (!groupId) {
       enriched.push({ ...group, canManageCalendar: false });
       continue;
@@ -2191,7 +2443,7 @@ ipcMain.handle("profiles:list", async () => {
 });
 
 ipcMain.handle("profiles:create", async (_, payload) => {
-  const { groupId, groupName, profileKey, data } = payload || {};
+  const { groupId, groupName, groupIconId, profileKey, data } = payload || {};
   if (!groupId || !profileKey || !data) {
     throw new Error("Invalid profile payload.");
   }
@@ -2203,13 +2455,14 @@ ipcMain.handle("profiles:create", async (_, payload) => {
     profiles[groupId] = { groupName: groupName || "Unknown Group", profiles: {} };
   }
   profiles[groupId].groupName = groupName || profiles[groupId].groupName;
+  if (groupIconId) profiles[groupId].groupIconId = groupIconId;
   profiles[groupId].profiles[profileKey] = data;
   saveProfiles(profiles);
   return profiles;
 });
 
 ipcMain.handle("profiles:update", async (_, payload) => {
-  const { groupId, groupName, profileKey, data } = payload || {};
+  const { groupId, groupName, groupIconId, profileKey, data } = payload || {};
   if (!groupId || !profileKey || !data) {
     throw new Error("Invalid profile payload.");
   }
@@ -2217,6 +2470,7 @@ ipcMain.handle("profiles:update", async (_, payload) => {
     profiles[groupId] = { groupName: groupName || "Unknown Group", profiles: {} };
   }
   profiles[groupId].groupName = groupName || profiles[groupId].groupName;
+  if (groupIconId) profiles[groupId].groupIconId = groupIconId;
   profiles[groupId].profiles[profileKey] = data;
   saveProfiles(profiles);
 
@@ -2359,6 +2613,8 @@ ipcMain.handle("events:create", async (_, payload) => {
     }
     // Discord sync (fire-and-forget, never blocks VRC event creation)
     tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
+    // Calendar webhook sync (fire-and-forget)
+    tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
@@ -3105,6 +3361,8 @@ app.whenReady().then(() => {
           const durationMs = (details.duration || 120) * 60 * 1000;
           const endTime = new Date(startTime.getTime() + durationMs);
           tryDiscordSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
+          // Calendar webhook sync for automated events
+          tryCalendarSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

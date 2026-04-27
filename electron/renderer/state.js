@@ -241,7 +241,35 @@ export const dom = {
   discordSyncField: document.getElementById("discord-sync-field"),
   discordSyncCheck: document.getElementById("discord-sync-check"),
   eventDiscordSyncField: document.getElementById("event-discord-sync-field"),
-  eventDiscordSyncCheck: document.getElementById("event-discord-sync-check")
+  eventDiscordSyncCheck: document.getElementById("event-discord-sync-check"),
+  // Calendar / Webhook elements
+  settingsCalendarEnabled: document.getElementById("settings-calendar-enabled"),
+  calendarSaveDirField: document.getElementById("calendar-save-dir-field"),
+  calendarSaveDir: document.getElementById("calendar-save-dir"),
+  calendarSaveDirBtn: document.getElementById("calendar-save-dir-btn"),
+  calendarSyncField: document.getElementById("calendar-sync-field"),
+  calendarSyncCheck: document.getElementById("calendar-sync-check"),
+  // Profile calendar reminders (Schedule step)
+  profileCalendarRemindersCard: document.getElementById("profile-calendar-reminders-card"),
+  profileCalendarRemindersEnabled: document.getElementById("profile-calendar-reminders-enabled"),
+  profileCalendarRemindersList: document.getElementById("profile-calendar-reminders-list"),
+  profileCalendarReminderAdd: document.getElementById("profile-calendar-reminder-add"),
+  profileCalendarRemindersHint: document.getElementById("profile-calendar-reminders-hint"),
+  // Event calendar options (Date step)
+  eventCalendarCreateField: document.getElementById("event-calendar-create-field"),
+  eventCalendarCreateCheck: document.getElementById("event-calendar-create-check"),
+  eventCalendarRemindersEnabledField: document.getElementById("event-calendar-reminders-enabled-field"),
+  eventCalendarRemindersEnabled: document.getElementById("event-calendar-reminders-enabled"),
+  eventCalendarRemindersList: document.getElementById("event-calendar-reminders-list"),
+  eventCalendarReminderAdd: document.getElementById("event-calendar-reminder-add"),
+  eventCalendarRemindersHint: document.getElementById("event-calendar-reminders-hint"),
+  // Webhook elements (inside discord-group-config)
+  discordWebhookField: document.getElementById("discord-webhook-field"),
+  discordWebhookEnabledCheck: document.getElementById("discord-webhook-enabled"),
+  discordWebhookUrlField: document.getElementById("discord-webhook-url-field"),
+  discordWebhookUrl: document.getElementById("discord-webhook-url"),
+  discordWebhookToggle: document.getElementById("discord-webhook-toggle"),
+  discordWebhookTestBtn: document.getElementById("discord-webhook-test-btn")
 };
 
 export const state = {

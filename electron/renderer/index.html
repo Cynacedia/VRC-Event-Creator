@@ -123,6 +123,21 @@
                       </div>
                     </div>
                     <p class="hint" id="event-date-hint" data-i18n="events.dateHints.default">Manual mode is ready. Profiles with patterns unlock date options.</p>
+                    <div class="field is-hidden" id="event-calendar-create-field">
+                      <label class="toggle">
+                        <input id="event-calendar-create-check" type="checkbox" />
+                        <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
+                      </label>
+                    </div>
+                    <div class="field is-hidden" id="event-calendar-reminders-enabled-field">
+                      <label class="toggle">
+                        <input id="event-calendar-reminders-enabled" type="checkbox" />
+                        <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
+                      </label>
+                    </div>
+                    <div id="event-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
+                    <button id="event-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
+                    <p class="hint is-hidden" id="event-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
                   </div>
                 </div>
 
@@ -160,7 +175,7 @@
                       <div class="field is-hidden" id="event-discord-sync-field">
                         <label class="toggle">
                           <input id="event-discord-sync-check" type="checkbox" checked />
-                          <span data-i18n="settings.discord.syncLabel">Sync to Discord</span>
+                          <span data-i18n="settings.discord.syncLabel">Post to Discord</span>
                         </label>
                       </div>
                     </div>
@@ -384,10 +399,16 @@
                         <span data-i18n="profiles.sendNotificationDefault">Send Notification by default</span>
                       </label>
                     </div>
+                    <div class="field is-hidden" id="calendar-sync-field">
+                      <label class="toggle">
+                        <input id="calendar-sync-check" type="checkbox" />
+                        <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
+                      </label>
+                    </div>
                     <div class="field is-hidden" id="discord-sync-field">
                       <label class="toggle">
                         <input id="discord-sync-check" type="checkbox" checked />
-                        <span data-i18n="settings.discord.syncLabel">Sync to Discord</span>
+                        <span data-i18n="settings.discord.syncLabel">Post to Discord</span>
                       </label>
                     </div>
                   </div>
@@ -441,6 +462,19 @@
                       <button id="pattern-add" class="ghost" type="button" data-i18n="profiles.patterns.addButton">Add Pattern</button>
                       <button id="pattern-clear" class="danger" type="button" data-i18n="profiles.patterns.clearButton">Clear Patterns</button>
                     </div>
+                  </div>
+
+                  <div class="card is-hidden" id="profile-calendar-reminders-card">
+                    <h3 data-i18n="settings.calendar.remindersTitle">.ics Calendar Reminders</h3>
+                    <div class="field">
+                      <label class="toggle">
+                        <input id="profile-calendar-reminders-enabled" type="checkbox" />
+                        <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
+                      </label>
+                    </div>
+                    <div id="profile-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
+                    <button id="profile-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
+                    <p class="hint is-hidden" id="profile-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
                   </div>
 
                   <div class="card" id="automation-card">
@@ -606,6 +640,20 @@
                     <span data-i18n="settings.general.autoUploadImages">Automatically upload gallery images from imported events/profiles</span>
                   </label>
                 </div>
+                <div class="field">
+                  <label class="toggle">
+                    <input id="settings-calendar-enabled" type="checkbox" />
+                    <span data-i18n="settings.calendar.enable">Enable calendar file generation</span>
+                  </label>
+                </div>
+                <div class="field is-hidden" id="calendar-save-dir-field">
+                  <label data-i18n="settings.calendar.saveDirLabel">Calendar save directory</label>
+                  <div class="input-with-button">
+                    <input id="calendar-save-dir" type="text" readonly placeholder="Not set" data-i18n-placeholder="settings.calendar.saveDirPlaceholder" />
+                    <button id="calendar-save-dir-btn" class="ghost compact-button" type="button" data-i18n="settings.calendar.saveDirButton">Browse</button>
+                  </div>
+                  <p class="hint" data-i18n="settings.calendar.saveDirHint">When webhook is not configured, .ics files save here automatically.</p>
+                </div>
                 <div class="divider"></div>
                 <div class="field">
                   <div class="toggle-with-caret">
@@ -637,8 +685,26 @@
                         <input id="discord-guild-id" type="text" placeholder="e.g. 123456789012345678" data-i18n-placeholder="settings.discord.guildPlaceholder" />
                       </div>
                     </div>
+                    <div class="field is-hidden" id="discord-webhook-field">
+                      <div class="discord-fields-row">
+                        <div class="field discord-field-half" style="flex:0 0 auto;">
+                          <label class="toggle">
+                            <input id="discord-webhook-enabled" type="checkbox" />
+                            <span data-i18n="settings.calendar.postToDiscord">Post .ics to Discord</span>
+                          </label>
+                        </div>
+                        <div class="field discord-field-half is-hidden" id="discord-webhook-url-field">
+                          <label for="discord-webhook-url" data-i18n="settings.calendar.webhookLabel">Webhook URL</label>
+                          <div class="input-with-button">
+                            <input id="discord-webhook-url" type="password" autocomplete="off" placeholder="https://discord.com/api/webhooks/..." data-i18n-placeholder="settings.calendar.webhookPlaceholder" />
+                            <button id="discord-webhook-toggle" class="ghost compact-button" type="button">Show</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div class="discord-actions">
                       <button id="discord-test-btn" class="ghost compact-button" type="button" data-i18n="settings.discord.testButton">Verify Bot Token</button>
+                      <button id="discord-webhook-test-btn" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.webhookTestButton">Test Webhook</button>
                       <span id="discord-test-result" class="hint"></span>
                       <button id="discord-save-btn" class="ghost compact-button" type="button" data-i18n="settings.discord.saveButton">Save</button>
                     </div>

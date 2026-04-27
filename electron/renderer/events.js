@@ -4,7 +4,7 @@ import { buildTimezones, ensureTimezoneOption, enforceTagsInput, sanitizeText, f
 import { EVENT_DESCRIPTION_LIMIT, EVENT_NAME_LIMIT, LANGUAGES, PLATFORMS, TAG_LIMIT } from "./config.js";
 import { t, getCurrentLanguage, getLanguageDisplayName } from "./i18n/index.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
-import { updateDiscordVisibility } from "./profiles.js";
+import { updateDiscordVisibility, updateCalendarVisibility, readCalendarRemindersFromDom, renderCalendarReminders } from "./profiles.js";
 
 const EVENT_HOURLY_LIMIT = 10;
 const EVENT_HOURLY_WINDOW_MS = 60 * 60 * 1000;
@@ -793,6 +793,7 @@ export async function handleEventGroupChange(api) {
   // Update featured checkbox visibility based on verified groups
   void updateEventTogglesVisibility(api);
   updateDiscordVisibility();
+  updateCalendarVisibility();
 }
 
 async function updateEventTogglesVisibility(api) {
@@ -954,7 +955,10 @@ export async function handleEventCreate(api) {
     imageId: dom.eventImageId.value.trim() || null,
     sendCreationNotification: Boolean(dom.eventSendNotification.checked),
     featured: Boolean(dom.eventFeatured?.checked),
-    discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true
+    discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true,
+    calendarCreate: dom.eventCalendarCreateCheck ? dom.eventCalendarCreateCheck.checked : false,
+    calendarRemindersEnabled: dom.eventCalendarRemindersEnabled ? dom.eventCalendarRemindersEnabled.checked : false,
+    calendarReminders: readCalendarRemindersFromDom(dom.eventCalendarRemindersList)
   };
   if (eventData.accessType === "group") {
     eventData.roleIds = (state.event.roleIds || []).filter(id => typeof id === "string" && id.trim());
@@ -1183,6 +1187,16 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   if (dom.eventDiscordSyncCheck) {
     dom.eventDiscordSyncCheck.checked = profile.discordSync === true;
   }
+  // Apply template's Calendar preferences
+  if (dom.eventCalendarCreateCheck) {
+    dom.eventCalendarCreateCheck.checked = profile.calendarSync === true;
+  }
+  if (dom.eventCalendarRemindersEnabled) {
+    dom.eventCalendarRemindersEnabled.checked = profile.calendarRemindersEnabled === true;
+  }
+  // Render template reminders into event form
+  renderCalendarReminders(dom.eventCalendarRemindersList, profile.calendarReminders || []);
+  updateCalendarVisibility();
 }
 
 function getProfileLabel(profileKey, profile) {

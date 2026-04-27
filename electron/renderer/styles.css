@@ -2874,6 +2874,30 @@ input[type="color"]::-moz-color-swatch {
   flex: 1;
 }
 
+/* Calendar reminder rows */
+.calendar-reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.calendar-reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-reminder-preset {
+  width: 180px;
+}
+
+.calendar-reminder-remove {
+  padding: 2px 8px;
+  font-size: var(--text-14);
+  line-height: 1;
+}
+
 .verified-groups-list {
   margin-top: 12px;
   font-size: var(--text-12);

@@ -2,6 +2,27 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **Calendar Integration** — Generate .ics calendar invite files with configurable reminders when VRChat events are created
+  - Per-template and per-event "Create .ics Calendar Invite" toggle with reminder configuration
+  - Preset reminder intervals (5min to 1 week) compatible with Outlook, Apple Calendar, and other clients
+  - Reminders sorted longest-first for best compatibility with single-reminder clients
+  - Discord webhook delivery: posts a rich embed with event details, banner image, group icon, and .ics file attachment
+  - Discord embed uses unix timestamps (each viewer sees their local timezone) and language-agnostic emoji labels
+  - Auto-save mode: when webhook is not configured, .ics files save automatically to a user-chosen directory with toast notification
+  - Local save dialog for manual .ics export
+  - Deterministic ICS UIDs for update-safe re-delivery
+  - Per-group webhook URL configuration with test/verify button (encrypted storage)
+  - "Post .ics to Discord" toggle in Discord settings with inline webhook URL field
+- Calendar integration setting under Advanced Settings
+- Translations for all calendar integration strings across all 10 supported languages
+
+### Changed
+- "Sync to Discord" renamed to "Post to Discord" across all languages
+- Linux build now uses .ico icon (electron-builder auto-converts to PNG)
+
 ## [1.1.3] - 2026-03-08
 
 ### Fixed

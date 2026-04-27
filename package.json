@@ -55,7 +55,7 @@
     },
     "linux": {
       "target": "AppImage",
-      "icon": "electron/app.png"
+      "icon": "electron/app.ico"
     }
   }
 }

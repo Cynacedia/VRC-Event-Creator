@@ -5,7 +5,7 @@ import { setStatus, showToast, setAuthState } from "./ui.js";
 import { t } from "./i18n/index.js";
 import { sanitizePassword, sanitizeUsername } from "./utils.js";
 import { updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
-import { updateDiscordVisibility } from "./profiles.js";
+import { updateDiscordVisibility, updateCalendarVisibility } from "./profiles.js";
 
 // ============================================================================
 // Session Management
@@ -59,12 +59,23 @@ async function onLoginSuccess(api, user, refreshDataFn) {
     if (dom.settingsDiscordEnabled) {
       dom.settingsDiscordEnabled.checked = Boolean(settings.discordEnabled);
     }
+    if (dom.settingsCalendarEnabled) {
+      dom.settingsCalendarEnabled.checked = Boolean(settings.calendarEnabled);
+    }
+    if (dom.calendarSaveDir) {
+      dom.calendarSaveDir.value = settings.calendarSaveDir || "";
+    }
+    if (dom.calendarSaveDirField) {
+      dom.calendarSaveDirField.classList.toggle("is-hidden", !settings.calendarEnabled);
+    }
     state.settings = settings;
     updateAdvancedSettingsVisibility();
     updateImportExportVisibility();
     updateFeaturedVerificationVisibility();
     // Ensure Discord caret visibility is set on load (panel stays collapsed)
     updateDiscordVisibility();
+    // Ensure Calendar visibility is set on load
+    updateCalendarVisibility();
   } catch (err) {
     console.error("Failed to load settings:", err);
   }
