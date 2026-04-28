@@ -195,9 +195,6 @@ export const nl = {
       webhookMissing: "Voer eerst een webhook URL in.",
       remindersHint: "Sommige kalender-apps gebruiken mogelijk alleen de eerste herinnering.",
       saveDirLabel: "Kalender opslagmap",
-      saveDirPlaceholder: "Niet ingesteld",
-      saveDirButton: "Bladeren",
-      saveDirCreate: "Standaard aanmaken",
       autoSaved: "Kalenderbestand opgeslagen: {filePath}"
     },
     saveButton: "Instellingen opslaan",

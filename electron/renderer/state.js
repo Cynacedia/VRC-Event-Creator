@@ -247,7 +247,7 @@ export const dom = {
   calendarSaveDirMeta: document.getElementById("calendar-save-dir-meta"),
   calendarSaveDirDisplay: document.getElementById("calendar-save-dir-display"),
   calendarSaveDirBtn: document.getElementById("calendar-save-dir-btn"),
-  calendarSaveDirCreate: document.getElementById("calendar-save-dir-create"),
+  calendarSaveDirOpen: document.getElementById("calendar-save-dir-open"),
   calendarSyncField: document.getElementById("calendar-sync-field"),
   calendarSyncCheck: document.getElementById("calendar-sync-check"),
   // Profile calendar reminders (Schedule step)

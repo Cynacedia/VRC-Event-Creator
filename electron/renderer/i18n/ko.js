@@ -195,9 +195,6 @@ export const ko = {
       webhookMissing: "먼저 Webhook URL을 입력하세요.",
       remindersHint: "일부 캘린더 앱은 첫 번째 알림만 사용할 수 있습니다.",
       saveDirLabel: "캘린더 저장 디렉토리",
-      saveDirPlaceholder: "설정되지 않음",
-      saveDirButton: "찾아보기",
-      saveDirCreate: "기본값 생성",
       autoSaved: "캘린더 파일 저장됨: {filePath}"
     },
     saveButton: "설정 저장",

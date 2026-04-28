@@ -41,9 +41,9 @@ Si también tienes configurada la creación de eventos de Discord (token de bot)
 
 ### Opción B: Guardado automático en directorio local
 
-1. En **Configuración** > **Información de la aplicación**, busca **Directorio de guardado de calendario**
-2. Haz clic en **"Crear predeterminado"** (crea `Documents/VRC Event Creator .ics/`) o **"Examinar"** para elegir una ubicación personalizada
-3. Los archivos se guardan automáticamente en `{directorio}/{Nombre del grupo}/{Nombre del evento - Fecha}.ics`
+Cuando no hay un webhook configurado, los archivos `.ics` se guardan automáticamente en un directorio local. La ubicación predeterminada es `Documents/VRC Event Creator .ics/` y se crea al guardar por primera vez.
+
+Los archivos se guardan como `{directorio}/{Nombre del grupo}/{Nombre del evento - Fecha}.ics`. Para cambiar la ubicación, usa el botón **Cambiar** junto a **Directorio de guardado de calendario** en **Configuración** > **Información de la aplicación**.
 
 ---
 
@@ -79,8 +79,7 @@ Todos los ajustes de la plantilla se pueden modificar por evento.
 |---|---|---|---|
 | Activado + configurado | Configurado | Activado | Se crea el evento de Discord, el webhook publica el enlace del evento + .ics |
 | Desactivado o no configurado | Configurado | Activado | El webhook publica un embed con los detalles del evento + .ics |
-| Cualquiera | No configurado | Activado + directorio configurado | El archivo .ics se guarda automáticamente en el directorio local |
-| Cualquiera | No configurado | Activado + sin directorio | Sin entrega de .ics (solo guardado manual) |
+| Cualquiera | No configurado | Activado | El archivo .ics se guarda automáticamente en el directorio local |
 
 ---
 
@@ -112,5 +111,4 @@ Sí — cualquier persona con la URL del webhook puede enviar mensajes a ese can
 | El webhook no publica | Verifica la URL del webhook con "Probar Webhook" en la configuración de Discord. Comprueba que "Publicar .ics en Discord" esté activado para el grupo |
 | Los recordatorios no funcionan en Outlook | Outlook solo admite el primer recordatorio. La aplicación ordena el más largo primero para compatibilidad |
 | Los recordatorios no funcionan en Google Calendar | Google Calendar ignora los recordatorios personalizados al importar .ics. Configura los recordatorios manualmente después de importar |
-| El guardado automático no funciona | Verifica que haya un directorio de guardado configurado en Configuración > Información de la aplicación |
-| Los archivos se guardan en la ubicación incorrecta | Los archivos se guardan en `{directorio}/{Nombre del grupo}/`. Verifica el nombre del grupo y la ruta del directorio |
+| Los archivos se guardan en la ubicación incorrecta | Los archivos se guardan en `{directorio}/{Nombre del grupo}/`. El predeterminado es `Documents/VRC Event Creator .ics/`. Se puede cambiar en Configuración > Información de la aplicación |

@@ -1284,14 +1284,11 @@ import { initDemoControls } from "./demo.js";
         }
       });
     }
-    // Calendar save directory create default button
-    if (dom.calendarSaveDirCreate) {
-      dom.calendarSaveDirCreate.addEventListener("click", async () => {
-        const result = await api.calendarCreateDefaultDir();
-        if (result.ok && result.dir) {
-          if (dom.calendarSaveDirDisplay) dom.calendarSaveDirDisplay.textContent = result.dir;
-          state.settings.calendarSaveDir = result.dir;
-          showToast((t("settings.calendar.autoSaved") || "Calendar directory created: {filePath}").replace("{filePath}", result.dir));
+    // Calendar save directory open button
+    if (dom.calendarSaveDirOpen) {
+      dom.calendarSaveDirOpen.addEventListener("click", () => {
+        if (state.settings.calendarSaveDir) {
+          api.openExternal(state.settings.calendarSaveDir);
         }
       });
     }

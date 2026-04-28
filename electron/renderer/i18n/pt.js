@@ -195,9 +195,6 @@ export const pt = {
       webhookMissing: "Insira uma URL de webhook primeiro.",
       remindersHint: "Alguns aplicativos de calendário podem usar apenas o primeiro lembrete.",
       saveDirLabel: "Diretório de salvamento do calendário",
-      saveDirPlaceholder: "Não definido",
-      saveDirButton: "Procurar",
-      saveDirCreate: "Criar padrão",
       autoSaved: "Arquivo de calendário salvo: {filePath}"
     },
     saveButton: "Salvar configurações",

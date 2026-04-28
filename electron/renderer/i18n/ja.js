@@ -195,9 +195,6 @@ export const ja = {
       webhookMissing: "まずWebhook URLを入力してください。",
       remindersHint: "一部のカレンダーアプリは最初のリマインダーのみを使用する場合があります。",
       saveDirLabel: "カレンダー保存ディレクトリ",
-      saveDirPlaceholder: "未設定",
-      saveDirButton: "参照",
-      saveDirCreate: "デフォルトを作成",
       autoSaved: "カレンダーファイルを保存しました: {filePath}"
     },
     saveButton: "設定を保存",

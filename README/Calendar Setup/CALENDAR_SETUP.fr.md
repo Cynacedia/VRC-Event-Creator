@@ -41,9 +41,9 @@ Si vous avez également configuré la création d'événements Discord (jeton de
 
 ### Option B : Sauvegarde automatique dans un répertoire local
 
-1. Dans **Paramètres** > **Informations sur l'application**, cherchez **Répertoire de sauvegarde du calendrier**
-2. Cliquez sur **« Créer par défaut »** (crée `Documents/VRC Event Creator .ics/`) ou **« Parcourir »** pour choisir un emplacement personnalisé
-3. Les fichiers sont enregistrés automatiquement sous `{répertoire}/{Nom du groupe}/{Nom de l'événement - Date}.ics`
+Lorsqu'aucun webhook n'est configuré, les fichiers `.ics` sont enregistrés automatiquement dans un répertoire local. L'emplacement par défaut est `Documents/VRC Event Creator .ics/` et est créé lors du premier enregistrement.
+
+Les fichiers sont enregistrés sous `{répertoire}/{Nom du groupe}/{Nom de l'événement - Date}.ics`. Pour modifier l'emplacement, utilisez le bouton **Changer** à côté de **Répertoire de sauvegarde du calendrier** dans **Paramètres** > **Informations sur l'application**.
 
 ---
 
@@ -79,8 +79,7 @@ Tous les paramètres du modèle peuvent être modifiés par événement.
 |---|---|---|---|
 | Activé + configuré | Configuré | Activé | L'événement Discord est créé, le webhook publie le lien de l'événement + .ics |
 | Désactivé ou non configuré | Configuré | Activé | Le webhook publie un embed avec les détails de l'événement + .ics |
-| Indifférent | Non configuré | Activé + répertoire défini | Le fichier .ics est automatiquement enregistré dans le répertoire local |
-| Indifférent | Non configuré | Activé + aucun répertoire | Pas de livraison .ics (sauvegarde manuelle uniquement) |
+| Indifférent | Non configuré | Activé | Le fichier .ics est automatiquement enregistré dans le répertoire local |
 
 ---
 
@@ -112,5 +111,4 @@ Oui — toute personne possédant l'URL du webhook peut envoyer des messages dan
 | Le webhook ne publie pas | Vérifiez l'URL du webhook avec « Tester le Webhook » dans les paramètres Discord. Vérifiez que « Publier .ics sur Discord » est activé pour le groupe |
 | Les rappels ne fonctionnent pas dans Outlook | Outlook ne prend en charge que le premier rappel. L'application place le plus long en premier pour la compatibilité |
 | Les rappels ne fonctionnent pas dans Google Calendar | Google Calendar ignore les rappels personnalisés lors de l'importation .ics. Configurez les rappels manuellement après l'importation |
-| La sauvegarde automatique ne fonctionne pas | Vérifiez qu'un répertoire de sauvegarde est configuré dans Paramètres > Informations sur l'application |
-| Les fichiers sont enregistrés au mauvais endroit | Les fichiers sont enregistrés sous `{répertoire}/{Nom du groupe}/`. Vérifiez le nom du groupe et le chemin du répertoire |
+| Les fichiers sont enregistrés au mauvais endroit | Les fichiers sont enregistrés sous `{répertoire}/{Nom du groupe}/`. Le répertoire par défaut est `Documents/VRC Event Creator .ics/`. Modifiable via Paramètres > Informations sur l'application |

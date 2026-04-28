@@ -41,9 +41,9 @@ Wenn du auch die Discord-Event-Erstellung eingerichtet hast (Bot-Token), postet 
 
 ### Option B: Automatisches Speichern in ein lokales Verzeichnis
 
-1. Gehe in **Einstellungen** > **Anwendungsinfo** und suche **Kalender-Speicherverzeichnis**
-2. Klicke auf **„Standard erstellen"** (erstellt `Documents/VRC Event Creator .ics/`) oder **„Durchsuchen"**, um einen eigenen Speicherort zu wählen
-3. Dateien werden automatisch unter `{Verzeichnis}/{Gruppenname}/{Eventname - Datum}.ics` gespeichert
+Wenn kein Webhook konfiguriert ist, werden `.ics`-Dateien automatisch in einem lokalen Verzeichnis gespeichert. Der Standardspeicherort ist `Documents/VRC Event Creator .ics/` und wird beim ersten Speichern erstellt.
+
+Dateien werden als `{Verzeichnis}/{Gruppenname}/{Eventname - Datum}.ics` gespeichert. Um den Speicherort zu ändern, verwende die Schaltfläche **Ändern** neben **Kalender-Speicherverzeichnis** unter **Einstellungen** > **Anwendungsinfo**.
 
 ---
 
@@ -79,8 +79,7 @@ Alle Einstellungen aus der Vorlage können pro Event überschrieben werden.
 |---|---|---|---|
 | Aktiviert + konfiguriert | Konfiguriert | Aktiviert | Discord-Event wird erstellt, Webhook postet Event-Link + .ics |
 | Deaktiviert oder nicht konfiguriert | Konfiguriert | Aktiviert | Webhook postet Embed mit Eventdetails + .ics |
-| Beliebig | Nicht konfiguriert | Aktiviert + Speicherverz. gesetzt | .ics-Datei wird automatisch im lokalen Verzeichnis gespeichert |
-| Beliebig | Nicht konfiguriert | Aktiviert + kein Speicherverz. | Keine .ics-Zustellung (nur manuelles Speichern) |
+| Beliebig | Nicht konfiguriert | Aktiviert | .ics-Datei wird automatisch im lokalen Verzeichnis gespeichert |
 
 ---
 
@@ -112,5 +111,4 @@ Ja — jeder mit der Webhook-URL kann Nachrichten in diesen Kanal senden. Behand
 | Webhook postet nicht | Überprüfe die Webhook-URL mit „Webhook testen" in den Discord-Einstellungen. Stelle sicher, dass „.ics an Discord senden" für die Gruppe aktiviert ist |
 | Erinnerungen funktionieren nicht in Outlook | Outlook unterstützt nur die erste Erinnerung. Die App sortiert die längste zuerst für optimale Kompatibilität |
 | Erinnerungen funktionieren nicht in Google Calendar | Google Calendar ignoriert benutzerdefinierte Erinnerungen beim .ics-Import. Stelle Erinnerungen nach dem Import manuell ein |
-| Automatisches Speichern funktioniert nicht | Prüfe, ob ein Speicherverzeichnis unter Einstellungen > Anwendungsinfo konfiguriert ist |
-| Dateien werden am falschen Ort gespeichert | Dateien werden unter `{Speicherverz.}/{Gruppenname}/` gespeichert. Prüfe den Gruppennamen und den Verzeichnispfad |
+| Dateien werden am falschen Ort gespeichert | Dateien werden unter `{Speicherverz.}/{Gruppenname}/` gespeichert. Standard ist `Documents/VRC Event Creator .ics/`. Änderbar über Einstellungen > Anwendungsinfo |

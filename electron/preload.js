@@ -95,7 +95,6 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   webhookGetGroupWebhook: groupId => ipcRenderer.invoke("webhook:getGroupWebhook", groupId),
   calendarSaveIcs: payload => ipcRenderer.invoke("calendar:generateAndSave", payload),
   calendarSelectSaveDir: () => ipcRenderer.invoke("calendar:selectSaveDir"),
-  calendarCreateDefaultDir: () => ipcRenderer.invoke("calendar:createDefaultDir"),
   onWebhookSyncFailed: callback => {
     ipcRenderer.on("webhook:syncFailed", (_, data) => callback(data));
   },

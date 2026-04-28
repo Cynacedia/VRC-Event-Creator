@@ -195,9 +195,6 @@ export const es = {
       webhookMissing: "Ingresa una URL de webhook primero.",
       remindersHint: "Algunas aplicaciones de calendario pueden usar solo el primer recordatorio.",
       saveDirLabel: "Directorio de guardado de calendario",
-      saveDirPlaceholder: "No configurado",
-      saveDirButton: "Examinar",
-      saveDirCreate: "Crear predeterminado",
       autoSaved: "Archivo de calendario guardado: {filePath}"
     },
     saveButton: "Guardar configuración",

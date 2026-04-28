@@ -195,9 +195,6 @@ export const ru = {
       webhookMissing: "Сначала введите URL вебхука.",
       remindersHint: "Некоторые приложения-календари могут использовать только первое напоминание.",
       saveDirLabel: "Директория сохранения календаря",
-      saveDirPlaceholder: "Не задано",
-      saveDirButton: "Обзор",
-      saveDirCreate: "Создать по умолчанию",
       autoSaved: "Файл календаря сохранён: {filePath}"
     },
     saveButton: "Сохранить настройки",

@@ -41,9 +41,9 @@ Als je ook Discord-evenement aanmaak hebt ingesteld (bot-token), plaatst de webh
 
 ### Optie B: Automatisch opslaan naar lokale map
 
-1. Ga in **Instellingen** > **Applicatie-informatie** naar **Kalender opslagmap**
-2. Klik op **"Standaard aanmaken"** (maakt `Documents/VRC Event Creator .ics/` aan) of **"Bladeren"** om een aangepaste locatie te kiezen
-3. Bestanden worden automatisch opgeslagen als `{map}/{Groepsnaam}/{Evenementnaam - Datum}.ics`
+Wanneer er geen webhook is geconfigureerd, worden `.ics`-bestanden automatisch opgeslagen in een lokale map. De standaardlocatie is `Documents/VRC Event Creator .ics/` en wordt aangemaakt bij de eerste opslag.
+
+Bestanden worden opgeslagen als `{map}/{Groepsnaam}/{Evenementnaam - Datum}.ics`. Om de locatie te wijzigen, gebruik de knop **Wijzigen** naast **Kalender opslagmap** in **Instellingen** > **Applicatie-informatie**.
 
 ---
 
@@ -79,8 +79,7 @@ Alle instellingen van het sjabloon kunnen per evenement worden overschreven.
 |---|---|---|---|
 | Ingeschakeld + geconfigureerd | Geconfigureerd | Ingeschakeld | Discord-evenement aangemaakt, webhook plaatst evenementlink + .ics |
 | Uitgeschakeld of niet geconfigureerd | Geconfigureerd | Ingeschakeld | Webhook plaatst embed met evenementdetails + .ics |
-| Willekeurig | Niet geconfigureerd | Ingeschakeld + opslagmap ingesteld | .ics-bestand automatisch opgeslagen in lokale map |
-| Willekeurig | Niet geconfigureerd | Ingeschakeld + geen opslagmap | Geen .ics-bezorging (alleen handmatig opslaan) |
+| Willekeurig | Niet geconfigureerd | Ingeschakeld | .ics-bestand automatisch opgeslagen in lokale map |
 
 ---
 
@@ -112,5 +111,4 @@ Ja — iedereen met de webhook-URL kan berichten in dat kanaal plaatsen. Behande
 | Webhook plaatst niet | Verifieer de webhook-URL met "Webhook Testen" in de Discord-instellingen. Controleer of ".ics naar Discord posten" is ingeschakeld voor de groep |
 | Herinneringen werken niet in Outlook | Outlook ondersteunt alleen de eerste herinnering. De app sorteert de langste als eerste voor compatibiliteit |
 | Herinneringen werken niet in Google Calendar | Google Calendar negeert aangepaste herinneringen bij .ics-import. Stel herinneringen handmatig in na het importeren |
-| Automatisch opslaan werkt niet | Controleer of er een opslagmap is geconfigureerd in Instellingen > Applicatie-informatie |
-| Bestanden worden op de verkeerde locatie opgeslagen | Bestanden worden opgeslagen in `{opslagmap}/{Groepsnaam}/`. Controleer de groepsnaam en het mappad |
+| Bestanden worden op de verkeerde locatie opgeslagen | Bestanden worden opgeslagen in `{opslagmap}/{Groepsnaam}/`. Standaard is `Documents/VRC Event Creator .ics/`. Wijzigbaar via Instellingen > Applicatie-informatie |

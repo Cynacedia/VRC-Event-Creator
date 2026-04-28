@@ -41,9 +41,9 @@ If you also have Discord event creation set up (bot token), the webhook will pos
 
 ### Option B: Auto-Save to Local Directory
 
-1. In **Settings** > **Application Info**, find **Calendar Save Directory**
-2. Click **Create Default** (creates `Documents/VRC Event Creator .ics/`) or **Browse** to choose a custom location
-3. Files save automatically to `{directory}/{Group Name}/{Event Name - Date}.ics`
+When no webhook is configured, `.ics` files save automatically to a local directory. The default location is `Documents/VRC Event Creator .ics/` and is created on first save.
+
+Files save as `{directory}/{Group Name}/{Event Name - Date}.ics`. To change the location, use the **Change** button next to **Calendar Save Directory** in **Settings** > **Application Info**.
 
 ---
 
@@ -79,8 +79,7 @@ All settings from the template can be overridden per event.
 |---|---|---|---|
 | Enabled + configured | Configured | Enabled | Discord event created, webhook posts event link + .ics |
 | Disabled or not configured | Configured | Enabled | Webhook posts embed with event details + .ics |
-| Any | Not configured | Enabled + save dir set | .ics file auto-saved to local directory |
-| Any | Not configured | Enabled + no save dir | No .ics delivery (manual save only) |
+| Any | Not configured | Enabled | .ics file auto-saved to local directory |
 
 ---
 
@@ -112,5 +111,4 @@ Yes — anyone with the webhook URL can post messages to that channel. Treat it 
 | Webhook not posting | Verify the webhook URL with "Test Webhook" in Discord settings. Check that "Post .ics to Discord" is enabled for the group |
 | Reminders not working in Outlook | Outlook only supports the first reminder. The app sorts longest first for compatibility |
 | Reminders not working in Google Calendar | Google Calendar ignores custom reminders on .ics import. Set reminders manually after importing |
-| Auto-save not working | Check that a save directory is configured in Settings > Application Info |
-| Files saving to wrong location | Files save to `{save dir}/{Group Name}/`. Check the group name and directory path |
+| Files saving to wrong location | Files save to `{save dir}/{Group Name}/`. Default is `Documents/VRC Event Creator .ics/`. Change via Settings > Application Info |

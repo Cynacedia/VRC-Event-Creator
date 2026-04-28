@@ -534,8 +534,14 @@ function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc,
     }).catch(err => {
       debugLog("calendar", "Webhook sync error:", err.message);
     });
-  } else if (settings.calendarSaveDir) {
+  } else {
     // --- Auto-save path (no webhook configured) ---
+    // Auto-create default save directory if not set
+    if (!settings.calendarSaveDir) {
+      const docsDir = app.getPath("documents");
+      settings.calendarSaveDir = path.join(docsDir, "VRC Event Creator .ics");
+      saveSettings(settings);
+    }
     try {
       // Save into group subfolder: {saveDir}/{GroupName}/{filename}
       const safeGroupName = (groupData.groupName || "Unknown Group").replace(/[^a-zA-Z0-9_ -]/g, "").trim() || "Group";
@@ -1569,18 +1575,6 @@ ipcMain.handle("calendar:selectSaveDir", async () => {
   return { ok: true, dir };
 });
 
-ipcMain.handle("calendar:createDefaultDir", () => {
-  const docsDir = app.getPath("documents");
-  const dir = path.join(docsDir, "VRC Event Creator .ics");
-  try {
-    fs.mkdirSync(dir, { recursive: true });
-  } catch (err) {
-    return { ok: false, error: err.message };
-  }
-  settings.calendarSaveDir = dir;
-  saveSettings(settings);
-  return { ok: true, dir };
-});
 
 ipcMain.handle("theme:get", () => themeStoreModule.getThemeStore());
 

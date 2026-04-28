@@ -195,9 +195,6 @@ export const en = {
       webhookMissing: "Enter a webhook URL first.",
       remindersHint: "Some calendar apps may only use the first reminder.",
       saveDirLabel: "Calendar save directory",
-      saveDirPlaceholder: "Not set",
-      saveDirButton: "Browse",
-      saveDirCreate: "Create Default",
       autoSaved: "Calendar file saved: {filePath}"
     },
     saveButton: "Save Settings",

@@ -41,9 +41,9 @@ Se você também tiver a criação de eventos do Discord configurada (token de b
 
 ### Opção B: Salvamento automático em diretório local
 
-1. Em **Configurações** > **Informações do aplicativo**, encontre **Diretório de salvamento do calendário**
-2. Clique em **"Criar padrão"** (cria `Documents/VRC Event Creator .ics/`) ou **"Procurar"** para escolher um local personalizado
-3. Os arquivos são salvos automaticamente em `{diretório}/{Nome do grupo}/{Nome do evento - Data}.ics`
+Quando nenhum webhook está configurado, os arquivos `.ics` são salvos automaticamente em um diretório local. O local padrão é `Documents/VRC Event Creator .ics/` e é criado no primeiro salvamento.
+
+Os arquivos são salvos como `{diretório}/{Nome do grupo}/{Nome do evento - Data}.ics`. Para alterar o local, use o botão **Alterar** ao lado de **Diretório de salvamento do calendário** em **Configurações** > **Informações do aplicativo**.
 
 ---
 
@@ -79,8 +79,7 @@ Todas as configurações do modelo podem ser alteradas por evento.
 |---|---|---|---|
 | Ativado + configurado | Configurado | Ativado | Evento do Discord criado, webhook publica link do evento + .ics |
 | Desativado ou não configurado | Configurado | Ativado | Webhook publica embed com detalhes do evento + .ics |
-| Qualquer | Não configurado | Ativado + diretório definido | Arquivo .ics salvo automaticamente no diretório local |
-| Qualquer | Não configurado | Ativado + sem diretório | Sem entrega de .ics (apenas salvamento manual) |
+| Qualquer | Não configurado | Ativado | Arquivo .ics salvo automaticamente no diretório local |
 
 ---
 
@@ -112,5 +111,4 @@ Sim — qualquer pessoa com a URL do webhook pode enviar mensagens para esse can
 | Webhook não publica | Verifique a URL do webhook com "Testar Webhook" nas configurações do Discord. Confirme que "Publicar .ics no Discord" está ativado para o grupo |
 | Lembretes não funcionam no Outlook | O Outlook suporta apenas o primeiro lembrete. O aplicativo ordena o mais longo primeiro para compatibilidade |
 | Lembretes não funcionam no Google Calendar | O Google Calendar ignora lembretes personalizados na importação de .ics. Configure lembretes manualmente após a importação |
-| Salvamento automático não funciona | Verifique se um diretório de salvamento está configurado em Configurações > Informações do aplicativo |
-| Arquivos salvos no local errado | Os arquivos são salvos em `{diretório}/{Nome do grupo}/`. Verifique o nome do grupo e o caminho do diretório |
+| Arquivos salvos no local errado | Os arquivos são salvos em `{diretório}/{Nome do grupo}/`. O padrão é `Documents/VRC Event Creator .ics/`. Pode ser alterado em Configurações > Informações do aplicativo |

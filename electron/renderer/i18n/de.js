@@ -195,9 +195,6 @@ export const de = {
       webhookMissing: "Gib zuerst eine Webhook-URL ein.",
       remindersHint: "Einige Kalender-Apps verwenden möglicherweise nur die erste Erinnerung.",
       saveDirLabel: "Kalender-Speicherverzeichnis",
-      saveDirPlaceholder: "Nicht festgelegt",
-      saveDirButton: "Durchsuchen",
-      saveDirCreate: "Standard erstellen",
       autoSaved: "Kalenderdatei gespeichert: {filePath}"
     },
     saveButton: "Einstellungen speichern",
