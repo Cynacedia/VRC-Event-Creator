@@ -197,7 +197,7 @@ export const ko = {
       saveDirLabel: "캘린더 저장 디렉토리",
       saveDirPlaceholder: "설정되지 않음",
       saveDirButton: "찾아보기",
-      saveDirHint: "Webhook이 설정되지 않은 경우 .ics 파일이 여기에 자동으로 저장됩니다.",
+      saveDirCreate: "기본값 생성",
       autoSaved: "캘린더 파일 저장됨: {filePath}"
     },
     saveButton: "설정 저장",

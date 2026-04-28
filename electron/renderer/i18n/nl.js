@@ -197,7 +197,7 @@ export const nl = {
       saveDirLabel: "Kalender opslagmap",
       saveDirPlaceholder: "Niet ingesteld",
       saveDirButton: "Bladeren",
-      saveDirHint: "Wanneer webhook niet is geconfigureerd, worden .ics bestanden hier automatisch opgeslagen.",
+      saveDirCreate: "Standaard aanmaken",
       autoSaved: "Kalenderbestand opgeslagen: {filePath}"
     },
     saveButton: "Instellingen opslaan",

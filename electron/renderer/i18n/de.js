@@ -197,7 +197,7 @@ export const de = {
       saveDirLabel: "Kalender-Speicherverzeichnis",
       saveDirPlaceholder: "Nicht festgelegt",
       saveDirButton: "Durchsuchen",
-      saveDirHint: "Wenn kein Webhook konfiguriert ist, werden .ics-Dateien hier automatisch gespeichert.",
+      saveDirCreate: "Standard erstellen",
       autoSaved: "Kalenderdatei gespeichert: {filePath}"
     },
     saveButton: "Einstellungen speichern",

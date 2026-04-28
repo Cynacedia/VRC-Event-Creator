@@ -62,11 +62,8 @@ async function onLoginSuccess(api, user, refreshDataFn) {
     if (dom.settingsCalendarEnabled) {
       dom.settingsCalendarEnabled.checked = Boolean(settings.calendarEnabled);
     }
-    if (dom.calendarSaveDir) {
-      dom.calendarSaveDir.value = settings.calendarSaveDir || "";
-    }
-    if (dom.calendarSaveDirField) {
-      dom.calendarSaveDirField.classList.toggle("is-hidden", !settings.calendarEnabled);
+    if (dom.calendarSaveDirDisplay) {
+      dom.calendarSaveDirDisplay.textContent = settings.calendarSaveDir || "-";
     }
     state.settings = settings;
     updateAdvancedSettingsVisibility();

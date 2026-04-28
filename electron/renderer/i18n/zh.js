@@ -197,7 +197,7 @@ export const zh = {
       saveDirLabel: "日历保存目录",
       saveDirPlaceholder: "未设置",
       saveDirButton: "浏览",
-      saveDirHint: "未配置Webhook时，.ics文件会自动保存到此处。",
+      saveDirCreate: "创建默认",
       autoSaved: "日历文件已保存：{filePath}"
     },
     saveButton: "保存设置",

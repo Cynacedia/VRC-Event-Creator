@@ -197,7 +197,7 @@ export const ja = {
       saveDirLabel: "カレンダー保存ディレクトリ",
       saveDirPlaceholder: "未設定",
       saveDirButton: "参照",
-      saveDirHint: "Webhookが設定されていない場合、.icsファイルはここに自動保存されます。",
+      saveDirCreate: "デフォルトを作成",
       autoSaved: "カレンダーファイルを保存しました: {filePath}"
     },
     saveButton: "設定を保存",

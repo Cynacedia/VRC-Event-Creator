@@ -197,7 +197,7 @@ export const en = {
       saveDirLabel: "Calendar save directory",
       saveDirPlaceholder: "Not set",
       saveDirButton: "Browse",
-      saveDirHint: "When webhook is not configured, .ics files save here automatically.",
+      saveDirCreate: "Create Default",
       autoSaved: "Calendar file saved: {filePath}"
     },
     saveButton: "Save Settings",

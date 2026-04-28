@@ -278,30 +278,34 @@ function decryptToken(stored) {
 
 // --- Discord sync helper ---
 
-function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
-  if (!settings.discordEnabled) return;
+/**
+ * Create a Discord scheduled event. Returns a promise resolving to
+ * { eventId, guildId } on success, or null if skipped/failed.
+ */
+async function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+  if (!settings.discordEnabled) return null;
 
   const groupData = profiles[groupId];
-  if (!groupData) return;
+  if (!groupData) return null;
 
   const botToken = decryptToken(groupData.discordBotToken);
   const guildId = groupData.discordGuildId;
-  if (!botToken || !guildId) return;
+  if (!botToken || !guildId) return null;
 
   // Check event-level opt-out (from Create Event form)
-  if (eventData?.discordSync === false) return;
+  if (eventData?.discordSync === false) return null;
 
   // Check profile-level opt-in (existing templates must explicitly enable)
   const profile = groupData.profiles?.[profileKey];
-  if (profile && profile.discordSync !== true) return;
+  if (profile && profile.discordSync !== true) return null;
 
-  // Resolve image base64 if available (non-blocking)
-  const imagePromise = eventData.imageId
-    ? getImageBase64ForDiscord(eventData.imageId).catch(() => null)
-    : Promise.resolve(null);
+  try {
+    // Resolve image base64 if available
+    const imageBase64 = eventData.imageId
+      ? await getImageBase64ForDiscord(eventData.imageId).catch(() => null)
+      : null;
 
-  imagePromise.then(imageBase64 => {
-    return discord.createDiscordScheduledEvent({
+    const result = await discord.createDiscordScheduledEvent({
       botToken,
       guildId,
       name: eventData.title,
@@ -310,7 +314,7 @@ function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) 
       endTime: endsAtUtc,
       imageBase64
     });
-  }).then(result => {
+
     if (!result.ok) {
       debugLog("discord", "Failed to create Discord event:", result.error);
       if (mainWindow) {
@@ -319,17 +323,20 @@ function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) 
           error: result.error
         });
       }
-    } else {
-      debugLog("discord", "Discord event created:", result.eventId);
-      if (mainWindow) {
-        mainWindow.webContents.send("discord:syncSuccess", {
-          eventTitle: eventData.title
-        });
-      }
+      return null;
     }
-  }).catch(err => {
+
+    debugLog("discord", "Discord event created:", result.eventId);
+    if (mainWindow) {
+      mainWindow.webContents.send("discord:syncSuccess", {
+        eventTitle: eventData.title
+      });
+    }
+    return { eventId: result.eventId, guildId };
+  } catch (err) {
     debugLog("discord", "Discord sync error:", err.message);
-  });
+    return null;
+  }
 }
 
 async function getImageBase64ForDiscord(imageId) {
@@ -390,7 +397,16 @@ function truncateText(str, maxLength) {
   return str.slice(0, maxLength - 3) + "...";
 }
 
-function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+/**
+ * Generate ICS file and deliver via webhook (with Discord event link or fallback embed) or auto-save.
+ * @param {string} groupId
+ * @param {string} profileKey
+ * @param {object} eventData
+ * @param {string} startsAtUtc
+ * @param {string} endsAtUtc
+ * @param {{ eventId: string, guildId: string }|null} discordEvent - Discord event info if created
+ */
+function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc, discordEvent) {
   if (!settings.calendarEnabled) return;
 
   // Calendar creation must be enabled for this event
@@ -438,48 +454,67 @@ function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc)
 
   if (useWebhook) {
     // --- Webhook delivery path ---
-    const startUnix = Math.floor(new Date(startsAtUtc).getTime() / 1000);
-    const endUnix = Math.floor(new Date(endsAtUtc).getTime() / 1000);
+    const avatarUrl = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`;
 
-    const embed = {
-      title: eventData.title,
-      description: truncateText(eventData.description || "", 300),
-      color: 0x1FC3AD,
-      fields: [
-        { name: "\uD83D\uDCC6", value: `<t:${startUnix}:D>`, inline: true },
-        { name: "\uD83D\uDD50", value: `<t:${startUnix}:t> \u2014 <t:${endUnix}:t>`, inline: true },
-        { name: "\uD83D\uDC65", value: groupData.groupName || "VRChat Group", inline: true }
-      ]
-    };
+    let webhookPromise;
 
-    // Resolve event image + group icon (non-blocking, parallel)
-    const imagePromise = eventData.imageId
-      ? getImageBufferForWebhook(eventData.imageId).catch(() => null)
-      : Promise.resolve(null);
-    const iconId = groupData.groupIconId || groupIconCache.get(groupId) || "";
-    const iconPromise = iconId
-      ? getImageBufferForWebhook(iconId).catch(() => null)
-      : Promise.resolve(null);
-
-    Promise.all([imagePromise, iconPromise]).then(([imageBuffer, iconBuffer]) => {
-      if (imageBuffer) {
-        embed.image = { url: "attachment://banner.png" };
-      }
-      if (iconBuffer) {
-        embed.thumbnail = { url: "attachment://icon.png" };
-      }
-      return webhook.sendWebhookWithIcs({
+    if (discordEvent) {
+      // Discord event was created — post event link + .ics (Discord auto-renders the event card)
+      const eventUrl = `https://discord.com/events/${discordEvent.guildId}/${discordEvent.eventId}`;
+      webhookPromise = webhook.sendWebhookWithIcs({
         webhookUrl,
         icsContent,
         filename,
-        embed,
-        imageBuffer,
-        imageFilename: imageBuffer ? "banner.png" : null,
-        iconBuffer,
-        iconFilename: iconBuffer ? "icon.png" : null,
-        avatarUrl: `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`
+        content: eventUrl,
+        avatarUrl
       });
-    }).then(result => {
+    } else {
+      // No Discord event — use fallback embed with event details
+      const startUnix = Math.floor(new Date(startsAtUtc).getTime() / 1000);
+      const endUnix = Math.floor(new Date(endsAtUtc).getTime() / 1000);
+
+      const embed = {
+        title: eventData.title,
+        description: truncateText(eventData.description || "", 300),
+        color: 0x1FC3AD,
+        fields: [
+          { name: "\uD83D\uDCC6", value: `<t:${startUnix}:D>`, inline: true },
+          { name: "\uD83D\uDD50", value: `<t:${startUnix}:t> \u2014 <t:${endUnix}:t>`, inline: true },
+          { name: "\uD83D\uDC65", value: groupData.groupName || "VRChat Group", inline: true }
+        ]
+      };
+
+      // Resolve event image + group icon (non-blocking, parallel)
+      const imagePromise = eventData.imageId
+        ? getImageBufferForWebhook(eventData.imageId).catch(() => null)
+        : Promise.resolve(null);
+      const iconId = groupData.groupIconId || groupIconCache.get(groupId) || "";
+      const iconPromise = iconId
+        ? getImageBufferForWebhook(iconId).catch(() => null)
+        : Promise.resolve(null);
+
+      webhookPromise = Promise.all([imagePromise, iconPromise]).then(([imageBuffer, iconBuffer]) => {
+        if (imageBuffer) {
+          embed.image = { url: "attachment://banner.png" };
+        }
+        if (iconBuffer) {
+          embed.thumbnail = { url: "attachment://icon.png" };
+        }
+        return webhook.sendWebhookWithIcs({
+          webhookUrl,
+          icsContent,
+          filename,
+          embed,
+          imageBuffer,
+          imageFilename: imageBuffer ? "banner.png" : null,
+          iconBuffer,
+          iconFilename: iconBuffer ? "icon.png" : null,
+          avatarUrl
+        });
+      });
+    }
+
+    webhookPromise.then(result => {
       if (!result.ok) {
         debugLog("calendar", "Failed to send webhook:", result.error);
         if (mainWindow) {
@@ -502,7 +537,11 @@ function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc)
   } else if (settings.calendarSaveDir) {
     // --- Auto-save path (no webhook configured) ---
     try {
-      const savePath = path.join(settings.calendarSaveDir, filename);
+      // Save into group subfolder: {saveDir}/{GroupName}/{filename}
+      const safeGroupName = (groupData.groupName || "Unknown Group").replace(/[^a-zA-Z0-9_ -]/g, "").trim() || "Group";
+      const groupDir = path.join(settings.calendarSaveDir, safeGroupName);
+      fs.mkdirSync(groupDir, { recursive: true });
+      const savePath = path.join(groupDir, filename);
       fs.writeFileSync(savePath, icsContent, "utf8");
       debugLog("calendar", "ICS auto-saved:", savePath);
       if (mainWindow) {
@@ -1530,6 +1569,19 @@ ipcMain.handle("calendar:selectSaveDir", async () => {
   return { ok: true, dir };
 });
 
+ipcMain.handle("calendar:createDefaultDir", () => {
+  const docsDir = app.getPath("documents");
+  const dir = path.join(docsDir, "VRC Event Creator .ics");
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+  settings.calendarSaveDir = dir;
+  saveSettings(settings);
+  return { ok: true, dir };
+});
+
 ipcMain.handle("theme:get", () => themeStoreModule.getThemeStore());
 
 ipcMain.handle("theme:set", (_, payload) => {
@@ -1963,10 +2015,10 @@ ipcMain.handle("events:create", async (_, payload) => {
         automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
       }
     }
-    // Discord sync (fire-and-forget, never blocks VRC event creation)
-    tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
-    // Calendar webhook sync (fire-and-forget)
-    tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
+    // Discord sync → Calendar sync (chained: calendar uses Discord event URL when available)
+    tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc).then(discordEvent => {
+      tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc, discordEvent);
+    });
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
@@ -2712,9 +2764,10 @@ app.whenReady().then(() => {
           const startTime = new Date(pendingEvent.eventStartsAt);
           const durationMs = (details.duration || 120) * 60 * 1000;
           const endTime = new Date(startTime.getTime() + durationMs);
-          tryDiscordSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
-          // Calendar webhook sync for automated events
-          tryCalendarSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
+          // Discord sync → Calendar sync (chained: calendar uses Discord event URL when available)
+          tryDiscordSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString()).then(discordEvent => {
+            tryCalendarSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString(), discordEvent);
+          });
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

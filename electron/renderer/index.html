@@ -646,14 +646,6 @@
                     <span data-i18n="settings.calendar.enable">Enable calendar file generation</span>
                   </label>
                 </div>
-                <div class="field is-hidden" id="calendar-save-dir-field">
-                  <label data-i18n="settings.calendar.saveDirLabel">Calendar save directory</label>
-                  <div class="input-with-button">
-                    <input id="calendar-save-dir" type="text" readonly placeholder="Not set" data-i18n-placeholder="settings.calendar.saveDirPlaceholder" />
-                    <button id="calendar-save-dir-btn" class="ghost compact-button" type="button" data-i18n="settings.calendar.saveDirButton">Browse</button>
-                  </div>
-                  <p class="hint" data-i18n="settings.calendar.saveDirHint">When webhook is not configured, .ics files save here automatically.</p>
-                </div>
                 <div class="divider"></div>
                 <div class="field">
                   <div class="toggle-with-caret">
@@ -774,6 +766,14 @@
                     <div class="meta-actions">
                       <button id="settings-change-dir" class="ghost compact-button" type="button" data-i18n="settings.appInfo.changeButton">Change</button>
                       <button id="settings-open-dir" class="ghost compact-button" type="button" data-i18n="settings.appInfo.openButton">Open</button>
+                    </div>
+                  </div>
+                  <div class="meta-item meta-calendar-dir is-hidden" id="calendar-save-dir-meta">
+                    <span class="meta-label" data-i18n="settings.calendar.saveDirLabel">Calendar Save Directory</span>
+                    <span id="calendar-save-dir-display">-</span>
+                    <div class="meta-actions">
+                      <button id="calendar-save-dir-btn" class="ghost compact-button" type="button" data-i18n="settings.calendar.saveDirButton">Browse</button>
+                      <button id="calendar-save-dir-create" class="ghost compact-button" type="button" data-i18n="settings.calendar.saveDirCreate">Create Default</button>
                     </div>
                   </div>
                   <div class="meta-item meta-session">

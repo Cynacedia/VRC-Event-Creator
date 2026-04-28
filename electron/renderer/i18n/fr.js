@@ -197,7 +197,7 @@ export const fr = {
       saveDirLabel: "Répertoire de sauvegarde du calendrier",
       saveDirPlaceholder: "Non défini",
       saveDirButton: "Parcourir",
-      saveDirHint: "Lorsque le webhook n'est pas configuré, les fichiers .ics sont sauvegardés ici automatiquement.",
+      saveDirCreate: "Créer par défaut",
       autoSaved: "Fichier calendrier sauvegardé : {filePath}"
     },
     saveButton: "Enregistrer les paramètres",

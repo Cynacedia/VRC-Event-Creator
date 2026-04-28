@@ -1269,10 +1269,6 @@ import { initDemoControls } from "./demo.js";
           state.settings.calendarEnabled = enabled;
           updateDiscordVisibility();
           updateCalendarVisibility();
-          // Show/hide save directory field
-          if (dom.calendarSaveDirField) {
-            dom.calendarSaveDirField.classList.toggle("is-hidden", !enabled);
-          }
         } catch (err) {
           console.error("Failed to save calendar setting:", err);
         }
@@ -1283,8 +1279,19 @@ import { initDemoControls } from "./demo.js";
       dom.calendarSaveDirBtn.addEventListener("click", async () => {
         const result = await api.calendarSelectSaveDir();
         if (result.ok && result.dir) {
-          if (dom.calendarSaveDir) dom.calendarSaveDir.value = result.dir;
+          if (dom.calendarSaveDirDisplay) dom.calendarSaveDirDisplay.textContent = result.dir;
           state.settings.calendarSaveDir = result.dir;
+        }
+      });
+    }
+    // Calendar save directory create default button
+    if (dom.calendarSaveDirCreate) {
+      dom.calendarSaveDirCreate.addEventListener("click", async () => {
+        const result = await api.calendarCreateDefaultDir();
+        if (result.ok && result.dir) {
+          if (dom.calendarSaveDirDisplay) dom.calendarSaveDirDisplay.textContent = result.dir;
+          state.settings.calendarSaveDir = result.dir;
+          showToast((t("settings.calendar.autoSaved") || "Calendar directory created: {filePath}").replace("{filePath}", result.dir));
         }
       });
     }

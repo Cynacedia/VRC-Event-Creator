@@ -197,7 +197,7 @@ export const es = {
       saveDirLabel: "Directorio de guardado de calendario",
       saveDirPlaceholder: "No configurado",
       saveDirButton: "Examinar",
-      saveDirHint: "Cuando el webhook no está configurado, los archivos .ics se guardan aquí automáticamente.",
+      saveDirCreate: "Crear predeterminado",
       autoSaved: "Archivo de calendario guardado: {filePath}"
     },
     saveButton: "Guardar configuración",

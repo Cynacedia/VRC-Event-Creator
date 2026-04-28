@@ -197,7 +197,7 @@ export const ru = {
       saveDirLabel: "Директория сохранения календаря",
       saveDirPlaceholder: "Не задано",
       saveDirButton: "Обзор",
-      saveDirHint: "Когда вебхук не настроен, файлы .ics сохраняются здесь автоматически.",
+      saveDirCreate: "Создать по умолчанию",
       autoSaved: "Файл календаря сохранён: {filePath}"
     },
     saveButton: "Сохранить настройки",

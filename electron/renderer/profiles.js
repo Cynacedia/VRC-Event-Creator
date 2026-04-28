@@ -1227,6 +1227,10 @@ export function updateCalendarVisibility() {
   if (dom.eventCalendarRemindersHint) {
     dom.eventCalendarRemindersHint.classList.toggle("is-hidden", !eventRemindersOn);
   }
+  // Calendar save directory in Application Info
+  if (dom.calendarSaveDirMeta) {
+    dom.calendarSaveDirMeta.classList.toggle("is-hidden", !calendarEnabled);
+  }
 }
 
 // Standard reminder presets that work across all calendar clients (including Outlook)
