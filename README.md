@@ -37,6 +37,7 @@ Create and save per-group event templates, generate upcoming event dates from si
 - Supports special event options for groups that have additional permissions.
 - Theme Studio with presets and full UI color control (supports #RRGGBBAA).
 - Discord integration - automatically create Discord Events alongside VRChat events. ([Setup Guide](README/Discord%20Setup/DISCORD_SETUP.en.md))
+- Calendar integration - generate .ics calendar invite files with reminders, delivered via Discord webhook or auto-saved locally. ([Setup Guide](README/Calendar%20Setup/CALENDAR_SETUP.en.md))
 - Gallery picker and upload for image IDs.
 - Start on system startup + minimize to tray.
 - Single-instance protection to prevent duplicate launches.
