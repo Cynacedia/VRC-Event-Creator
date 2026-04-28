@@ -95,6 +95,13 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   webhookGetGroupWebhook: groupId => ipcRenderer.invoke("webhook:getGroupWebhook", groupId),
   calendarSaveIcs: payload => ipcRenderer.invoke("calendar:generateAndSave", payload),
   calendarSelectSaveDir: () => ipcRenderer.invoke("calendar:selectSaveDir"),
+
+  // EC Kit (webhook identity)
+  eckitImport: () => ipcRenderer.invoke("eckit:import"),
+  eckitHasKit: groupId => ipcRenderer.invoke("eckit:hasKit", groupId),
+  eckitGetKit: groupId => ipcRenderer.invoke("eckit:getKit", groupId),
+  eckitGetKitGroupIds: () => ipcRenderer.invoke("eckit:getKitGroupIds"),
+
   onWebhookSyncFailed: callback => {
     ipcRenderer.on("webhook:syncFailed", (_, data) => callback(data));
   },

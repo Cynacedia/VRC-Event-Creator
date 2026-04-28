@@ -17,7 +17,7 @@ const WEBHOOK_URL_PATTERN = /^https:\/\/(discord\.com|discordapp\.com)\/api\/web
  * @param {string} [options.imageFilename] - Image filename (e.g., "banner.png")
  * @returns {Promise<{ok: boolean, error?: string}>}
  */
-async function sendWebhookWithIcs({ webhookUrl, icsContent, filename, content, embed, imageBuffer, imageFilename, iconBuffer, iconFilename, avatarUrl }) {
+async function sendWebhookWithIcs({ webhookUrl, icsContent, filename, content, embed, imageBuffer, imageFilename, iconBuffer, iconFilename, avatarUrl, webhookName }) {
   if (!webhookUrl || !WEBHOOK_URL_PATTERN.test(webhookUrl)) {
     return { ok: false, error: "Invalid webhook URL." };
   }
@@ -28,7 +28,7 @@ async function sendWebhookWithIcs({ webhookUrl, icsContent, filename, content, e
   const boundary = `----WebhookBoundary${Date.now()}${Math.random().toString(36).slice(2)}`;
 
   const payload = {
-    username: "VRC Event Creator",
+    username: webhookName || "VRC Event Creator",
     ...(content ? { content } : {}),
     ...(embed ? { embeds: [embed] } : {}),
     ...(avatarUrl ? { avatar_url: avatarUrl } : {})

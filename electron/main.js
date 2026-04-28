@@ -14,6 +14,7 @@ const webhook = require("./core/webhook");
 const debugModule = require("./core/debug-log");
 const galleryCacheModule = require("./core/gallery-cache");
 const themeStoreModule = require("./core/theme-store");
+const eckit = require("./core/eckit");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -120,6 +121,7 @@ let PENDING_EVENTS_PATH;
 let AUTOMATION_STATE_PATH;
 let GALLERY_CACHE_DIR;
 let GALLERY_MANIFEST_PATH;
+let KITS_DIR;
 let settings;
 let vrchat;
 const groupPermissionCache = new Map();
@@ -154,6 +156,8 @@ function initializePaths() {
     getVrchat: () => vrchat,
     debugLog: debugLog
   });
+  KITS_DIR = path.join(DATA_DIR, "kits");
+  eckit.loadKits(KITS_DIR);
   settings = loadSettings();
   themeStoreModule.init({
     themesPath: path.join(DATA_DIR, "themes.json"),
@@ -454,29 +458,44 @@ function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc,
 
   if (useWebhook) {
     // --- Webhook delivery path ---
-    const avatarUrl = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`;
+    const defaultAvatarUrl = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`;
+
+    // Apply kit overrides if a valid kit exists for this group
+    const hasGroupKit = eckit.hasKit(groupId);
+    const kitAvatarUrl = hasGroupKit && groupData.webhookAvatarUrl ? groupData.webhookAvatarUrl : defaultAvatarUrl;
+    const kitWebhookName = hasGroupKit && groupData.webhookDisplayName ? groupData.webhookDisplayName : undefined;
+
+    // Custom message from event data (kit-unlocked feature)
+    const customMessage = hasGroupKit && eventData?.webhookMessage ? eventData.webhookMessage : "";
 
     let webhookPromise;
 
     if (discordEvent) {
-      // Discord event was created — post event link + .ics (Discord auto-renders the event card)
+      // Discord event was created — post event link + .ics
       const eventUrl = `https://discord.com/events/${discordEvent.guildId}/${discordEvent.eventId}`;
+      const messageContent = customMessage ? `${customMessage}\n${eventUrl}` : eventUrl;
       webhookPromise = webhook.sendWebhookWithIcs({
         webhookUrl,
         icsContent,
         filename,
-        content: eventUrl,
-        avatarUrl
+        content: messageContent,
+        avatarUrl: kitAvatarUrl,
+        webhookName: kitWebhookName
       });
     } else {
       // No Discord event — use fallback embed with event details
       const startUnix = Math.floor(new Date(startsAtUtc).getTime() / 1000);
       const endUnix = Math.floor(new Date(endsAtUtc).getTime() / 1000);
 
+      // Apply kit embed color override
+      const embedColor = hasGroupKit && groupData.webhookEmbedColor
+        ? parseInt(groupData.webhookEmbedColor.replace("#", ""), 16) || 0x1FC3AD
+        : 0x1FC3AD;
+
       const embed = {
         title: eventData.title,
         description: truncateText(eventData.description || "", 300),
-        color: 0x1FC3AD,
+        color: embedColor,
         fields: [
           { name: "\uD83D\uDCC6", value: `<t:${startUnix}:D>`, inline: true },
           { name: "\uD83D\uDD50", value: `<t:${startUnix}:t> \u2014 <t:${endUnix}:t>`, inline: true },
@@ -504,12 +523,14 @@ function tryCalendarSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc,
           webhookUrl,
           icsContent,
           filename,
+          content: customMessage || undefined,
           embed,
           imageBuffer,
           imageFilename: imageBuffer ? "banner.png" : null,
           iconBuffer,
           iconFilename: iconBuffer ? "icon.png" : null,
-          avatarUrl
+          avatarUrl: kitAvatarUrl,
+          webhookName: kitWebhookName
         });
       });
     }
@@ -641,6 +662,10 @@ function normalizeProfiles(raw) {
       discordBotToken: typeof groupData.discordBotToken === "string" ? groupData.discordBotToken : "",
       discordGuildId: typeof groupData.discordGuildId === "string" ? groupData.discordGuildId : "",
       webhookUrl: typeof groupData.webhookUrl === "string" ? groupData.webhookUrl : "",
+      // Kit-unlocked webhook customization (user-editable when kit is active)
+      webhookDisplayName: typeof groupData.webhookDisplayName === "string" ? groupData.webhookDisplayName : "",
+      webhookAvatarUrl: typeof groupData.webhookAvatarUrl === "string" ? groupData.webhookAvatarUrl : "",
+      webhookEmbedColor: typeof groupData.webhookEmbedColor === "string" ? groupData.webhookEmbedColor : "",
       profiles: normalizedProfiles
     };
   });
@@ -1575,6 +1600,31 @@ ipcMain.handle("calendar:selectSaveDir", async () => {
   return { ok: true, dir };
 });
 
+
+// --- EC Kit IPC handlers ---
+
+ipcMain.handle("eckit:import", async () => {
+  if (!mainWindow) return { ok: false, error: "No window." };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Import Webhook Kit",
+    filters: [{ name: "EC Kit", extensions: ["eckit"] }],
+    properties: ["openFile"]
+  });
+  if (result.canceled || !result.filePaths?.length) return { ok: false, cancelled: true };
+  return eckit.importKit(result.filePaths[0], KITS_DIR);
+});
+
+ipcMain.handle("eckit:hasKit", (_, groupId) => {
+  return eckit.hasKit(groupId);
+});
+
+ipcMain.handle("eckit:getKit", (_, groupId) => {
+  return eckit.getKit(groupId);
+});
+
+ipcMain.handle("eckit:getKitGroupIds", () => {
+  return eckit.getKitGroupIds();
+});
 
 ipcMain.handle("theme:get", () => themeStoreModule.getThemeStore());
 
