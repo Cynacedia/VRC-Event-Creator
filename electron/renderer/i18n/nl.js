@@ -197,6 +197,20 @@ export const nl = {
       saveDirLabel: "Kalender opslagmap",
       autoSaved: "Kalenderbestand opgeslagen: {filePath}"
     },
+    eckit: {
+      importButton: "Kit Importeren",
+      webhookName: "Webhook Weergavenaam",
+      webhookNamePlaceholder: "Mijn Groep Evenementen",
+      embedColor: "Embed Kleur",
+      avatarUrl: "Avatar URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Aangepast webhook bericht bijvoegen",
+      messageTitle: "Aangepast Webhook Bericht",
+      messagePlaceholder: "Schrijf een aangepast bericht om bij de webhook post te voegen...",
+      attachImage: "Afbeelding bijvoegen",
+      noImage: "Geen afbeelding geselecteerd",
+      selectImage: "Selecteren"
+    },
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
   },

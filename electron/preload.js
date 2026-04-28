@@ -101,6 +101,7 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   eckitHasKit: groupId => ipcRenderer.invoke("eckit:hasKit", groupId),
   eckitGetKit: groupId => ipcRenderer.invoke("eckit:getKit", groupId),
   eckitGetKitGroupIds: () => ipcRenderer.invoke("eckit:getKitGroupIds"),
+  eckitSelectImage: () => ipcRenderer.invoke("eckit:selectImage"),
 
   onWebhookSyncFailed: callback => {
     ipcRenderer.on("webhook:syncFailed", (_, data) => callback(data));

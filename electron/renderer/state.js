@@ -270,7 +270,29 @@ export const dom = {
   discordWebhookUrlField: document.getElementById("discord-webhook-url-field"),
   discordWebhookUrl: document.getElementById("discord-webhook-url"),
   discordWebhookToggle: document.getElementById("discord-webhook-toggle"),
-  discordWebhookTestBtn: document.getElementById("discord-webhook-test-btn")
+  discordWebhookTestBtn: document.getElementById("discord-webhook-test-btn"),
+  // EC Kit elements
+  eckitImportBtn: document.getElementById("eckit-import-btn"),
+  eckitConfig: document.getElementById("eckit-config"),
+  eckitStatus: document.getElementById("eckit-status"),
+  eckitWebhookName: document.getElementById("eckit-webhook-name"),
+  eckitEmbedColor: document.getElementById("eckit-embed-color"),
+  eckitEmbedColorHex: document.getElementById("eckit-embed-color-hex"),
+  eckitAvatarUrl: document.getElementById("eckit-avatar-url"),
+  // Profile webhook message (Basics tab, kit-unlocked)
+  profileWebhookMessageField: document.getElementById("profile-webhook-message-field"),
+  profileWebhookMessageEnabled: document.getElementById("profile-webhook-message-enabled"),
+  profileWebhookMessageCard: document.getElementById("profile-webhook-message-card"),
+  profileWebhookMessage: document.getElementById("profile-webhook-message"),
+  profileWebhookImagePath: document.getElementById("profile-webhook-image-path"),
+  profileWebhookImageBtn: document.getElementById("profile-webhook-image-btn"),
+  // Event webhook message (Details step, kit-unlocked)
+  eventWebhookMessageField: document.getElementById("event-webhook-message-field"),
+  eventWebhookMessageEnabled: document.getElementById("event-webhook-message-enabled"),
+  eventWebhookMessageInput: document.getElementById("event-webhook-message-input"),
+  eventWebhookMessage: document.getElementById("event-webhook-message"),
+  eventWebhookImagePath: document.getElementById("event-webhook-image-path"),
+  eventWebhookImageBtn: document.getElementById("event-webhook-image-btn")
 };
 
 export const state = {
@@ -283,6 +305,7 @@ export const state = {
   user: null,
   groups: [],
   groupRoles: {},
+  kitGroupIds: [],
   profiles: {},
   event: {
     languages: [],

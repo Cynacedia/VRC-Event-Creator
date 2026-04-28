@@ -489,6 +489,16 @@ export function applyProfileToForm(groupId, profileKey) {
   if (dom.profileCalendarRemindersList) dom.profileCalendarRemindersList.classList.toggle("is-hidden", !showReminders);
   if (dom.profileCalendarReminderAdd) dom.profileCalendarReminderAdd.classList.toggle("is-hidden", !showReminders);
   if (dom.profileCalendarRemindersHint) dom.profileCalendarRemindersHint.classList.toggle("is-hidden", !showReminders);
+  // Load webhook message fields
+  if (dom.profileWebhookMessageEnabled) {
+    dom.profileWebhookMessageEnabled.checked = profile.webhookMessageEnabled === true;
+  }
+  if (dom.profileWebhookMessage) {
+    dom.profileWebhookMessage.value = profile.webhookMessage || "";
+  }
+  if (dom.profileWebhookMessageCard) {
+    dom.profileWebhookMessageCard.classList.toggle("is-hidden", !profile.webhookMessageEnabled);
+  }
   updateDiscordVisibility();
   updateCalendarVisibility();
 }
@@ -791,7 +801,9 @@ export async function handleProfileSave(api) {
       discordSync: dom.discordSyncCheck ? dom.discordSyncCheck.checked : true,
       calendarSync: dom.calendarSyncCheck ? dom.calendarSyncCheck.checked : true,
       calendarRemindersEnabled: dom.profileCalendarRemindersEnabled ? dom.profileCalendarRemindersEnabled.checked : false,
-      calendarReminders: readCalendarRemindersFromDom(dom.profileCalendarRemindersList)
+      calendarReminders: readCalendarRemindersFromDom(dom.profileCalendarRemindersList),
+      webhookMessageEnabled: dom.profileWebhookMessageEnabled ? dom.profileWebhookMessageEnabled.checked : false,
+      webhookMessage: dom.profileWebhookMessage ? dom.profileWebhookMessage.value : ""
     }
   };
 
@@ -1147,6 +1159,11 @@ function isGroupWebhookConfigured(groupId) {
   return !!(groupData?.webhookUrl);
 }
 
+function isGroupKitActive(groupId) {
+  if (!groupId) return false;
+  return (state.kitGroupIds || []).includes(groupId);
+}
+
 /** Show/hide Discord panel in settings and sync toggle in profile editor.
  * @param {object} [options]
  * @param {boolean} [options.expandPanel] - Force expand/collapse the Discord settings panel.
@@ -1191,10 +1208,30 @@ export function updateDiscordVisibility({ expandPanel } = {}) {
   if (dom.discordWebhookField) {
     dom.discordWebhookField.classList.toggle("is-hidden", !calendarEnabled);
   }
-  // Test webhook button visibility
+  // Test webhook + Import Kit button visibility (only when webhook toggle is on)
+  const webhookToggled = calendarEnabled && dom.discordWebhookEnabledCheck?.checked === true;
   if (dom.discordWebhookTestBtn) {
-    const webhookToggled = dom.discordWebhookEnabledCheck?.checked === true;
-    dom.discordWebhookTestBtn.classList.toggle("is-hidden", !calendarEnabled || !webhookToggled);
+    dom.discordWebhookTestBtn.classList.toggle("is-hidden", !webhookToggled);
+  }
+  // Import Kit button: show only when webhook is on AND no kit already active for this group
+  const selectedGroupId = dom.discordGroupSelect?.value;
+  const kitActiveForGroup = selectedGroupId && isGroupKitActive(selectedGroupId);
+  if (dom.eckitImportBtn) {
+    dom.eckitImportBtn.classList.toggle("is-hidden", !webhookToggled || kitActiveForGroup);
+  }
+  // Kit-unlocked webhook message toggle visibility
+  const profileGroupId = dom.profileGroup?.value;
+  const profileKitActive = isGroupKitActive(profileGroupId) && calendarEnabled
+    && dom.calendarSyncCheck?.checked && dom.discordSyncCheck?.checked;
+  if (dom.profileWebhookMessageField) {
+    dom.profileWebhookMessageField.classList.toggle("is-hidden", !profileKitActive);
+  }
+  // Event creation webhook message toggle
+  const eventGroupId = dom.eventGroup?.value;
+  const eventKitActive = isGroupKitActive(eventGroupId) && calendarEnabled
+    && dom.eventCalendarCreateCheck?.checked && dom.eventDiscordSyncCheck?.checked;
+  if (dom.eventWebhookMessageField) {
+    dom.eventWebhookMessageField.classList.toggle("is-hidden", !eventKitActive);
   }
 }
 
@@ -1409,6 +1446,26 @@ async function loadDiscordGroupConfig(api) {
   if (dom.discordWebhookEnabledCheck) dom.discordWebhookEnabledCheck.checked = hasWebhook;
   if (dom.discordWebhookUrlField) dom.discordWebhookUrlField.classList.toggle("is-hidden", !hasWebhook);
   if (dom.discordWebhookTestBtn) dom.discordWebhookTestBtn.classList.toggle("is-hidden", !hasWebhook);
+  // Load kit status and customization fields
+  const hasKit = await api.eckitHasKit(groupId);
+  if (dom.eckitConfig) dom.eckitConfig.classList.toggle("is-hidden", !hasKit);
+  if (dom.eckitStatus) {
+    if (hasKit) {
+      const kit = await api.eckitGetKit(groupId);
+      dom.eckitStatus.textContent = `Kit active — issued to ${kit?.issuedTo || "Unknown"} (${kit?.issuedAt || ""})`;
+    } else {
+      dom.eckitStatus.textContent = "";
+    }
+  }
+  // Load kit customization values from group data
+  const groupData = (state.profiles || {})[groupId] || {};
+  if (dom.eckitWebhookName) dom.eckitWebhookName.value = groupData.webhookDisplayName || "";
+  const colorVal = groupData.webhookEmbedColor || "#1FC3AD";
+  if (dom.eckitEmbedColor) dom.eckitEmbedColor.value = colorVal;
+  if (dom.eckitEmbedColorHex) dom.eckitEmbedColorHex.value = colorVal;
+  if (dom.eckitAvatarUrl) dom.eckitAvatarUrl.value = groupData.webhookAvatarUrl || "";
+  // Refresh visibility after loading config (webhook toggle, import button, etc.)
+  updateDiscordVisibility();
 }
 
 /** Save group-level Discord config (bot token + guild ID). */
@@ -1419,7 +1476,10 @@ async function saveDiscordGroupConfig(api) {
   await api.discordUpdateGroupDiscord({
     groupId,
     discordBotToken: dom.discordBotToken?.value || "",
-    discordGuildId: dom.discordGuildId?.value?.trim() || ""
+    discordGuildId: dom.discordGuildId?.value?.trim() || "",
+    webhookDisplayName: dom.eckitWebhookName?.value?.trim() || "",
+    webhookAvatarUrl: dom.eckitAvatarUrl?.value?.trim() || "",
+    webhookEmbedColor: dom.eckitEmbedColorHex?.value?.trim() || dom.eckitEmbedColor?.value || ""
   });
   // Save webhook URL
   await api.webhookUpdateGroupWebhook({

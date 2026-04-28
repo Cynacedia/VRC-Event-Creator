@@ -197,6 +197,20 @@ export const ja = {
       saveDirLabel: "カレンダー保存ディレクトリ",
       autoSaved: "カレンダーファイルを保存しました: {filePath}"
     },
+    eckit: {
+      importButton: "キットをインポート",
+      webhookName: "Webhook表示名",
+      webhookNamePlaceholder: "マイグループイベント",
+      embedColor: "埋め込みカラー",
+      avatarUrl: "アバターURL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "カスタムWebhookメッセージを添付",
+      messageTitle: "カスタムWebhookメッセージ",
+      messagePlaceholder: "Webhook投稿に含めるカスタムメッセージを書いてください...",
+      attachImage: "画像を添付",
+      noImage: "画像未選択",
+      selectImage: "選択"
+    },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
   },

@@ -197,6 +197,20 @@ export const zh = {
       saveDirLabel: "日历保存目录",
       autoSaved: "日历文件已保存：{filePath}"
     },
+    eckit: {
+      importButton: "导入套件",
+      webhookName: "Webhook显示名称",
+      webhookNamePlaceholder: "我的群组活动",
+      embedColor: "嵌入颜色",
+      avatarUrl: "头像URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "附加自定义Webhook消息",
+      messageTitle: "自定义Webhook消息",
+      messagePlaceholder: "编写要包含在Webhook帖子中的自定义消息...",
+      attachImage: "附加图片",
+      noImage: "未选择图片",
+      selectImage: "选择"
+    },
     saveButton: "保存设置",
     saved: "设置已保存。"
   },

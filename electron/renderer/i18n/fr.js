@@ -197,6 +197,20 @@ export const fr = {
       saveDirLabel: "Répertoire de sauvegarde du calendrier",
       autoSaved: "Fichier calendrier sauvegardé : {filePath}"
     },
+    eckit: {
+      importButton: "Importer le Kit",
+      webhookName: "Nom du Webhook",
+      webhookNamePlaceholder: "Événements de Mon Groupe",
+      embedColor: "Couleur de l'Embed",
+      avatarUrl: "URL de l'Avatar",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Joindre un message personnalisé au webhook",
+      messageTitle: "Message personnalisé du webhook",
+      messagePlaceholder: "Écrivez un message personnalisé à inclure avec le webhook...",
+      attachImage: "Joindre une image",
+      noImage: "Aucune image sélectionnée",
+      selectImage: "Sélectionner"
+    },
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
   },

@@ -197,6 +197,20 @@ export const ko = {
       saveDirLabel: "캘린더 저장 디렉토리",
       autoSaved: "캘린더 파일 저장됨: {filePath}"
     },
+    eckit: {
+      importButton: "키트 가져오기",
+      webhookName: "Webhook 표시 이름",
+      webhookNamePlaceholder: "내 그룹 이벤트",
+      embedColor: "임베드 색상",
+      avatarUrl: "아바타 URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "사용자 지정 Webhook 메시지 첨부",
+      messageTitle: "사용자 지정 Webhook 메시지",
+      messagePlaceholder: "Webhook 게시물에 포함할 사용자 지정 메시지를 작성하세요...",
+      attachImage: "이미지 첨부",
+      noImage: "선택된 이미지 없음",
+      selectImage: "선택"
+    },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
   },

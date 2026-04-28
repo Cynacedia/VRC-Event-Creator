@@ -197,6 +197,20 @@ export const ru = {
       saveDirLabel: "Директория сохранения календаря",
       autoSaved: "Файл календаря сохранён: {filePath}"
     },
+    eckit: {
+      importButton: "Импортировать кит",
+      webhookName: "Отображаемое имя вебхука",
+      webhookNamePlaceholder: "События моей группы",
+      embedColor: "Цвет вставки",
+      avatarUrl: "URL аватара",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Прикрепить пользовательское сообщение к вебхуку",
+      messageTitle: "Пользовательское сообщение вебхука",
+      messagePlaceholder: "Напишите пользовательское сообщение для включения в вебхук...",
+      attachImage: "Прикрепить изображение",
+      noImage: "Изображение не выбрано",
+      selectImage: "Выбрать"
+    },
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
   },

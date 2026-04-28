@@ -1517,7 +1517,7 @@ ipcMain.handle("discord:testConnection", async (_, botToken) => {
   return discord.testBotConnection(botToken);
 });
 
-ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, discordGuildId }) => {
+ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, discordGuildId, webhookDisplayName, webhookAvatarUrl, webhookEmbedColor }) => {
   if (!groupId || !profiles[groupId]) return { ok: false, error: "Group not found." };
   if (typeof discordBotToken === "string") {
     profiles[groupId].discordBotToken = encryptToken(discordBotToken);
@@ -1525,6 +1525,10 @@ ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, dis
   if (typeof discordGuildId === "string") {
     profiles[groupId].discordGuildId = discordGuildId;
   }
+  // Kit-unlocked customization fields
+  if (typeof webhookDisplayName === "string") profiles[groupId].webhookDisplayName = webhookDisplayName;
+  if (typeof webhookAvatarUrl === "string") profiles[groupId].webhookAvatarUrl = webhookAvatarUrl;
+  if (typeof webhookEmbedColor === "string") profiles[groupId].webhookEmbedColor = webhookEmbedColor;
   saveProfiles(profiles);
   return { ok: true };
 });
@@ -1598,6 +1602,27 @@ ipcMain.handle("calendar:selectSaveDir", async () => {
   settings.calendarSaveDir = dir;
   saveSettings(settings);
   return { ok: true, dir };
+});
+
+ipcMain.handle("eckit:selectImage", async () => {
+  if (!mainWindow) return { ok: false };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select Webhook Image",
+    filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "gif", "webp"] }],
+    properties: ["openFile"]
+  });
+  if (result.canceled || !result.filePaths?.length) return { ok: false, cancelled: true };
+  const filePath = result.filePaths[0];
+  // Validate file size (max 8MB for Discord)
+  try {
+    const stat = fs.statSync(filePath);
+    if (stat.size > 8 * 1024 * 1024) {
+      return { ok: false, error: "Image must be under 8MB." };
+    }
+  } catch {
+    return { ok: false, error: "Could not read file." };
+  }
+  return { ok: true, filePath };
 });
 
 

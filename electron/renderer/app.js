@@ -215,6 +215,7 @@ import { initDemoControls } from "./demo.js";
       setFootMeta(t("common.syncing"));
       state.groups = await api.getGroups();
       state.profiles = await api.getProfiles();
+      state.kitGroupIds = await api.eckitGetKitGroupIds().catch(() => []);
       renderGroupSelects({ preserveSelection });
       enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
       enforceGroupAccess(dom.profileAccess, dom.profileGroup.value);
@@ -1321,7 +1322,7 @@ import { initDemoControls } from "./demo.js";
     }
     // Event calendar create toggle — show/hide reminders option
     if (dom.eventCalendarCreateCheck) {
-      dom.eventCalendarCreateCheck.addEventListener("change", () => updateCalendarVisibility());
+      dom.eventCalendarCreateCheck.addEventListener("change", () => { updateCalendarVisibility(); updateDiscordVisibility(); });
     }
     // Event calendar reminders enabled toggle — show/hide rows
     if (dom.eventCalendarRemindersEnabled) {
@@ -1347,6 +1348,77 @@ import { initDemoControls } from "./demo.js";
     }
     // Initialize Discord UI (token toggle, test button, auto-save)
     initDiscordUI(api);
+    // EC Kit import button
+    if (dom.eckitImportBtn) {
+      dom.eckitImportBtn.addEventListener("click", async () => {
+        const result = await api.eckitImport();
+        if (result.cancelled) return;
+        if (result.ok) {
+          showToast(`Kit activated for ${result.issuedTo || "group"}`);
+          // Reload current group config to show kit fields
+          const groupId = dom.discordGroupSelect?.value;
+          if (groupId) {
+            dom.discordGroupSelect.dispatchEvent(new Event("change"));
+          }
+        } else {
+          showToast(result.error || "Invalid kit file.", true);
+        }
+      });
+    }
+    // EC Kit color picker ↔ hex text sync
+    if (dom.eckitEmbedColor && dom.eckitEmbedColorHex) {
+      dom.eckitEmbedColor.addEventListener("input", () => {
+        dom.eckitEmbedColorHex.value = dom.eckitEmbedColor.value;
+      });
+      dom.eckitEmbedColorHex.addEventListener("input", () => {
+        const hex = dom.eckitEmbedColorHex.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+          dom.eckitEmbedColor.value = hex;
+        }
+      });
+    }
+    // Profile webhook image select button
+    if (dom.profileWebhookImageBtn) {
+      dom.profileWebhookImageBtn.addEventListener("click", async () => {
+        const result = await api.eckitSelectImage();
+        if (result.ok && result.filePath) {
+          if (dom.profileWebhookImagePath) dom.profileWebhookImagePath.value = result.filePath;
+        } else if (result.error) {
+          showToast(result.error, true);
+        }
+      });
+    }
+    // Profile webhook message toggle
+    if (dom.profileWebhookMessageEnabled) {
+      dom.profileWebhookMessageEnabled.addEventListener("change", () => {
+        const show = dom.profileWebhookMessageEnabled.checked;
+        if (dom.profileWebhookMessageCard) dom.profileWebhookMessageCard.classList.toggle("is-hidden", !show);
+      });
+    }
+    // Event "Post to Discord" checkbox — refresh kit visibility
+    if (dom.eventDiscordSyncCheck) {
+      dom.eventDiscordSyncCheck.addEventListener("change", () => {
+        updateDiscordVisibility();
+      });
+    }
+    // Event webhook message toggle
+    if (dom.eventWebhookMessageEnabled) {
+      dom.eventWebhookMessageEnabled.addEventListener("change", () => {
+        const show = dom.eventWebhookMessageEnabled.checked;
+        if (dom.eventWebhookMessageInput) dom.eventWebhookMessageInput.classList.toggle("is-hidden", !show);
+      });
+    }
+    // Event webhook image select button
+    if (dom.eventWebhookImageBtn) {
+      dom.eventWebhookImageBtn.addEventListener("click", async () => {
+        const result = await api.eckitSelectImage();
+        if (result.ok && result.filePath) {
+          if (dom.eventWebhookImagePath) dom.eventWebhookImagePath.value = result.filePath;
+        } else if (result.error) {
+          showToast(result.error, true);
+        }
+      });
+    }
     if (dom.eventImagePicker) {
       dom.eventImagePicker.addEventListener("click", () => openGalleryPicker(dom.eventImageId));
     }

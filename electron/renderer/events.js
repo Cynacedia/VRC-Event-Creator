@@ -958,7 +958,9 @@ export async function handleEventCreate(api) {
     discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true,
     calendarCreate: dom.eventCalendarCreateCheck ? dom.eventCalendarCreateCheck.checked : false,
     calendarRemindersEnabled: dom.eventCalendarRemindersEnabled ? dom.eventCalendarRemindersEnabled.checked : false,
-    calendarReminders: readCalendarRemindersFromDom(dom.eventCalendarRemindersList)
+    calendarReminders: readCalendarRemindersFromDom(dom.eventCalendarRemindersList),
+    webhookMessageEnabled: dom.eventWebhookMessageEnabled ? dom.eventWebhookMessageEnabled.checked : false,
+    webhookMessage: dom.eventWebhookMessage ? dom.eventWebhookMessage.value : ""
   };
   if (eventData.accessType === "group") {
     eventData.roleIds = (state.event.roleIds || []).filter(id => typeof id === "string" && id.trim());
@@ -1196,6 +1198,16 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   }
   // Render template reminders into event form
   renderCalendarReminders(dom.eventCalendarRemindersList, profile.calendarReminders || []);
+  // Apply template's webhook message settings
+  if (dom.eventWebhookMessageEnabled) {
+    dom.eventWebhookMessageEnabled.checked = profile.webhookMessageEnabled === true;
+  }
+  if (dom.eventWebhookMessage) {
+    dom.eventWebhookMessage.value = profile.webhookMessage || "";
+  }
+  if (dom.eventWebhookMessageInput) {
+    dom.eventWebhookMessageInput.classList.toggle("is-hidden", !profile.webhookMessageEnabled);
+  }
   updateCalendarVisibility();
 }
 

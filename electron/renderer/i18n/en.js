@@ -197,6 +197,20 @@ export const en = {
       saveDirLabel: "Calendar save directory",
       autoSaved: "Calendar file saved: {filePath}"
     },
+    eckit: {
+      importButton: "Import Kit",
+      webhookName: "Webhook Display Name",
+      webhookNamePlaceholder: "My Group Events",
+      embedColor: "Embed Color",
+      avatarUrl: "Avatar URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Attach Custom Webhook Message",
+      messageTitle: "Custom Webhook Message",
+      messagePlaceholder: "Write a custom message to include with the webhook post...",
+      attachImage: "Attach Image",
+      noImage: "No image selected",
+      selectImage: "Select"
+    },
     saveButton: "Save Settings",
     saved: "Settings saved."
   },
