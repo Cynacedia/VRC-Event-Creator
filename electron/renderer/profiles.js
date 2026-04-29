@@ -1521,6 +1521,7 @@ async function saveDiscordGroupConfig(api) {
     state.profiles = await api.getProfiles();
   } catch { /* ignore */ }
   renderDiscordConfiguredList();
+  updateDiscordVisibility();
 }
 
 /** Wire up Discord UI events. Call once during init. */

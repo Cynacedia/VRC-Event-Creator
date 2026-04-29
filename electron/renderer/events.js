@@ -731,9 +731,19 @@ export function applyManualEventDefaults(options = {}) {
     renderEventLanguageList();
     renderEventPlatformList();
     if (dom.eventDiscordSyncCheck) dom.eventDiscordSyncCheck.checked = true;
+    if (dom.eventWebhookPostCheck) dom.eventWebhookPostCheck.checked = false;
+    if (dom.eventCalendarCreateCheck) dom.eventCalendarCreateCheck.checked = false;
+    if (dom.eventCalendarRemindersEnabled) dom.eventCalendarRemindersEnabled.checked = false;
+    if (dom.eventCalendarRemindersList) dom.eventCalendarRemindersList.innerHTML = "";
+    if (dom.eventWebhookMessageEnabled) dom.eventWebhookMessageEnabled.checked = false;
+    if (dom.eventWebhookMessage) dom.eventWebhookMessage.value = "";
+    if (dom.eventWebhookImagePath) dom.eventWebhookImagePath.value = "";
+    if (dom.eventWebhookMessageInput) dom.eventWebhookMessageInput.classList.add("is-hidden");
   }
   updateDateMode(null);
   updateDateOptions(null, null);
+  updateDiscordVisibility();
+  updateCalendarVisibility();
 }
 
 export async function renderEventRoleRestrictions(api) {

@@ -1090,7 +1090,13 @@ import { initDemoControls } from "./demo.js";
     dom.settingsChangeDir.addEventListener("click", () => handleChangeDataDir(api));
     dom.eventGroup.addEventListener("change", () => { void handleEventGroupChange(api); });
     dom.eventProfile.addEventListener("change", () => handleEventProfileChange(api));
-    dom.eventProfileClear.addEventListener("click", () => { dom.eventProfile.value = "__manual__"; handleEventProfileChange(api); });
+    dom.eventProfileClear.addEventListener("click", () => {
+      dom.eventProfile.value = "__manual__";
+      state.event.selectedProfileKey = null;
+      applyManualEventDefaults();
+      enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
+      void renderEventRoleRestrictions(api);
+    });
     dom.eventAccess.addEventListener("change", () => handleEventAccessChange(api));
     dom.eventDateSource.addEventListener("change", handleDateSourceChange);
     dom.eventTimezone.addEventListener("change", () => {
@@ -1355,11 +1361,15 @@ import { initDemoControls } from "./demo.js";
         if (result.cancelled) return;
         if (result.ok) {
           showToast(`Kit activated for ${result.issuedTo || "group"}`);
+          // Refresh kit state so isGroupKitActive() picks up the new kit
+          state.kitGroupIds = await api.eckitGetKitGroupIds().catch(() => []);
           // Reload current group config to show kit fields
           const groupId = dom.discordGroupSelect?.value;
           if (groupId) {
             dom.discordGroupSelect.dispatchEvent(new Event("change"));
           }
+          // Refresh visibility for template and event forms
+          updateDiscordVisibility();
         } else {
           showToast(result.error || "Invalid kit file.", true);
         }
