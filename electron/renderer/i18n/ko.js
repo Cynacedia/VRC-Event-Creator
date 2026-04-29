@@ -166,12 +166,19 @@ export const ko = {
       saveButton: "저장",
       saved: "Discord 설정이 저장되었습니다.",
       syncLabel: "Discord에 게시",
+      eventLabel: "Discord 이벤트 생성",
       syncSuccess: "\"{title}\" Discord 이벤트가 생성되었습니다",
       syncFailed: "\"{title}\" Discord 동기화 실패: {error}"
     },
+    webhook: {
+      postLabel: "Discord Webhook 게시",
+      enableLabel: "Webhook 활성화",
+      syncSuccess: "\"{title}\" 웹훅 전송 완료",
+      syncFailed: "\"{title}\" 웹훅 전송 실패: {error}"
+    },
     calendar: {
       title: "캘린더 연동",
-      description: "이벤트 생성 시 .ics 캘린더 파일을 생성하고 Discord 웹훅으로 전달합니다.",
+      description: ".ics 캘린더 파일을 리마인더와 함께 생성하고, 로컬에 저장하거나 웹훅 게시물에 첨부합니다.",
       enable: "캘린더 파일 생성 활성화",
       createInvite: ".ics 캘린더 초대 생성",
       remindersTitle: ".ics 캘린더 알림",
@@ -393,7 +400,8 @@ export const ko = {
       cancelFailed: "예정된 이벤트를 취소할 수 없습니다.",
       editSaved: "예정된 이벤트가 업데이트되었습니다.",
       editFailed: "예정된 이벤트를 업데이트할 수 없습니다."
-    }
+    },
+    postingOptions: "게시 옵션"
   },
   profiles: {
     title: "템플릿 관리",

@@ -166,12 +166,19 @@ export const en = {
       saveButton: "Save",
       saved: "Discord settings saved.",
       syncLabel: "Post to Discord",
+      eventLabel: "Create Discord Event",
       syncSuccess: "Discord event created for \"{title}\"",
       syncFailed: "Discord sync failed for \"{title}\": {error}"
     },
+    webhook: {
+      postLabel: "Post Discord Webhook",
+      enableLabel: "Enable Webhook",
+      syncSuccess: "Webhook sent for \"{title}\"",
+      syncFailed: "Webhook delivery failed for \"{title}\": {error}"
+    },
     calendar: {
       title: "Calendar Integration",
-      description: "Generate .ics calendar files and deliver them via Discord webhook when events are posted.",
+      description: "Generate .ics calendar files with reminders, auto-saved locally or attached to webhook posts.",
       enable: "Enable calendar file generation",
       createInvite: "Create .ics Calendar Invite",
       remindersTitle: ".ics Calendar Reminders",
@@ -393,7 +400,8 @@ export const en = {
       cancelFailed: "Could not cancel pending event.",
       editSaved: "Pending event updated.",
       editFailed: "Could not update pending event."
-    }
+    },
+    postingOptions: "Posting Options"
   },
   profiles: {
     title: "Manage Templates",

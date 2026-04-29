@@ -6,10 +6,10 @@ import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, se
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI, updateCalendarVisibility, renderCalendarReminders, readCalendarRemindersFromDom } from "./profiles.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI, updateCalendarVisibility, renderCalendarReminders, readCalendarRemindersFromDom, addCalendarReminderRow } from "./profiles.js";
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
-import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
+import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview, updateModifyCalendarRemindersVisibility, updateModifyWebhookVisibility } from "./modify.js";
 import { initDemoControls } from "./demo.js";
 
 (() => {
@@ -1395,9 +1395,21 @@ import { initDemoControls } from "./demo.js";
         if (dom.profileWebhookMessageCard) dom.profileWebhookMessageCard.classList.toggle("is-hidden", !show);
       });
     }
-    // Event "Post to Discord" checkbox — refresh kit visibility
+    // Event "Create Discord Event" checkbox — refresh visibility
     if (dom.eventDiscordSyncCheck) {
       dom.eventDiscordSyncCheck.addEventListener("change", () => {
+        updateDiscordVisibility();
+      });
+    }
+    // Profile "Post to Webhook" checkbox — refresh kit visibility
+    if (dom.webhookPostCheck) {
+      dom.webhookPostCheck.addEventListener("change", () => {
+        updateDiscordVisibility();
+      });
+    }
+    // Event "Post to Webhook" checkbox — refresh kit visibility
+    if (dom.eventWebhookPostCheck) {
+      dom.eventWebhookPostCheck.addEventListener("change", () => {
         updateDiscordVisibility();
       });
     }
@@ -1417,6 +1429,39 @@ import { initDemoControls } from "./demo.js";
         } else if (result.error) {
           showToast(result.error, true);
         }
+      });
+    }
+    // Modify modal posting options (pending events)
+    if (dom.modifyWebhookPost) {
+      dom.modifyWebhookPost.addEventListener("change", () => updateModifyWebhookVisibility());
+    }
+    if (dom.modifyCalendarSync) {
+      dom.modifyCalendarSync.addEventListener("change", () => {
+        updateModifyCalendarRemindersVisibility();
+      });
+    }
+    if (dom.modifyCalendarRemindersEnabled) {
+      dom.modifyCalendarRemindersEnabled.addEventListener("change", () => updateModifyCalendarRemindersVisibility());
+    }
+    if (dom.modifyWebhookMessageEnabled) {
+      dom.modifyWebhookMessageEnabled.addEventListener("change", () => {
+        const show = dom.modifyWebhookMessageEnabled.checked;
+        if (dom.modifyWebhookMessageInput) dom.modifyWebhookMessageInput.classList.toggle("is-hidden", !show);
+      });
+    }
+    if (dom.modifyWebhookImageBtn) {
+      dom.modifyWebhookImageBtn.addEventListener("click", async () => {
+        const result = await api.eckitSelectImage();
+        if (result.ok && result.filePath) {
+          if (dom.modifyWebhookImagePath) dom.modifyWebhookImagePath.value = result.filePath;
+        } else if (result.error) {
+          showToast(result.error, true);
+        }
+      });
+    }
+    if (dom.modifyCalendarReminderAdd) {
+      dom.modifyCalendarReminderAdd.addEventListener("click", () => {
+        addCalendarReminderRow(dom.modifyCalendarRemindersList, { value: 30, unit: "minutes" });
       });
     }
     if (dom.eventImagePicker) {

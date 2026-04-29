@@ -242,6 +242,11 @@ export const dom = {
   discordSyncCheck: document.getElementById("discord-sync-check"),
   eventDiscordSyncField: document.getElementById("event-discord-sync-field"),
   eventDiscordSyncCheck: document.getElementById("event-discord-sync-check"),
+  // Webhook post toggles
+  webhookPostField: document.getElementById("webhook-post-field"),
+  webhookPostCheck: document.getElementById("webhook-post-check"),
+  eventWebhookPostField: document.getElementById("event-webhook-post-field"),
+  eventWebhookPostCheck: document.getElementById("event-webhook-post-check"),
   // Calendar / Webhook elements
   settingsCalendarEnabled: document.getElementById("settings-calendar-enabled"),
   calendarSaveDirMeta: document.getElementById("calendar-save-dir-meta"),
@@ -292,7 +297,26 @@ export const dom = {
   eventWebhookMessageInput: document.getElementById("event-webhook-message-input"),
   eventWebhookMessage: document.getElementById("event-webhook-message"),
   eventWebhookImagePath: document.getElementById("event-webhook-image-path"),
-  eventWebhookImageBtn: document.getElementById("event-webhook-image-btn")
+  eventWebhookImageBtn: document.getElementById("event-webhook-image-btn"),
+  // Modify modal posting options (pending events only)
+  modifyPostingOptions: document.getElementById("modify-posting-options"),
+  modifyDiscordSyncField: document.getElementById("modify-discord-sync-field"),
+  modifyDiscordSync: document.getElementById("modify-discord-sync"),
+  modifyWebhookPostField: document.getElementById("modify-webhook-post-field"),
+  modifyWebhookPost: document.getElementById("modify-webhook-post"),
+  modifyCalendarSyncField: document.getElementById("modify-calendar-sync-field"),
+  modifyCalendarSync: document.getElementById("modify-calendar-sync"),
+  modifyCalendarRemindersEnabledField: document.getElementById("modify-calendar-reminders-enabled-field"),
+  modifyCalendarRemindersEnabled: document.getElementById("modify-calendar-reminders-enabled"),
+  modifyCalendarRemindersList: document.getElementById("modify-calendar-reminders-list"),
+  modifyCalendarReminderAdd: document.getElementById("modify-calendar-reminder-add"),
+  modifyCalendarRemindersHint: document.getElementById("modify-calendar-reminders-hint"),
+  modifyWebhookMessageSection: document.getElementById("modify-webhook-message-section"),
+  modifyWebhookMessageEnabled: document.getElementById("modify-webhook-message-enabled"),
+  modifyWebhookMessageInput: document.getElementById("modify-webhook-message-input"),
+  modifyWebhookMessage: document.getElementById("modify-webhook-message"),
+  modifyWebhookImagePath: document.getElementById("modify-webhook-image-path"),
+  modifyWebhookImageBtn: document.getElementById("modify-webhook-image-btn")
 };
 
 export const state = {

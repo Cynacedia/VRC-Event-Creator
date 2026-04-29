@@ -415,6 +415,8 @@ export function resetProfileForm() {
 
   // Reset Discord sync
   if (dom.discordSyncCheck) dom.discordSyncCheck.checked = true;
+  // Reset Webhook post
+  if (dom.webhookPostCheck) dom.webhookPostCheck.checked = false;
   // Reset Calendar sync
   if (dom.calendarSyncCheck) dom.calendarSyncCheck.checked = false;
   if (dom.profileCalendarRemindersEnabled) dom.profileCalendarRemindersEnabled.checked = false;
@@ -422,6 +424,11 @@ export function resetProfileForm() {
   if (dom.profileCalendarRemindersList) dom.profileCalendarRemindersList.classList.add("is-hidden");
   if (dom.profileCalendarReminderAdd) dom.profileCalendarReminderAdd.classList.add("is-hidden");
   if (dom.profileCalendarRemindersHint) dom.profileCalendarRemindersHint.classList.add("is-hidden");
+  // Reset webhook message/image
+  if (dom.profileWebhookMessageEnabled) dom.profileWebhookMessageEnabled.checked = false;
+  if (dom.profileWebhookMessage) dom.profileWebhookMessage.value = "";
+  if (dom.profileWebhookImagePath) dom.profileWebhookImagePath.value = "";
+  if (dom.profileWebhookMessageCard) dom.profileWebhookMessageCard.classList.add("is-hidden");
 }
 
 // Apply profile data to form
@@ -476,6 +483,9 @@ export function applyProfileToForm(groupId, profileKey) {
   if (dom.discordSyncCheck) {
     dom.discordSyncCheck.checked = profile.discordSync === true;
   }
+  if (dom.webhookPostCheck) {
+    dom.webhookPostCheck.checked = profile.webhookPost === true;
+  }
   if (dom.calendarSyncCheck) {
     dom.calendarSyncCheck.checked = profile.calendarSync === true;
   }
@@ -498,6 +508,9 @@ export function applyProfileToForm(groupId, profileKey) {
   }
   if (dom.profileWebhookMessageCard) {
     dom.profileWebhookMessageCard.classList.toggle("is-hidden", !profile.webhookMessageEnabled);
+  }
+  if (dom.profileWebhookImagePath) {
+    dom.profileWebhookImagePath.value = profile.webhookImagePath || "";
   }
   updateDiscordVisibility();
   updateCalendarVisibility();
@@ -799,11 +812,13 @@ export async function handleProfileSave(api) {
       patterns: state.profile.patterns.slice(),
       automation: getAutomationFromForm(),
       discordSync: dom.discordSyncCheck ? dom.discordSyncCheck.checked : true,
+      webhookPost: dom.webhookPostCheck ? dom.webhookPostCheck.checked : false,
       calendarSync: dom.calendarSyncCheck ? dom.calendarSyncCheck.checked : true,
       calendarRemindersEnabled: dom.profileCalendarRemindersEnabled ? dom.profileCalendarRemindersEnabled.checked : false,
       calendarReminders: readCalendarRemindersFromDom(dom.profileCalendarRemindersList),
       webhookMessageEnabled: dom.profileWebhookMessageEnabled ? dom.profileWebhookMessageEnabled.checked : false,
-      webhookMessage: dom.profileWebhookMessage ? dom.profileWebhookMessage.value : ""
+      webhookMessage: dom.profileWebhookMessage ? dom.profileWebhookMessage.value : "",
+      webhookImagePath: dom.profileWebhookImagePath ? dom.profileWebhookImagePath.value : ""
     }
   };
 
@@ -1147,19 +1162,19 @@ async function applyImportedJsonToProfileForm(data, api) {
 // --- Discord integration UI ---
 
 /** Check if a group has Discord configured. */
-function isGroupDiscordConfigured(groupId) {
+export function isGroupDiscordConfigured(groupId) {
   if (!groupId || state.settings?.discordEnabled !== true) return false;
   const groupData = (state.profiles || {})[groupId];
   return !!(groupData?.discordBotToken && groupData?.discordGuildId);
 }
 
-function isGroupWebhookConfigured(groupId) {
-  if (!groupId || state.settings?.calendarEnabled !== true) return false;
+export function isGroupWebhookConfigured(groupId) {
+  if (!groupId || state.settings?.discordEnabled !== true) return false;
   const groupData = (state.profiles || {})[groupId];
   return !!(groupData?.webhookUrl);
 }
 
-function isGroupKitActive(groupId) {
+export function isGroupKitActive(groupId) {
   if (!groupId) return false;
   return (state.kitGroupIds || []).includes(groupId);
 }
@@ -1187,13 +1202,21 @@ export function updateDiscordVisibility({ expandPanel } = {}) {
     }
     // If expandPanel is undefined (e.g. on load), panel stays hidden, caret stays collapsed
   }
-  // Profile editor sync toggle
+  // Profile editor: "Create Discord Event" toggle (visible if Discord configured for group)
   if (dom.discordSyncField) {
     dom.discordSyncField.classList.toggle("is-hidden", !isGroupDiscordConfigured(dom.profileGroup?.value));
   }
-  // Create Event sync toggle
+  // Create Event: "Create Discord Event" toggle
   if (dom.eventDiscordSyncField) {
     dom.eventDiscordSyncField.classList.toggle("is-hidden", !isGroupDiscordConfigured(dom.eventGroup?.value));
+  }
+  // Profile editor: "Post to Webhook" toggle (visible if webhook configured for group)
+  if (dom.webhookPostField) {
+    dom.webhookPostField.classList.toggle("is-hidden", !isGroupWebhookConfigured(dom.profileGroup?.value));
+  }
+  // Create Event: "Post to Webhook" toggle
+  if (dom.eventWebhookPostField) {
+    dom.eventWebhookPostField.classList.toggle("is-hidden", !isGroupWebhookConfigured(dom.eventGroup?.value));
   }
   const calendarEnabled = state.settings?.calendarEnabled === true;
   // Profile editor: "Create .ics Calendar Invite" toggle (visible if calendar feature enabled)
@@ -1204,12 +1227,12 @@ export function updateDiscordVisibility({ expandPanel } = {}) {
   if (dom.eventCalendarCreateField) {
     dom.eventCalendarCreateField.classList.toggle("is-hidden", !calendarEnabled);
   }
-  // Webhook field in Discord settings (visible if calendar feature enabled)
+  // Webhook field in Discord settings (visible if Discord integration enabled)
   if (dom.discordWebhookField) {
-    dom.discordWebhookField.classList.toggle("is-hidden", !calendarEnabled);
+    dom.discordWebhookField.classList.toggle("is-hidden", !enabled);
   }
   // Test webhook + Import Kit button visibility (only when webhook toggle is on)
-  const webhookToggled = calendarEnabled && dom.discordWebhookEnabledCheck?.checked === true;
+  const webhookToggled = enabled && dom.discordWebhookEnabledCheck?.checked === true;
   if (dom.discordWebhookTestBtn) {
     dom.discordWebhookTestBtn.classList.toggle("is-hidden", !webhookToggled);
   }
@@ -1219,19 +1242,25 @@ export function updateDiscordVisibility({ expandPanel } = {}) {
   if (dom.eckitImportBtn) {
     dom.eckitImportBtn.classList.toggle("is-hidden", !webhookToggled || kitActiveForGroup);
   }
-  // Kit-unlocked webhook message toggle visibility
+  // Kit-unlocked webhook message toggle visibility (depends on webhook post, not calendar+discord)
   const profileGroupId = dom.profileGroup?.value;
-  const profileKitActive = isGroupKitActive(profileGroupId) && calendarEnabled
-    && dom.calendarSyncCheck?.checked && dom.discordSyncCheck?.checked;
+  const profileKitActive = isGroupKitActive(profileGroupId) && dom.webhookPostCheck?.checked;
   if (dom.profileWebhookMessageField) {
     dom.profileWebhookMessageField.classList.toggle("is-hidden", !profileKitActive);
   }
+  // Also hide the message card when the toggle field is hidden
+  if (!profileKitActive && dom.profileWebhookMessageCard) {
+    dom.profileWebhookMessageCard.classList.add("is-hidden");
+  }
   // Event creation webhook message toggle
   const eventGroupId = dom.eventGroup?.value;
-  const eventKitActive = isGroupKitActive(eventGroupId) && calendarEnabled
-    && dom.eventCalendarCreateCheck?.checked && dom.eventDiscordSyncCheck?.checked;
+  const eventKitActive = isGroupKitActive(eventGroupId) && dom.eventWebhookPostCheck?.checked;
   if (dom.eventWebhookMessageField) {
     dom.eventWebhookMessageField.classList.toggle("is-hidden", !eventKitActive);
+  }
+  // Also hide the event message input when the toggle field is hidden
+  if (!eventKitActive && dom.eventWebhookMessageInput) {
+    dom.eventWebhookMessageInput.classList.add("is-hidden");
   }
 }
 
@@ -1305,7 +1334,7 @@ export function renderCalendarReminders(container, reminders) {
 }
 
 /** Add a single calendar reminder row with a preset dropdown. */
-function addCalendarReminderRow(container, reminder) {
+export function addCalendarReminderRow(container, reminder) {
   if (!container) return;
   const row = document.createElement("div");
   row.className = "calendar-reminder-row";

@@ -1,59 +1,74 @@
 # Einrichtungsanleitung für die Kalender-Integration
 
-Diese Anleitung führt dich durch die Einrichtung der Kalenderdatei-Erstellung (.ics) und der Discord-Webhook-Zustellung für VRC Event Creator. Nach der Konfiguration kann beim Erstellen eines VRChat-Events automatisch eine Kalendereinladung generiert und optional in einen Discord-Kanal gepostet werden.
+Diese Anleitung führt dich durch die Einrichtung der Kalenderdatei-Erstellung (.ics), der Discord-Webhook-Zustellung und der Discord-Events in VRC Event Creator. Diese drei Funktionen sind vollständig unabhängig — aktiviere jede beliebige Kombination, die zu deinem Workflow passt.
 
 ---
 
 ## Überblick
 
-Die Kalender-Integration erstellt standardkonforme `.ics`-Kalenderdateien, die in Outlook, Apple Calendar, Google Calendar und andere Kalender-Apps importiert werden können. Diese Dateien enthalten die Eventdetails und optionale Erinnerungen.
+VRC Event Creator bietet drei Aktionen nach der Erstellung, wenn du ein VRChat-Event erstellst oder automatisierst. Jede kann unabhängig pro Vorlage und pro Event ein- oder ausgeschaltet werden:
 
-Es gibt zwei Zustellmethoden (pro Event nur eine möglich):
+- **„.ics-Kalendereinladung erstellen"** — Erstellt eine standardkonforme `.ics`-Kalenderdatei mit optionalen Erinnerungen, automatisch in ein lokales Verzeichnis gespeichert
+- **„Discord-Webhook senden"** — Postet eine Ankündigung in einen Discord-Kanal via Webhook (mit optionalem `.ics`-Anhang, wenn Kalender ebenfalls aktiviert ist)
+- **„Discord-Event erstellen"** — Erstellt ein geplantes Event auf deinem Discord-Server via Bot
 
-- **Discord-Webhook** — Postet die `.ics`-Datei in einen Discord-Kanal mit einem Event-Embed oder einem Discord-Event-Link
-- **Automatisches Speichern** — Speichert die `.ics`-Datei automatisch in ein lokales Verzeichnis
+Wenn mehrere Funktionen aktiviert sind, ergänzen sie sich automatisch:
 
-Wenn ein Discord-Webhook konfiguriert ist und das Event an Discord gesendet werden soll, wird der Webhook verwendet. Andernfalls werden Dateien im konfigurierten lokalen Verzeichnis gespeichert.
+| Discord-Event | Webhook | Kalender (.ics) | Was passiert |
+|---|---|---|---|
+| AN | AUS | AUS | Nur Discord-Event wird erstellt |
+| AUS | AN | AUS | Webhook postet Embed mit Eventdetails |
+| AUS | AUS | AN | `.ics`-Datei wird im lokalen Verzeichnis gespeichert |
+| AN | AN | AUS | Discord-Event erstellt + Webhook postet Event-Link |
+| AN | AUS | AN | Discord-Event erstellt + `.ics` gespeichert |
+| AUS | AN | AN | Webhook postet Embed + `.ics` angehängt, ebenfalls gespeichert |
+| AN | AN | AN | Discord-Event + Webhook mit Event-Link + `.ics` angehängt + gespeichert |
 
 ---
 
 ## Schritt 1: Kalenderdatei-Erstellung aktivieren
 
-1. Öffne **Einstellungen** > **Allgemein**
+1. Öffne **Einstellungen** > **Erweiterte Einstellungen**
 2. Aktiviere **„Kalenderdatei-Erstellung aktivieren"**
 
-Dadurch werden Kalenderoptionen in Vorlagen und bei der Event-Erstellung verfügbar.
+Dadurch wird der Schalter **„.ics-Kalendereinladung erstellen"** in Vorlagen und bei der Event-Erstellung verfügbar.
 
-## Schritt 2: Zustellmethode konfigurieren
+### Speicherverzeichnis
 
-### Option A: Discord-Webhook (empfohlen)
+Wenn die Kalenderdatei-Erstellung aktiviert ist, werden `.ics`-Dateien immer in einem lokalen Verzeichnis gespeichert. Der Standardspeicherort ist `Documents/VRC Event Creator .ics/` und wird beim ersten Speichern erstellt.
 
-Ein Webhook postet die Kalenderdatei in einen bestimmten Discord-Kanal. Für den Webhook selbst ist kein Bot erforderlich.
+Dateien werden als `{Verzeichnis}/{Gruppenname}/{Eventname - Datum}.ics` gespeichert. Um den Speicherort zu ändern, verwende die Schaltfläche **Ändern** neben **Kalender-Speicherverzeichnis** unter **Einstellungen** > **Anwendungsinfo**.
 
-1. Klicke in Discord mit der rechten Maustaste auf den Kanal, in den Kalenderdateien gepostet werden sollen
+---
+
+## Schritt 2: Discord-Webhook konfigurieren (optional)
+
+Ein Webhook postet Ankündigungen in einen bestimmten Discord-Kanal. Dies ist unabhängig von Kalenderdateien und Discord-Events — du kannst es mit oder ohne beide verwenden.
+
+1. Klicke in Discord mit der rechten Maustaste auf den Kanal, in den Ankündigungen gepostet werden sollen
 2. Klicke auf **Kanal bearbeiten** > **Integrationen** > **Webhooks** > **Neuer Webhook**
 3. Kopiere die Webhook-URL
 4. Gehe in VRC Event Creator zu **Einstellungen** > **Discord-Integration** > wähle deine Gruppe aus
-5. Aktiviere **„.ics an Discord senden"** und füge die Webhook-URL ein
-6. Klicke auf **„Webhook testen"**, um die Verbindung zu überprüfen, dann auf **„Speichern"**
+5. Aktiviere **„Webhook aktivieren"** und füge die Webhook-URL ein
+6. Klicke auf **Webhook testen**, um die Verbindung zu überprüfen, dann auf **Speichern**
 
-Wenn du auch die Discord-Event-Erstellung eingerichtet hast (Bot-Token), postet der Webhook einen Link zum Discord-Event anstelle eines eigenständigen Embeds. Die `.ics`-Datei wird in beiden Fällen angehängt.
+Wenn sowohl Webhook als auch Kalender für ein Event aktiviert sind, wird die `.ics`-Datei an den Webhook-Post angehängt. Wenn nur der Webhook aktiviert ist (ohne Kalender), postet der Webhook ein Embed mit Eventdetails ohne `.ics`-Anhang.
 
-### Option B: Automatisches Speichern in ein lokales Verzeichnis
-
-Wenn kein Webhook konfiguriert ist, werden `.ics`-Dateien automatisch in einem lokalen Verzeichnis gespeichert. Der Standardspeicherort ist `Documents/VRC Event Creator .ics/` und wird beim ersten Speichern erstellt.
-
-Dateien werden als `{Verzeichnis}/{Gruppenname}/{Eventname - Datum}.ics` gespeichert. Um den Speicherort zu ändern, verwende die Schaltfläche **Ändern** neben **Kalender-Speicherverzeichnis** unter **Einstellungen** > **Anwendungsinfo**.
+Wenn auch ein Discord-Event erstellt wurde, enthält die Webhook-Nachricht den Discord-Event-Link anstelle eines Embeds.
 
 ---
 
 ## Schritt 3: Vorlagen konfigurieren
 
 1. Gehe zu **Vorlagen verwalten** und bearbeite (oder erstelle) eine Vorlage
-2. Aktiviere im Reiter **Grundlagen** die Option **„.ics-Kalendereinladung erstellen"**
-3. Im Reiter **Zeitplan** erscheint eine neue Karte **„.ics-Kalendererinnerungen"**
-4. Aktiviere **„.ics-Kalendererinnerungen aktivieren"** und füge deine bevorzugten Erinnerungsintervalle hinzu
-5. Speichere die Vorlage
+2. Im Reiter **Grundlagen** siehst du bis zu drei Posting-Schalter (abhängig von der Konfiguration):
+   - **„.ics-Kalendereinladung erstellen"** — sichtbar, wenn die Kalenderdatei-Erstellung aktiviert ist
+   - **„Discord-Event erstellen"** — sichtbar, wenn ein Discord-Bot für die Gruppe konfiguriert ist
+   - **„Discord-Webhook senden"** — sichtbar, wenn eine Webhook-URL für die Gruppe konfiguriert ist
+3. Aktiviere die gewünschten Optionen für diese Vorlage
+4. Wenn Kalender aktiviert ist, zeigt der Reiter **Zeitplan** eine Karte **„.ics-Kalendererinnerungen"**
+5. Aktiviere **„.ics-Kalendererinnerungen aktivieren"** und füge deine bevorzugten Erinnerungsintervalle hinzu
+6. Speichere die Vorlage
 
 Erinnerungen verwenden voreingestellte Intervalle, die mit allen gängigen Kalender-Apps kompatibel sind: 5 Min., 10 Min., 15 Min., 30 Min., 1 Stunde, 2 Stunden, 4 Stunden, 8 Stunden, 12 Stunden, 1 Tag, 2 Tage, 1 Woche.
 
@@ -65,21 +80,10 @@ Erinnerungen verwenden voreingestellte Intervalle, die mit allen gängigen Kalen
 
 Beim Erstellen eines Events (manuell oder per Automatisierung):
 
-- Im Schritt **Datum** gibt es einen **„.ics-Kalendereinladung erstellen"**-Schalter (übernommen aus der ausgewählten Vorlage oder manuell konfigurierbar)
+- Im Schritt **Datum** gibt es den Schalter **„.ics-Kalendereinladung erstellen"** (übernommen aus der Vorlage, überschreibbar)
 - Darunter kannst du mit **„.ics-Kalendererinnerungen aktivieren"** die Erinnerungen pro Event anpassen
-- Im Schritt **Einzelheiten** steuert **„An Discord senden"** sowohl das Discord-Event als auch die Webhook-Zustellung
-
-Alle Einstellungen aus der Vorlage können pro Event überschrieben werden.
-
----
-
-## Zusammenspiel der Funktionen
-
-| Discord-Events | Webhook | Kalender | Was passiert bei der Event-Erstellung |
-|---|---|---|---|
-| Aktiviert + konfiguriert | Konfiguriert | Aktiviert | Discord-Event wird erstellt, Webhook postet Event-Link + .ics |
-| Deaktiviert oder nicht konfiguriert | Konfiguriert | Aktiviert | Webhook postet Embed mit Eventdetails + .ics |
-| Beliebig | Nicht konfiguriert | Aktiviert | .ics-Datei wird automatisch im lokalen Verzeichnis gespeichert |
+- Im Schritt **Einzelheiten** gibt es **„Discord-Event erstellen"** und **„Discord-Webhook senden"** als separate Schalter
+- Alle Einstellungen aus der Vorlage können pro Event überschrieben werden
 
 ---
 
@@ -93,9 +97,13 @@ Alle gängigen Kalender-Apps: Outlook, Apple Calendar, Google Calendar, Thunderb
 
 Mehrere Erinnerungen funktionieren in Apple Calendar und Thunderbird. Outlook verwendet nur die erste Erinnerung. Google Calendar ignoriert Erinnerungen beim Import vollständig.
 
+### Kann ich Webhooks ohne Kalenderdateien verwenden?
+
+Ja. Der Webhook postet ein Embed mit Eventdetails, auch wenn die Kalenderdatei-Erstellung deaktiviert ist. Aktiviere „Discord-Webhook senden" in deiner Vorlage, ohne „.ics-Kalendereinladung erstellen" zu aktivieren.
+
 ### Kann ich Webhooks ohne Discord-Event-Erstellung verwenden?
 
-Ja. Der Webhook und der Bot-Token sind unabhängige Funktionen. Du kannst Webhooks für die Kalender-Zustellung verwenden, ohne einen Discord-Bot einzurichten.
+Ja. Der Webhook, Discord-Events und Kalenderdateien sind vollständig unabhängig. Jede Kombination funktioniert.
 
 ### Ist die Webhook-URL vertraulich?
 
@@ -107,8 +115,9 @@ Ja — jeder mit der Webhook-URL kann Nachrichten in diesen Kanal senden. Behand
 
 | Problem | Lösung |
 |---|---|
-| Keine .ics-Datei erstellt | Prüfe, ob „Kalenderdatei-Erstellung aktivieren" in den Einstellungen unter Allgemein aktiviert ist und „.ics-Kalendereinladung erstellen" in der Vorlage oder im Event angehakt ist |
-| Webhook postet nicht | Überprüfe die Webhook-URL mit „Webhook testen" in den Discord-Einstellungen. Stelle sicher, dass „.ics an Discord senden" für die Gruppe aktiviert ist |
+| Keine .ics-Datei erstellt | Prüfe, ob „Kalenderdatei-Erstellung aktivieren" in den Erweiterten Einstellungen aktiviert ist und „.ics-Kalendereinladung erstellen" in der Vorlage oder im Event angehakt ist |
+| Webhook postet nicht | Überprüfe die Webhook-URL mit „Webhook testen" in den Discord-Einstellungen. Stelle sicher, dass „Webhook aktivieren" für die Gruppe eingeschaltet und „Discord-Webhook senden" in der Vorlage angehakt ist |
+| Webhook postet, aber ohne .ics-Anhang | „.ics-Kalendereinladung erstellen" muss ebenfalls für das Event aktiviert sein. Ohne diese Option postet der Webhook nur ein Embed oder einen Event-Link |
 | Erinnerungen funktionieren nicht in Outlook | Outlook unterstützt nur die erste Erinnerung. Die App sortiert die längste zuerst für optimale Kompatibilität |
 | Erinnerungen funktionieren nicht in Google Calendar | Google Calendar ignoriert benutzerdefinierte Erinnerungen beim .ics-Import. Stelle Erinnerungen nach dem Import manuell ein |
 | Dateien werden am falschen Ort gespeichert | Dateien werden unter `{Speicherverz.}/{Gruppenname}/` gespeichert. Standard ist `Documents/VRC Event Creator .ics/`. Änderbar über Einstellungen > Anwendungsinfo |

@@ -166,12 +166,19 @@ export const pt = {
       saveButton: "Salvar",
       saved: "Configurações do Discord salvas.",
       syncLabel: "Publicar no Discord",
+      eventLabel: "Criar evento no Discord",
       syncSuccess: "Evento do Discord criado para \"{title}\"",
       syncFailed: "Sincronização com Discord falhou para \"{title}\": {error}"
     },
+    webhook: {
+      postLabel: "Publicar Webhook do Discord",
+      enableLabel: "Ativar Webhook",
+      syncSuccess: "Webhook enviado para \"{title}\"",
+      syncFailed: "Falha na entrega do webhook para \"{title}\": {error}"
+    },
     calendar: {
       title: "Integração de Calendário",
-      description: "Gere arquivos de calendário .ics e envie-os via webhook do Discord ao criar eventos.",
+      description: "Gera arquivos de calendário .ics com lembretes, salvos localmente ou anexados a publicações do webhook.",
       enable: "Ativar geração de arquivos de calendário",
       createInvite: "Criar convite de calendário .ics",
       remindersTitle: "Lembretes de calendário .ics",
@@ -393,7 +400,8 @@ export const pt = {
       cancelFailed: "Não foi possível cancelar o evento pendente.",
       editSaved: "Evento pendente atualizado.",
       editFailed: "Não foi possível atualizar o evento pendente."
-    }
+    },
+    postingOptions: "Opções de publicação"
   },
   profiles: {
     title: "Gerenciar Modelos",

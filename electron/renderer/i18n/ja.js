@@ -166,12 +166,19 @@ export const ja = {
       saveButton: "保存",
       saved: "Discord設定を保存しました。",
       syncLabel: "Discordに投稿",
+      eventLabel: "Discordイベントを作成",
       syncSuccess: "「{title}」のDiscordイベントを作成しました",
       syncFailed: "「{title}」のDiscord同期に失敗しました: {error}"
     },
+    webhook: {
+      postLabel: "Discord Webhookに投稿",
+      enableLabel: "Webhookを有効化",
+      syncSuccess: "「{title}」のWebhookを送信しました",
+      syncFailed: "「{title}」のWebhook配信に失敗: {error}"
+    },
     calendar: {
       title: "カレンダー連携",
-      description: "イベント作成時に.icsカレンダーファイルを生成し、Discordウェブフックで配信します。",
+      description: "リマインダー付きの.icsカレンダーファイルを生成し、ローカル保存またはWebhook投稿に添付します。",
       enable: "カレンダーファイル生成を有効にする",
       createInvite: ".icsカレンダー招待を作成",
       remindersTitle: ".icsカレンダーリマインダー",
@@ -393,7 +400,8 @@ export const ja = {
       cancelFailed: "予定イベントをキャンセルできませんでした。",
       editSaved: "予定イベントが更新されました。",
       editFailed: "予定イベントを更新できませんでした。"
-    }
+    },
+    postingOptions: "投稿オプション"
   },
   profiles: {
     title: "テンプレート管理",

@@ -166,12 +166,19 @@ export const ru = {
       saveButton: "Сохранить",
       saved: "Настройки Discord сохранены.",
       syncLabel: "Опубликовать в Discord",
+      eventLabel: "Создать событие Discord",
       syncSuccess: "Мероприятие Discord создано для «{title}»",
       syncFailed: "Синхронизация с Discord не удалась для «{title}»: {error}"
     },
+    webhook: {
+      postLabel: "Отправить Discord Webhook",
+      enableLabel: "Включить Webhook",
+      syncSuccess: "Webhook отправлен для \"{title}\"",
+      syncFailed: "Не удалось отправить webhook для \"{title}\": {error}"
+    },
     calendar: {
       title: "Интеграция с календарём",
-      description: "Создавайте файлы календаря .ics и отправляйте их через вебхук Discord при создании событий.",
+      description: "Создаёт файлы календаря .ics с напоминаниями, сохраняемые локально или прикрепляемые к публикациям webhook.",
       enable: "Включить создание файлов календаря",
       createInvite: "Создать приглашение календаря .ics",
       remindersTitle: "Напоминания календаря .ics",
@@ -393,7 +400,8 @@ export const ru = {
       cancelFailed: "Не удалось отменить ожидающее событие.",
       editSaved: "Ожидающее событие обновлено.",
       editFailed: "Не удалось обновить ожидающее событие."
-    }
+    },
+    postingOptions: "Параметры публикации"
   },
   profiles: {
     title: "Управление шаблонами",

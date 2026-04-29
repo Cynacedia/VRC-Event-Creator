@@ -166,12 +166,19 @@ export const zh = {
       saveButton: "保存",
       saved: "Discord 设置已保存。",
       syncLabel: "发布到Discord",
+      eventLabel: "创建 Discord 活动",
       syncSuccess: "已为「{title}」创建 Discord 活动",
       syncFailed: "「{title}」的 Discord 同步失败：{error}"
     },
+    webhook: {
+      postLabel: "发送 Discord Webhook",
+      enableLabel: "启用 Webhook",
+      syncSuccess: "已为「{title}」发送 Webhook",
+      syncFailed: "「{title}」的 Webhook 发送失败：{error}"
+    },
     calendar: {
       title: "日历集成",
-      description: "创建活动时生成.ics日历文件，并通过Discord Webhook发送。",
+      description: "生成带有提醒的 .ics 日历文件，本地保存或附加到 Webhook 帖子中。",
       enable: "启用日历文件生成",
       createInvite: "创建.ics日历邀请",
       remindersTitle: ".ics日历提醒",
@@ -393,7 +400,8 @@ export const zh = {
       cancelFailed: "无法取消待发布活动。",
       editSaved: "待发布活动已更新。",
       editFailed: "无法更新待发布活动。"
-    }
+    },
+    postingOptions: "发布选项"
   },
   profiles: {
     title: "管理模板",

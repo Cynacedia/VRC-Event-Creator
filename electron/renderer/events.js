@@ -956,11 +956,13 @@ export async function handleEventCreate(api) {
     sendCreationNotification: Boolean(dom.eventSendNotification.checked),
     featured: Boolean(dom.eventFeatured?.checked),
     discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true,
+    webhookPost: dom.eventWebhookPostCheck ? dom.eventWebhookPostCheck.checked : false,
     calendarCreate: dom.eventCalendarCreateCheck ? dom.eventCalendarCreateCheck.checked : false,
     calendarRemindersEnabled: dom.eventCalendarRemindersEnabled ? dom.eventCalendarRemindersEnabled.checked : false,
     calendarReminders: readCalendarRemindersFromDom(dom.eventCalendarRemindersList),
     webhookMessageEnabled: dom.eventWebhookMessageEnabled ? dom.eventWebhookMessageEnabled.checked : false,
-    webhookMessage: dom.eventWebhookMessage ? dom.eventWebhookMessage.value : ""
+    webhookMessage: dom.eventWebhookMessage ? dom.eventWebhookMessage.value : "",
+    webhookImagePath: dom.eventWebhookImagePath ? dom.eventWebhookImagePath.value : ""
   };
   if (eventData.accessType === "group") {
     eventData.roleIds = (state.event.roleIds || []).filter(id => typeof id === "string" && id.trim());
@@ -1189,6 +1191,10 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   if (dom.eventDiscordSyncCheck) {
     dom.eventDiscordSyncCheck.checked = profile.discordSync === true;
   }
+  // Apply template's Webhook post preference
+  if (dom.eventWebhookPostCheck) {
+    dom.eventWebhookPostCheck.checked = profile.webhookPost === true;
+  }
   // Apply template's Calendar preferences
   if (dom.eventCalendarCreateCheck) {
     dom.eventCalendarCreateCheck.checked = profile.calendarSync === true;
@@ -1205,9 +1211,13 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   if (dom.eventWebhookMessage) {
     dom.eventWebhookMessage.value = profile.webhookMessage || "";
   }
+  if (dom.eventWebhookImagePath) {
+    dom.eventWebhookImagePath.value = profile.webhookImagePath || "";
+  }
   if (dom.eventWebhookMessageInput) {
     dom.eventWebhookMessageInput.classList.toggle("is-hidden", !profile.webhookMessageEnabled);
   }
+  updateDiscordVisibility();
   updateCalendarVisibility();
 }
 

@@ -166,12 +166,19 @@ export const de = {
       saveButton: "Speichern",
       saved: "Discord-Einstellungen gespeichert.",
       syncLabel: "An Discord senden",
+      eventLabel: "Discord-Event erstellen",
       syncSuccess: "Discord-Event erstellt für \"{title}\"",
       syncFailed: "Discord-Synchronisierung fehlgeschlagen für \"{title}\": {error}"
     },
+    webhook: {
+      postLabel: "Discord-Webhook senden",
+      enableLabel: "Webhook aktivieren",
+      syncSuccess: "Webhook gesendet für \"{title}\"",
+      syncFailed: "Webhook-Zustellung fehlgeschlagen für \"{title}\": {error}"
+    },
     calendar: {
       title: "Kalender-Integration",
-      description: "Erstelle .ics-Kalenderdateien und sende sie per Discord-Webhook, wenn Events erstellt werden.",
+      description: "Erstellt .ics-Kalenderdateien mit Erinnerungen, lokal gespeichert oder an Webhook-Posts angehängt.",
       enable: "Kalenderdatei-Erstellung aktivieren",
       createInvite: ".ics-Kalendereinladung erstellen",
       remindersTitle: ".ics-Kalendererinnerungen",
@@ -393,7 +400,8 @@ export const de = {
       cancelFailed: "Geplantes Event konnte nicht abgebrochen werden.",
       editSaved: "Geplantes Event aktualisiert.",
       editFailed: "Geplantes Event konnte nicht aktualisiert werden."
-    }
+    },
+    postingOptions: "Veröffentlichungsoptionen"
   },
   profiles: {
     title: "Vorlagen verwalten",

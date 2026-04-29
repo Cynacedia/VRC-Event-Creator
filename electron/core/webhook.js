@@ -1,28 +1,30 @@
 /**
  * Discord Webhook delivery module.
- * Sends ICS calendar files with rich embeds via Discord webhooks.
+ * Sends messages with optional file attachments via Discord webhooks.
  * No external dependencies — uses Node.js built-in fetch with manual multipart/form-data.
  */
 
 const WEBHOOK_URL_PATTERN = /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//;
 
 /**
- * Send an ICS file with a rich embed to a Discord webhook.
+ * Send a message to a Discord webhook with optional ICS, image, and icon attachments.
  * @param {object} options
  * @param {string} options.webhookUrl - Discord webhook URL
- * @param {string} options.icsContent - ICS file content string
- * @param {string} options.filename - Filename for the ICS attachment (e.g., "event.ics")
- * @param {object} options.embed - Discord embed object
+ * @param {string} [options.icsContent] - ICS file content string (optional)
+ * @param {string} [options.filename] - Filename for the ICS attachment (e.g., "event.ics")
+ * @param {string} [options.content] - Message text content
+ * @param {object} [options.embed] - Discord embed object
  * @param {Buffer|null} [options.imageBuffer] - Optional banner image as Buffer
  * @param {string} [options.imageFilename] - Image filename (e.g., "banner.png")
+ * @param {Buffer|null} [options.iconBuffer] - Optional group icon as Buffer
+ * @param {string} [options.iconFilename] - Icon filename (e.g., "icon.png")
+ * @param {string} [options.avatarUrl] - Webhook avatar URL override
+ * @param {string} [options.webhookName] - Webhook display name override
  * @returns {Promise<{ok: boolean, error?: string}>}
  */
-async function sendWebhookWithIcs({ webhookUrl, icsContent, filename, content, embed, imageBuffer, imageFilename, iconBuffer, iconFilename, avatarUrl, webhookName }) {
+async function sendWebhook({ webhookUrl, icsContent, filename, content, embed, imageBuffer, imageFilename, iconBuffer, iconFilename, avatarUrl, webhookName }) {
   if (!webhookUrl || !WEBHOOK_URL_PATTERN.test(webhookUrl)) {
     return { ok: false, error: "Invalid webhook URL." };
-  }
-  if (!icsContent) {
-    return { ok: false, error: "No ICS content provided." };
   }
 
   const boundary = `----WebhookBoundary${Date.now()}${Math.random().toString(36).slice(2)}`;
@@ -46,21 +48,26 @@ async function sendWebhookWithIcs({ webhookUrl, icsContent, filename, content, e
     `${JSON.stringify(payload)}\r\n`
   ));
 
-  // Part 2: ICS file
-  chunks.push(str(
-    `--${boundary}\r\n` +
-    `Content-Disposition: form-data; name="files[0]"; filename="${sanitizeFilename(filename)}"\r\n` +
-    `Content-Type: text/calendar; charset=utf-8\r\n\r\n` +
-    `${icsContent}\r\n`
-  ));
+  // File attachment index
+  let fileIndex = 0;
 
-  // Part 3: Banner image (optional)
-  let fileIndex = 1;
+  // Part 2: ICS file (optional)
+  if (icsContent && filename) {
+    chunks.push(str(
+      `--${boundary}\r\n` +
+      `Content-Disposition: form-data; name="files[${fileIndex}]"; filename="${sanitizeFilename(filename)}"\r\n` +
+      `Content-Type: text/calendar; charset=utf-8\r\n\r\n` +
+      `${icsContent}\r\n`
+    ));
+    fileIndex++;
+  }
+
+  // Part 3: Custom attachment (optional — image, gif, audio, video)
   if (imageBuffer && imageFilename) {
     chunks.push(str(
       `--${boundary}\r\n` +
       `Content-Disposition: form-data; name="files[${fileIndex}]"; filename="${sanitizeFilename(imageFilename)}"\r\n` +
-      `Content-Type: image/png\r\n\r\n`
+      `Content-Type: ${mimeFromFilename(imageFilename)}\r\n\r\n`
     ));
     chunks.push(imageBuffer);
     chunks.push(str("\r\n"));
@@ -72,7 +79,7 @@ async function sendWebhookWithIcs({ webhookUrl, icsContent, filename, content, e
     chunks.push(str(
       `--${boundary}\r\n` +
       `Content-Disposition: form-data; name="files[${fileIndex}]"; filename="${sanitizeFilename(iconFilename)}"\r\n` +
-      `Content-Type: image/png\r\n\r\n`
+      `Content-Type: ${mimeFromFilename(iconFilename)}\r\n\r\n`
     ));
     chunks.push(iconBuffer);
     chunks.push(str("\r\n"));
@@ -131,6 +138,24 @@ async function testWebhook(webhookUrl) {
 }
 
 /**
+ * Derive a MIME type from a filename extension.
+ */
+function mimeFromFilename(name) {
+  const ext = (name || "").split(".").pop().toLowerCase();
+  const types = {
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    gif: "image/gif",
+    webp: "image/webp",
+    mp3: "audio/mpeg",
+    mp4: "video/mp4",
+    webm: "video/webm"
+  };
+  return types[ext] || "application/octet-stream";
+}
+
+/**
  * Sanitize a filename for use in Content-Disposition headers.
  */
 function sanitizeFilename(name) {
@@ -153,6 +178,6 @@ function formatWebhookError(status, errorData) {
 }
 
 module.exports = {
-  sendWebhookWithIcs,
+  sendWebhook,
   testWebhook
 };

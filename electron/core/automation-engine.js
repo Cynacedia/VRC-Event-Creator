@@ -989,7 +989,16 @@ function resolveEventDetails(pendingEventId, profiles = null) {
     imageId,
     imageUrl,
     roleIds: Array.isArray(profile.roleIds) ? [...profile.roleIds] : [],
-    sendCreationNotification: profile.sendNotification ?? false
+    sendCreationNotification: profile.sendNotification ?? false,
+    // Posting flags (profile defaults, overridable via manualOverrides)
+    discordSync: profile.discordSync ?? false,
+    webhookPost: profile.webhookPost ?? false,
+    calendarCreate: profile.calendarSync ?? false,
+    calendarRemindersEnabled: profile.calendarRemindersEnabled ?? false,
+    calendarReminders: Array.isArray(profile.calendarReminders) ? [...profile.calendarReminders] : [],
+    webhookMessageEnabled: profile.webhookMessageEnabled ?? false,
+    webhookMessage: profile.webhookMessage || "",
+    webhookImagePath: profile.webhookImagePath || ""
   };
 
   // Apply manual overrides if any

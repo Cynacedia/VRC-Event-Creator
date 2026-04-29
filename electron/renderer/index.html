@@ -175,7 +175,13 @@
                       <div class="field is-hidden" id="event-discord-sync-field">
                         <label class="toggle">
                           <input id="event-discord-sync-check" type="checkbox" checked />
-                          <span data-i18n="settings.discord.syncLabel">Post to Discord</span>
+                          <span data-i18n="settings.discord.eventLabel">Create Discord Event</span>
+                        </label>
+                      </div>
+                      <div class="field is-hidden" id="event-webhook-post-field">
+                        <label class="toggle">
+                          <input id="event-webhook-post-check" type="checkbox" />
+                          <span data-i18n="settings.webhook.postLabel">Post Discord Webhook</span>
                         </label>
                       </div>
                     </div>
@@ -429,7 +435,13 @@
                     <div class="field is-hidden" id="discord-sync-field">
                       <label class="toggle">
                         <input id="discord-sync-check" type="checkbox" checked />
-                        <span data-i18n="settings.discord.syncLabel">Post to Discord</span>
+                        <span data-i18n="settings.discord.eventLabel">Create Discord Event</span>
+                      </label>
+                    </div>
+                    <div class="field is-hidden" id="webhook-post-field">
+                      <label class="toggle">
+                        <input id="webhook-post-check" type="checkbox" />
+                        <span data-i18n="settings.webhook.postLabel">Post Discord Webhook</span>
                       </label>
                     </div>
                     <div class="field is-hidden" id="profile-webhook-message-field">
@@ -722,7 +734,7 @@
                         <div class="field discord-field-half" style="flex:0 0 auto;">
                           <label class="toggle">
                             <input id="discord-webhook-enabled" type="checkbox" />
-                            <span data-i18n="settings.calendar.postToDiscord">Post .ics to Discord</span>
+                            <span data-i18n="settings.webhook.enableLabel">Enable Webhook</span>
                           </label>
                         </div>
                         <div class="field discord-field-half is-hidden" id="discord-webhook-url-field">
@@ -1131,6 +1143,56 @@
               <input id="modify-group-fair" type="checkbox" />
               <span data-i18n="common.groupFairEvent">Include in Group Fair</span>
             </label>
+          </div>
+          <div class="card is-hidden" id="modify-posting-options">
+            <h3 data-i18n="modify.postingOptions">Posting Options</h3>
+            <div class="field is-hidden" id="modify-discord-sync-field">
+              <label class="toggle">
+                <input id="modify-discord-sync" type="checkbox" checked />
+                <span data-i18n="settings.discord.eventLabel">Create Discord Event</span>
+              </label>
+            </div>
+            <div class="field is-hidden" id="modify-webhook-post-field">
+              <label class="toggle">
+                <input id="modify-webhook-post" type="checkbox" />
+                <span data-i18n="settings.webhook.postLabel">Post Discord Webhook</span>
+              </label>
+            </div>
+            <div class="field is-hidden" id="modify-calendar-sync-field">
+              <label class="toggle">
+                <input id="modify-calendar-sync" type="checkbox" />
+                <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
+              </label>
+            </div>
+            <div class="field is-hidden" id="modify-calendar-reminders-enabled-field">
+              <label class="toggle">
+                <input id="modify-calendar-reminders-enabled" type="checkbox" />
+                <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
+              </label>
+            </div>
+            <div id="modify-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
+            <button id="modify-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
+            <p class="hint is-hidden" id="modify-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
+            <div class="is-hidden" id="modify-webhook-message-section">
+              <div class="field">
+                <label class="toggle">
+                  <input id="modify-webhook-message-enabled" type="checkbox" />
+                  <span data-i18n="settings.eckit.attachMessage">Attach Custom Webhook Message</span>
+                </label>
+              </div>
+              <div class="is-hidden" id="modify-webhook-message-input">
+                <div class="field">
+                  <textarea id="modify-webhook-message" rows="3" maxlength="2000" placeholder="Write a custom message..." data-i18n-placeholder="settings.eckit.messagePlaceholder"></textarea>
+                </div>
+                <div class="field">
+                  <label data-i18n="settings.eckit.attachImage">Attach Image</label>
+                  <div class="input-with-button">
+                    <input id="modify-webhook-image-path" type="text" readonly placeholder="No image selected" data-i18n-placeholder="settings.eckit.noImage" />
+                    <button id="modify-webhook-image-btn" class="ghost compact-button" type="button" data-i18n="settings.eckit.selectImage">Select</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div class="modify-footer">

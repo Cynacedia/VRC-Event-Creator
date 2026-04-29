@@ -166,12 +166,19 @@ export const nl = {
       saveButton: "Opslaan",
       saved: "Discord-instellingen opgeslagen.",
       syncLabel: "Publiceren op Discord",
+      eventLabel: "Discord-evenement maken",
       syncSuccess: "Discord-evenement aangemaakt voor \"{title}\"",
       syncFailed: "Discord-synchronisatie mislukt voor \"{title}\": {error}"
     },
+    webhook: {
+      postLabel: "Discord-Webhook posten",
+      enableLabel: "Webhook inschakelen",
+      syncSuccess: "Webhook verzonden voor \"{title}\"",
+      syncFailed: "Webhook-levering mislukt voor \"{title}\": {error}"
+    },
     calendar: {
       title: "Kalender Integratie",
-      description: "Genereer .ics kalenderbestanden en verstuur ze via Discord webhook wanneer evenementen worden aangemaakt.",
+      description: "Genereert .ics-kalenderbestanden met herinneringen, lokaal opgeslagen of bijgevoegd aan webhook-berichten.",
       enable: "Kalenderbestand generatie inschakelen",
       createInvite: ".ics kalenderuitnodiging maken",
       remindersTitle: ".ics kalenderherinneringen",
@@ -393,7 +400,8 @@ export const nl = {
       cancelFailed: "Kon evenement in afwachting niet annuleren.",
       editSaved: "Evenement in afwachting bijgewerkt.",
       editFailed: "Kon evenement in afwachting niet bijwerken."
-    }
+    },
+    postingOptions: "Publicatieopties"
   },
   profiles: {
     title: "Sjablonen beheren",

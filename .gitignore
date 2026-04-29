@@ -32,3 +32,4 @@ dev-app-update.yml
 
 # Local dev files
 dev/
+.dev/

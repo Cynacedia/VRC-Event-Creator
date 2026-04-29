@@ -195,5 +195,6 @@ module.exports = {
   apiCall,
   apiResponse,
   normalizeVersion,
-  compareVersions
+  compareVersions,
+  getLogPath: () => DEBUG_LOG_PATH
 };
