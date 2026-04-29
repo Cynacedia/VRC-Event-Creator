@@ -320,6 +320,8 @@ export const dom = {
   // Modify Events series filter
   modifySeriesFilterField: document.getElementById("modify-series-filter-field"),
   modifySeriesFilter: document.getElementById("modify-series-filter"),
+  // Schedule selection helpers
+  scheduleGroupHint: document.getElementById("schedule-group-hint"),
   // Schedule type filter chips
   scheduleFilterChips: document.getElementById("schedule-filter-chips"),
   // Schedule type picker modal

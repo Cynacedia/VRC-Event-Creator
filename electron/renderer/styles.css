@@ -2945,23 +2945,23 @@ input[type="color"]::-moz-color-swatch {
 
 .schedule-filter-chips .chip {
   padding: 4px 12px;
-  background: var(--bg-tertiary);
-  border: 1px solid transparent;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
   border-radius: 999px;
   font-size: var(--text-12);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .schedule-filter-chips .chip:hover {
-  background: var(--bg-deep);
-  color: var(--text-primary);
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 
 .schedule-filter-chips .chip.is-active {
-  background: var(--accent);
-  color: var(--accent-fg, #fff);
+  background: var(--accent-soft);
+  color: var(--accent);
   border-color: var(--accent);
 }
 
@@ -2969,32 +2969,35 @@ input[type="color"]::-moz-color-swatch {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  backdrop-filter: blur(4px);
 }
 
 .modal {
-  background: var(--bg-secondary, var(--bg));
-  border: 1px solid var(--border, var(--bg-deep));
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
   padding: 24px;
   max-width: 540px;
   width: 100%;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  color: var(--text);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
 .modal h3 {
   margin: 0 0 8px 0;
   font-size: var(--text-16);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .modal .hint {
   margin-bottom: 16px;
+  color: var(--text-muted);
 }
 
 .modal-actions {
@@ -3017,27 +3020,32 @@ input[type="color"]::-moz-color-swatch {
   align-items: flex-start;
   gap: 4px;
   padding: 14px 16px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border, var(--bg-deep));
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   text-align: left;
+  color: var(--text);
   transition: all 0.15s ease;
 }
 
 .schedule-type-card:hover {
-  background: var(--bg-deep);
   border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .schedule-type-card strong {
   font-size: var(--text-14);
-  color: var(--text-primary);
+  color: var(--text);
 }
 
 .schedule-type-card span {
-  font-size: var(--text-12);
-  color: var(--text-secondary);
+  font-size: var(--text-13);
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: normal;
+  line-height: 1.4;
 }
 
 /* Series editor layout */
@@ -3072,16 +3080,23 @@ input[type="color"]::-moz-color-swatch {
 }
 
 /* Series occurrence badges in Modify Events */
+.event-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 4px 0;
+}
+
 .event-series-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 2px 6px;
   font-size: var(--text-11);
-  background: var(--accent);
-  color: var(--accent-fg, #fff);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
   border-radius: 4px;
-  margin-right: 4px;
 }
 
 .event-modified-badge {
@@ -3090,7 +3105,7 @@ input[type="color"]::-moz-color-swatch {
   padding: 2px 6px;
   font-size: var(--text-11);
   background: var(--bg-deep);
-  color: var(--text-primary);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   border-radius: 4px;
-  margin-right: 4px;
 }

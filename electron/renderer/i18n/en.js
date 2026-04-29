@@ -24,10 +24,15 @@ export const en = {
       series: "Series"
     },
     types: {
-      template: "Template",
-      templateHint: "EC posts events on a schedule with Discord, webhook, and ICS announcements. Per-event editing supported.",
+      template: "Templates",
+      templateHint: "Reusable autofill for repeated events. Pick a template when creating an event to skip entering the same details every time. Optional pattern-based date generation and automated posting.",
       series: "Series",
-      seriesHint: "Native VRChat recurring series. Server-side, set-and-forget. No announcements."
+      seriesHint: "Native VRChat recurring series. The server pre-generates all occurrences from a recurrence rule. No app or scheduling required."
+    },
+    empty: {
+      all: "No schedules for this group.",
+      templates: "No templates for this group.",
+      series: "No series for this group."
     },
     new: {
       pickType: "What kind of schedule?",

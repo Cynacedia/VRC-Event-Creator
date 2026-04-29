@@ -539,6 +539,11 @@ export function renderProfileList(api) {
   const currentValue = dom.profileExisting.value;
   const filterType = state.schedules?.filterType || "all";
 
+  // Hide the "Choose a group" hint once a group is selected
+  if (dom.scheduleGroupHint) {
+    dom.scheduleGroupHint.classList.toggle("is-hidden", Boolean(groupId));
+  }
+
   if (!groupId) {
     dom.profileExisting.innerHTML = "";
     const option = document.createElement("option");
@@ -554,47 +559,89 @@ export function renderProfileList(api) {
   const profiles = groupData?.profiles || {};
   const seriesMap = state.series?.[groupId] || {};
 
-  const entries = [];
-  // Templates first
+  const templateEntries = [];
+  const seriesEntries = [];
   if (filterType === "all" || filterType === "templates") {
     Object.keys(profiles).forEach(profileKey => {
-      entries.push({
-        label: `[T] ${getProfileLabel(profileKey, profiles[profileKey])}`,
+      templateEntries.push({
+        label: getProfileLabel(profileKey, profiles[profileKey]),
         value: `${groupId}::${profileKey}`
       });
     });
   }
-  // Then series
   if (filterType === "all" || filterType === "series") {
     Object.keys(seriesMap).forEach(seriesId => {
       const s = seriesMap[seriesId];
-      entries.push({
-        label: `[S] ${s.label || "Untitled Series"}`,
+      seriesEntries.push({
+        label: s.label || "Untitled Series",
         value: `series::${seriesId}`
       });
     });
   }
+  const totalEntries = templateEntries.length + seriesEntries.length;
 
   dom.profileExisting.innerHTML = "";
   const placeholderOption = document.createElement("option");
   placeholderOption.value = "";
-  placeholderOption.textContent = entries.length
-    ? t("profiles.existingProfilePlaceholder")
-    : t("profiles.noProfiles");
+  // Filter-aware empty placeholder
+  if (totalEntries === 0) {
+    if (filterType === "templates") {
+      placeholderOption.textContent = t("schedules.empty.templates") || "No templates for this group.";
+    } else if (filterType === "series") {
+      placeholderOption.textContent = t("schedules.empty.series") || "No series for this group.";
+    } else {
+      placeholderOption.textContent = t("schedules.empty.all") || "No schedules for this group.";
+    }
+  } else {
+    placeholderOption.textContent = t("profiles.existingProfilePlaceholder") || "Select…";
+  }
   dom.profileExisting.appendChild(placeholderOption);
 
-  entries.forEach(entry => {
-    const option = document.createElement("option");
-    option.value = entry.value;
-    option.textContent = entry.label;
-    dom.profileExisting.appendChild(option);
-  });
+  const appendEntries = (entries) => {
+    entries.forEach(entry => {
+      const option = document.createElement("option");
+      option.value = entry.value;
+      option.textContent = entry.label;
+      dom.profileExisting.appendChild(option);
+    });
+  };
 
-  if (currentValue && entries.some(entry => entry.value === currentValue)) {
+  if (filterType === "all") {
+    // Use optgroups when showing both
+    if (templateEntries.length) {
+      const tplGroup = document.createElement("optgroup");
+      tplGroup.label = t("schedules.types.template") || "Templates";
+      templateEntries.forEach(entry => {
+        const option = document.createElement("option");
+        option.value = entry.value;
+        option.textContent = entry.label;
+        tplGroup.appendChild(option);
+      });
+      dom.profileExisting.appendChild(tplGroup);
+    }
+    if (seriesEntries.length) {
+      const srGroup = document.createElement("optgroup");
+      srGroup.label = t("schedules.types.series") || "Series";
+      seriesEntries.forEach(entry => {
+        const option = document.createElement("option");
+        option.value = entry.value;
+        option.textContent = entry.label;
+        srGroup.appendChild(option);
+      });
+      dom.profileExisting.appendChild(srGroup);
+    }
+  } else {
+    // Single-type view — flat list, no group needed
+    appendEntries(templateEntries);
+    appendEntries(seriesEntries);
+  }
+
+  const allValues = [...templateEntries, ...seriesEntries].map(e => e.value);
+  if (currentValue && allValues.includes(currentValue)) {
     dom.profileExisting.value = currentValue;
   }
 
-  dom.profileExisting.disabled = entries.length === 0;
+  dom.profileExisting.disabled = totalEntries === 0;
   updateProfileActionButtons();
 }
 
