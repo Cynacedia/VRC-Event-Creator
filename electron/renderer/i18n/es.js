@@ -165,9 +165,58 @@ export const es = {
       selectGroup: "Seleccionar un grupo...",
       saveButton: "Guardar",
       saved: "Configuración de Discord guardada.",
-      syncLabel: "Sincronizar con Discord",
+      syncLabel: "Publicar en Discord",
+      eventLabel: "Crear evento de Discord",
       syncSuccess: "Evento de Discord creado para \"{title}\"",
       syncFailed: "Sincronización con Discord fallida para \"{title}\": {error}"
+    },
+    webhook: {
+      postLabel: "Publicar Webhook de Discord",
+      enableLabel: "Habilitar Webhook",
+      syncSuccess: "Webhook enviado para \"{title}\"",
+      syncFailed: "Error de envío del webhook para \"{title}\": {error}"
+    },
+    calendar: {
+      title: "Integración de Calendario",
+      description: "Genera archivos de calendario .ics con recordatorios, guardados localmente o adjuntos a publicaciones del webhook.",
+      enable: "Habilitar generación de archivos de calendario",
+      createInvite: "Crear invitación de calendario .ics",
+      remindersTitle: "Recordatorios de calendario .ics",
+      enableReminders: "Habilitar recordatorios de calendario .ics",
+      remindersDescription: "Configura los recordatorios predeterminados incluidos en los archivos .ics.",
+      addReminder: "Agregar Recordatorio",
+      postToDiscord: "Publicar .ics en Discord",
+      unit: {
+        minutes: "minutos",
+        hours: "horas",
+        days: "días"
+      },
+      syncLabel: "Adjuntar archivo .ics",
+      syncSuccess: "Archivo de calendario enviado para \"{title}\"",
+      syncFailed: "Error al enviar archivo de calendario para \"{title}\": {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Probar Webhook",
+      webhookTestSuccess: "Webhook verificado: {webhookName}",
+      webhookTestFailed: "Prueba de webhook fallida. Verifica la URL.",
+      webhookMissing: "Ingresa una URL de webhook primero.",
+      remindersHint: "Algunas aplicaciones de calendario pueden usar solo el primer recordatorio.",
+      saveDirLabel: "Directorio de guardado de calendario",
+      autoSaved: "Archivo de calendario guardado: {filePath}"
+    },
+    eckit: {
+      importButton: "Importar Kit",
+      webhookName: "Nombre del Webhook",
+      webhookNamePlaceholder: "Eventos de Mi Grupo",
+      embedColor: "Color del Embed",
+      avatarUrl: "URL del Avatar",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Adjuntar mensaje personalizado al webhook",
+      messageTitle: "Mensaje personalizado del webhook",
+      messagePlaceholder: "Escribe un mensaje personalizado para incluir con el webhook...",
+      attachImage: "Adjuntar imagen",
+      noImage: "Ninguna imagen seleccionada",
+      selectImage: "Seleccionar"
     },
     saveButton: "Guardar configuración",
     saved: "Configuración guardada."
@@ -351,7 +400,8 @@ export const es = {
       cancelFailed: "No se pudo cancelar el evento pendiente.",
       editSaved: "Evento pendiente actualizado.",
       editFailed: "No se pudo actualizar el evento pendiente."
-    }
+    },
+    postingOptions: "Opciones de publicación"
   },
   profiles: {
     title: "Gestionar plantillas",

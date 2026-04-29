@@ -165,9 +165,58 @@ export const de = {
       selectGroup: "Gruppe auswählen...",
       saveButton: "Speichern",
       saved: "Discord-Einstellungen gespeichert.",
-      syncLabel: "Mit Discord synchronisieren",
+      syncLabel: "An Discord senden",
+      eventLabel: "Discord-Event erstellen",
       syncSuccess: "Discord-Event erstellt für \"{title}\"",
       syncFailed: "Discord-Synchronisierung fehlgeschlagen für \"{title}\": {error}"
+    },
+    webhook: {
+      postLabel: "Discord-Webhook senden",
+      enableLabel: "Webhook aktivieren",
+      syncSuccess: "Webhook gesendet für \"{title}\"",
+      syncFailed: "Webhook-Zustellung fehlgeschlagen für \"{title}\": {error}"
+    },
+    calendar: {
+      title: "Kalender-Integration",
+      description: "Erstellt .ics-Kalenderdateien mit Erinnerungen, lokal gespeichert oder an Webhook-Posts angehängt.",
+      enable: "Kalenderdatei-Erstellung aktivieren",
+      createInvite: ".ics-Kalendereinladung erstellen",
+      remindersTitle: ".ics-Kalendererinnerungen",
+      enableReminders: ".ics-Kalendererinnerungen aktivieren",
+      remindersDescription: "Konfiguriere Standard-Erinnerungen in .ics-Dateien.",
+      addReminder: "Erinnerung hinzufügen",
+      postToDiscord: ".ics an Discord senden",
+      unit: {
+        minutes: "Minuten",
+        hours: "Stunden",
+        days: "Tage"
+      },
+      syncLabel: ".ics-Datei anhängen",
+      syncSuccess: "Kalenderdatei gesendet für \"{title}\"",
+      syncFailed: "Kalenderdatei-Zustellung fehlgeschlagen für \"{title}\": {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Webhook testen",
+      webhookTestSuccess: "Webhook verifiziert: {webhookName}",
+      webhookTestFailed: "Webhook-Test fehlgeschlagen. Überprüfe die URL.",
+      webhookMissing: "Gib zuerst eine Webhook-URL ein.",
+      remindersHint: "Einige Kalender-Apps verwenden möglicherweise nur die erste Erinnerung.",
+      saveDirLabel: "Kalender-Speicherverzeichnis",
+      autoSaved: "Kalenderdatei gespeichert: {filePath}"
+    },
+    eckit: {
+      importButton: "Kit importieren",
+      webhookName: "Webhook-Anzeigename",
+      webhookNamePlaceholder: "Meine Gruppen-Events",
+      embedColor: "Embed-Farbe",
+      avatarUrl: "Avatar-URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Benutzerdefinierte Webhook-Nachricht anhängen",
+      messageTitle: "Benutzerdefinierte Webhook-Nachricht",
+      messagePlaceholder: "Schreibe eine benutzerdefinierte Nachricht für den Webhook-Post...",
+      attachImage: "Bild anhängen",
+      noImage: "Kein Bild ausgewählt",
+      selectImage: "Auswählen"
     },
     saveButton: "Einstellungen speichern",
     saved: "Einstellungen gespeichert."
@@ -351,7 +400,8 @@ export const de = {
       cancelFailed: "Geplantes Event konnte nicht abgebrochen werden.",
       editSaved: "Geplantes Event aktualisiert.",
       editFailed: "Geplantes Event konnte nicht aktualisiert werden."
-    }
+    },
+    postingOptions: "Veröffentlichungsoptionen"
   },
   profiles: {
     title: "Vorlagen verwalten",

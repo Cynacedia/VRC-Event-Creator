@@ -1847,14 +1847,19 @@ button.pill-button {
   grid-row: 2;
 }
 
-.meta-session {
+.meta-calendar-dir {
   grid-column: 1;
   grid-row: 3;
 }
 
+.meta-session {
+  grid-column: 1;
+  grid-row: 4;
+}
+
 .meta-language {
   grid-column: 2;
-  grid-row: 3;
+  grid-row: 4;
 }
 
 .meta-grid-end {
@@ -2872,6 +2877,30 @@ input[type="color"]::-moz-color-swatch {
 
 .discord-actions .hint {
   flex: 1;
+}
+
+/* Calendar reminder rows */
+.calendar-reminders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.calendar-reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.calendar-reminder-preset {
+  width: 180px;
+}
+
+.calendar-reminder-remove {
+  padding: 2px 8px;
+  font-size: var(--text-14);
+  line-height: 1;
 }
 
 .verified-groups-list {

@@ -165,9 +165,58 @@ export const ja = {
       selectGroup: "グループを選択...",
       saveButton: "保存",
       saved: "Discord設定を保存しました。",
-      syncLabel: "Discordに同期",
+      syncLabel: "Discordに投稿",
+      eventLabel: "Discordイベントを作成",
       syncSuccess: "「{title}」のDiscordイベントを作成しました",
       syncFailed: "「{title}」のDiscord同期に失敗しました: {error}"
+    },
+    webhook: {
+      postLabel: "Discord Webhookに投稿",
+      enableLabel: "Webhookを有効化",
+      syncSuccess: "「{title}」のWebhookを送信しました",
+      syncFailed: "「{title}」のWebhook配信に失敗: {error}"
+    },
+    calendar: {
+      title: "カレンダー連携",
+      description: "リマインダー付きの.icsカレンダーファイルを生成し、ローカル保存またはWebhook投稿に添付します。",
+      enable: "カレンダーファイル生成を有効にする",
+      createInvite: ".icsカレンダー招待を作成",
+      remindersTitle: ".icsカレンダーリマインダー",
+      enableReminders: ".icsカレンダーリマインダーを有効にする",
+      remindersDescription: ".icsファイルに含めるデフォルトのリマインダーを設定します。",
+      addReminder: "リマインダーを追加",
+      postToDiscord: ".icsをDiscordに投稿",
+      unit: {
+        minutes: "分",
+        hours: "時間",
+        days: "日"
+      },
+      syncLabel: ".icsファイルを添付",
+      syncSuccess: "「{title}」のカレンダーファイルを送信しました",
+      syncFailed: "「{title}」のカレンダーファイル送信に失敗しました: {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Webhookをテスト",
+      webhookTestSuccess: "Webhook確認済み: {webhookName}",
+      webhookTestFailed: "Webhookテスト失敗。URLを確認してください。",
+      webhookMissing: "まずWebhook URLを入力してください。",
+      remindersHint: "一部のカレンダーアプリは最初のリマインダーのみを使用する場合があります。",
+      saveDirLabel: "カレンダー保存ディレクトリ",
+      autoSaved: "カレンダーファイルを保存しました: {filePath}"
+    },
+    eckit: {
+      importButton: "キットをインポート",
+      webhookName: "Webhook表示名",
+      webhookNamePlaceholder: "マイグループイベント",
+      embedColor: "埋め込みカラー",
+      avatarUrl: "アバターURL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "カスタムWebhookメッセージを添付",
+      messageTitle: "カスタムWebhookメッセージ",
+      messagePlaceholder: "Webhook投稿に含めるカスタムメッセージを書いてください...",
+      attachImage: "画像を添付",
+      noImage: "画像未選択",
+      selectImage: "選択"
     },
     saveButton: "設定を保存",
     saved: "設定を保存しました。"
@@ -351,7 +400,8 @@ export const ja = {
       cancelFailed: "予定イベントをキャンセルできませんでした。",
       editSaved: "予定イベントが更新されました。",
       editFailed: "予定イベントを更新できませんでした。"
-    }
+    },
+    postingOptions: "投稿オプション"
   },
   profiles: {
     title: "テンプレート管理",

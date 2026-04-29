@@ -2,14 +2,14 @@
 
 import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, MONTHS, TAG_LIMIT } from "./config.js";
 import { dom, state, setEventWizard, setProfileWizard, getProfileWizard, getProfileEditConfirmed } from "./state.js";
-import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport } from "./ui.js";
+import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport, syncThemeLocalization } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
 import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettingsSave } from "./auth.js";
-import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI } from "./profiles.js";
+import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI, updateCalendarVisibility, renderCalendarReminders, readCalendarRemindersFromDom, addCalendarReminderRow } from "./profiles.js";
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
-import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview } from "./modify.js";
+import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview, updateModifyCalendarRemindersVisibility, updateModifyWebhookVisibility } from "./modify.js";
 import { initDemoControls } from "./demo.js";
 
 (() => {
@@ -215,6 +215,7 @@ import { initDemoControls } from "./demo.js";
       setFootMeta(t("common.syncing"));
       state.groups = await api.getGroups();
       state.profiles = await api.getProfiles();
+      state.kitGroupIds = await api.eckitGetKitGroupIds().catch(() => []);
       renderGroupSelects({ preserveSelection });
       enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
       enforceGroupAccess(dom.profileAccess, dom.profileGroup.value);
@@ -224,6 +225,8 @@ import { initDemoControls } from "./demo.js";
       renderProfileList(api);
       renderEventProfileOptions(api);
       renderDiscordGroupSelect();
+      updateDiscordVisibility();
+      updateCalendarVisibility();
       void renderEventRoleRestrictions(api);
       void renderProfileRoleRestrictions(api);
       await refreshUpcomingEventCount(api);
@@ -411,6 +414,16 @@ import { initDemoControls } from "./demo.js";
       renderPatternList();
       renderUpcomingEventCountLabel();
       syncModifyLocalization();
+      syncThemeLocalization();
+      // Re-render reminder dropdowns with updated translations
+      if (dom.profileCalendarRemindersList) {
+        const current = readCalendarRemindersFromDom(dom.profileCalendarRemindersList);
+        if (current.length) renderCalendarReminders(dom.profileCalendarRemindersList, current);
+      }
+      if (dom.eventCalendarRemindersList) {
+        const current = readCalendarRemindersFromDom(dom.eventCalendarRemindersList);
+        if (current.length) renderCalendarReminders(dom.eventCalendarRemindersList, current);
+      }
 
     const profileKey = dom.eventProfile.value;
     const groupId = dom.eventGroup.value;
@@ -1077,7 +1090,13 @@ import { initDemoControls } from "./demo.js";
     dom.settingsChangeDir.addEventListener("click", () => handleChangeDataDir(api));
     dom.eventGroup.addEventListener("change", () => { void handleEventGroupChange(api); });
     dom.eventProfile.addEventListener("change", () => handleEventProfileChange(api));
-    dom.eventProfileClear.addEventListener("click", () => { dom.eventProfile.value = "__manual__"; handleEventProfileChange(api); });
+    dom.eventProfileClear.addEventListener("click", () => {
+      dom.eventProfile.value = "__manual__";
+      state.event.selectedProfileKey = null;
+      applyManualEventDefaults();
+      enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
+      void renderEventRoleRestrictions(api);
+    });
     dom.eventAccess.addEventListener("change", () => handleEventAccessChange(api));
     dom.eventDateSource.addEventListener("change", handleDateSourceChange);
     dom.eventTimezone.addEventListener("change", () => {
@@ -1249,8 +1268,212 @@ import { initDemoControls } from "./demo.js";
         showToast(t("settings.discord.syncFailed").replace("{title}", eventTitle).replace("{error}", error), true);
       });
     }
+    // Calendar integration toggle (in Advanced Settings)
+    if (dom.settingsCalendarEnabled) {
+      dom.settingsCalendarEnabled.addEventListener("change", async () => {
+        try {
+          const enabled = dom.settingsCalendarEnabled.checked;
+          await api.updateSettings({ calendarEnabled: enabled });
+          state.settings.calendarEnabled = enabled;
+          updateDiscordVisibility();
+          updateCalendarVisibility();
+        } catch (err) {
+          console.error("Failed to save calendar setting:", err);
+        }
+      });
+    }
+    // Calendar save directory browse button
+    if (dom.calendarSaveDirBtn) {
+      dom.calendarSaveDirBtn.addEventListener("click", async () => {
+        const result = await api.calendarSelectSaveDir();
+        if (result.ok && result.dir) {
+          if (dom.calendarSaveDirDisplay) dom.calendarSaveDirDisplay.textContent = result.dir;
+          state.settings.calendarSaveDir = result.dir;
+        }
+      });
+    }
+    // Calendar save directory open button
+    if (dom.calendarSaveDirOpen) {
+      dom.calendarSaveDirOpen.addEventListener("click", () => {
+        if (state.settings.calendarSaveDir) {
+          api.openExternal(state.settings.calendarSaveDir);
+        }
+      });
+    }
+    // Auto-save toast listener
+    if (api.onCalendarAutoSaved) {
+      api.onCalendarAutoSaved(({ eventTitle, filePath }) => {
+        showToast((t("settings.calendar.autoSaved") || "Calendar file saved: {filePath}").replace("{filePath}", filePath).replace("{title}", eventTitle));
+      });
+    }
+    // Profile calendar sync toggle — show/hide reminders card
+    if (dom.calendarSyncCheck) {
+      dom.calendarSyncCheck.addEventListener("change", () => updateCalendarVisibility());
+    }
+    // Profile calendar reminders enabled toggle — show/hide rows
+    if (dom.profileCalendarRemindersEnabled) {
+      dom.profileCalendarRemindersEnabled.addEventListener("change", () => {
+        const show = dom.profileCalendarRemindersEnabled.checked;
+        if (dom.profileCalendarRemindersList) dom.profileCalendarRemindersList.classList.toggle("is-hidden", !show);
+        if (dom.profileCalendarReminderAdd) dom.profileCalendarReminderAdd.classList.toggle("is-hidden", !show);
+        if (dom.profileCalendarRemindersHint) dom.profileCalendarRemindersHint.classList.toggle("is-hidden", !show);
+      });
+    }
+    // Profile calendar reminder add button
+    if (dom.profileCalendarReminderAdd) {
+      dom.profileCalendarReminderAdd.addEventListener("click", () => {
+        const current = readCalendarRemindersFromDom(dom.profileCalendarRemindersList);
+        renderCalendarReminders(dom.profileCalendarRemindersList, [...current, { value: 30, unit: "minutes" }]);
+      });
+    }
+    // Event calendar create toggle — show/hide reminders option
+    if (dom.eventCalendarCreateCheck) {
+      dom.eventCalendarCreateCheck.addEventListener("change", () => { updateCalendarVisibility(); updateDiscordVisibility(); });
+    }
+    // Event calendar reminders enabled toggle — show/hide rows
+    if (dom.eventCalendarRemindersEnabled) {
+      dom.eventCalendarRemindersEnabled.addEventListener("change", () => updateCalendarVisibility());
+    }
+    // Event calendar reminder add button
+    if (dom.eventCalendarReminderAdd) {
+      dom.eventCalendarReminderAdd.addEventListener("click", () => {
+        const current = readCalendarRemindersFromDom(dom.eventCalendarRemindersList);
+        renderCalendarReminders(dom.eventCalendarRemindersList, [...current, { value: 30, unit: "minutes" }]);
+      });
+    }
+    // Webhook sync toast listeners
+    if (api.onWebhookSyncSuccess) {
+      api.onWebhookSyncSuccess(({ eventTitle }) => {
+        showToast((t("settings.calendar.syncSuccess") || "Calendar file sent for \"{title}\"").replace("{title}", eventTitle));
+      });
+    }
+    if (api.onWebhookSyncFailed) {
+      api.onWebhookSyncFailed(({ eventTitle, error }) => {
+        showToast((t("settings.calendar.syncFailed") || "Calendar file delivery failed for \"{title}\": {error}").replace("{title}", eventTitle).replace("{error}", error), true);
+      });
+    }
     // Initialize Discord UI (token toggle, test button, auto-save)
     initDiscordUI(api);
+    // EC Kit import button
+    if (dom.eckitImportBtn) {
+      dom.eckitImportBtn.addEventListener("click", async () => {
+        const result = await api.eckitImport();
+        if (result.cancelled) return;
+        if (result.ok) {
+          showToast(`Kit activated for ${result.issuedTo || "group"}`);
+          // Refresh kit state so isGroupKitActive() picks up the new kit
+          state.kitGroupIds = await api.eckitGetKitGroupIds().catch(() => []);
+          // Reload current group config to show kit fields
+          const groupId = dom.discordGroupSelect?.value;
+          if (groupId) {
+            dom.discordGroupSelect.dispatchEvent(new Event("change"));
+          }
+          // Refresh visibility for template and event forms
+          updateDiscordVisibility();
+        } else {
+          showToast(result.error || "Invalid kit file.", true);
+        }
+      });
+    }
+    // EC Kit color picker ↔ hex text sync
+    if (dom.eckitEmbedColor && dom.eckitEmbedColorHex) {
+      dom.eckitEmbedColor.addEventListener("input", () => {
+        dom.eckitEmbedColorHex.value = dom.eckitEmbedColor.value;
+      });
+      dom.eckitEmbedColorHex.addEventListener("input", () => {
+        const hex = dom.eckitEmbedColorHex.value.trim();
+        if (/^#[0-9a-fA-F]{6}$/.test(hex)) {
+          dom.eckitEmbedColor.value = hex;
+        }
+      });
+    }
+    // Profile webhook image select button
+    if (dom.profileWebhookImageBtn) {
+      dom.profileWebhookImageBtn.addEventListener("click", async () => {
+        const result = await api.eckitSelectImage();
+        if (result.ok && result.filePath) {
+          if (dom.profileWebhookImagePath) dom.profileWebhookImagePath.value = result.filePath;
+        } else if (result.error) {
+          showToast(result.error, true);
+        }
+      });
+    }
+    // Profile webhook message toggle
+    if (dom.profileWebhookMessageEnabled) {
+      dom.profileWebhookMessageEnabled.addEventListener("change", () => {
+        const show = dom.profileWebhookMessageEnabled.checked;
+        if (dom.profileWebhookMessageCard) dom.profileWebhookMessageCard.classList.toggle("is-hidden", !show);
+      });
+    }
+    // Event "Create Discord Event" checkbox — refresh visibility
+    if (dom.eventDiscordSyncCheck) {
+      dom.eventDiscordSyncCheck.addEventListener("change", () => {
+        updateDiscordVisibility();
+      });
+    }
+    // Profile "Post to Webhook" checkbox — refresh kit visibility
+    if (dom.webhookPostCheck) {
+      dom.webhookPostCheck.addEventListener("change", () => {
+        updateDiscordVisibility();
+      });
+    }
+    // Event "Post to Webhook" checkbox — refresh kit visibility
+    if (dom.eventWebhookPostCheck) {
+      dom.eventWebhookPostCheck.addEventListener("change", () => {
+        updateDiscordVisibility();
+      });
+    }
+    // Event webhook message toggle
+    if (dom.eventWebhookMessageEnabled) {
+      dom.eventWebhookMessageEnabled.addEventListener("change", () => {
+        const show = dom.eventWebhookMessageEnabled.checked;
+        if (dom.eventWebhookMessageInput) dom.eventWebhookMessageInput.classList.toggle("is-hidden", !show);
+      });
+    }
+    // Event webhook image select button
+    if (dom.eventWebhookImageBtn) {
+      dom.eventWebhookImageBtn.addEventListener("click", async () => {
+        const result = await api.eckitSelectImage();
+        if (result.ok && result.filePath) {
+          if (dom.eventWebhookImagePath) dom.eventWebhookImagePath.value = result.filePath;
+        } else if (result.error) {
+          showToast(result.error, true);
+        }
+      });
+    }
+    // Modify modal posting options (pending events)
+    if (dom.modifyWebhookPost) {
+      dom.modifyWebhookPost.addEventListener("change", () => updateModifyWebhookVisibility());
+    }
+    if (dom.modifyCalendarSync) {
+      dom.modifyCalendarSync.addEventListener("change", () => {
+        updateModifyCalendarRemindersVisibility();
+      });
+    }
+    if (dom.modifyCalendarRemindersEnabled) {
+      dom.modifyCalendarRemindersEnabled.addEventListener("change", () => updateModifyCalendarRemindersVisibility());
+    }
+    if (dom.modifyWebhookMessageEnabled) {
+      dom.modifyWebhookMessageEnabled.addEventListener("change", () => {
+        const show = dom.modifyWebhookMessageEnabled.checked;
+        if (dom.modifyWebhookMessageInput) dom.modifyWebhookMessageInput.classList.toggle("is-hidden", !show);
+      });
+    }
+    if (dom.modifyWebhookImageBtn) {
+      dom.modifyWebhookImageBtn.addEventListener("click", async () => {
+        const result = await api.eckitSelectImage();
+        if (result.ok && result.filePath) {
+          if (dom.modifyWebhookImagePath) dom.modifyWebhookImagePath.value = result.filePath;
+        } else if (result.error) {
+          showToast(result.error, true);
+        }
+      });
+    }
+    if (dom.modifyCalendarReminderAdd) {
+      dom.modifyCalendarReminderAdd.addEventListener("click", () => {
+        addCalendarReminderRow(dom.modifyCalendarRemindersList, { value: 30, unit: "minutes" });
+      });
+    }
     if (dom.eventImagePicker) {
       dom.eventImagePicker.addEventListener("click", () => openGalleryPicker(dom.eventImageId));
     }

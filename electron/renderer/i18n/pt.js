@@ -165,9 +165,58 @@ export const pt = {
       selectGroup: "Selecionar um grupo...",
       saveButton: "Salvar",
       saved: "Configurações do Discord salvas.",
-      syncLabel: "Sincronizar com Discord",
+      syncLabel: "Publicar no Discord",
+      eventLabel: "Criar evento no Discord",
       syncSuccess: "Evento do Discord criado para \"{title}\"",
       syncFailed: "Sincronização com Discord falhou para \"{title}\": {error}"
+    },
+    webhook: {
+      postLabel: "Publicar Webhook do Discord",
+      enableLabel: "Ativar Webhook",
+      syncSuccess: "Webhook enviado para \"{title}\"",
+      syncFailed: "Falha na entrega do webhook para \"{title}\": {error}"
+    },
+    calendar: {
+      title: "Integração de Calendário",
+      description: "Gera arquivos de calendário .ics com lembretes, salvos localmente ou anexados a publicações do webhook.",
+      enable: "Ativar geração de arquivos de calendário",
+      createInvite: "Criar convite de calendário .ics",
+      remindersTitle: "Lembretes de calendário .ics",
+      enableReminders: "Ativar lembretes de calendário .ics",
+      remindersDescription: "Configure os lembretes padrão incluídos nos arquivos .ics.",
+      addReminder: "Adicionar Lembrete",
+      postToDiscord: "Publicar .ics no Discord",
+      unit: {
+        minutes: "minutos",
+        hours: "horas",
+        days: "dias"
+      },
+      syncLabel: "Anexar arquivo .ics",
+      syncSuccess: "Arquivo de calendário enviado para \"{title}\"",
+      syncFailed: "Falha ao enviar arquivo de calendário para \"{title}\": {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Testar Webhook",
+      webhookTestSuccess: "Webhook verificado: {webhookName}",
+      webhookTestFailed: "Teste do webhook falhou. Verifique a URL.",
+      webhookMissing: "Insira uma URL de webhook primeiro.",
+      remindersHint: "Alguns aplicativos de calendário podem usar apenas o primeiro lembrete.",
+      saveDirLabel: "Diretório de salvamento do calendário",
+      autoSaved: "Arquivo de calendário salvo: {filePath}"
+    },
+    eckit: {
+      importButton: "Importar Kit",
+      webhookName: "Nome do Webhook",
+      webhookNamePlaceholder: "Eventos do Meu Grupo",
+      embedColor: "Cor do Embed",
+      avatarUrl: "URL do Avatar",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Anexar mensagem personalizada ao webhook",
+      messageTitle: "Mensagem personalizada do webhook",
+      messagePlaceholder: "Escreva uma mensagem personalizada para incluir com o webhook...",
+      attachImage: "Anexar imagem",
+      noImage: "Nenhuma imagem selecionada",
+      selectImage: "Selecionar"
     },
     saveButton: "Salvar configurações",
     saved: "Configurações salvas."
@@ -351,7 +400,8 @@ export const pt = {
       cancelFailed: "Não foi possível cancelar o evento pendente.",
       editSaved: "Evento pendente atualizado.",
       editFailed: "Não foi possível atualizar o evento pendente."
-    }
+    },
+    postingOptions: "Opções de publicação"
   },
   profiles: {
     title: "Gerenciar Modelos",

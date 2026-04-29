@@ -1,6 +1,6 @@
 {
   "name": "vrc-event-creator",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "main": "electron/main.js",
   "scripts": {
     "start:gui": "electron .",
@@ -55,7 +55,7 @@
     },
     "linux": {
       "target": "AppImage",
-      "icon": "electron/app.png"
+      "icon": "electron/app.ico"
     }
   }
 }

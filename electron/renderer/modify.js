@@ -4,6 +4,7 @@ import { buildTimezones, ensureTimezoneOption, createTagInput, enforceTagsInput,
 import { ACCESS_TYPES, CATEGORIES, EVENT_DESCRIPTION_LIMIT, EVENT_NAME_LIMIT, LANGUAGES, PLATFORMS, TAG_LIMIT } from "./config.js";
 import { t, getLanguageDisplayName } from "./i18n/index.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
+import { isGroupDiscordConfigured, isGroupWebhookConfigured, isGroupKitActive, renderCalendarReminders, readCalendarRemindersFromDom, addCalendarReminderRow } from "./profiles.js";
 
 const HOLD_DURATION_MS = 2000;
 const MODIFY_RATE_LIMIT_KEYS = {
@@ -893,6 +894,18 @@ async function handlePendingEdit(pendingEvent) {
     isPendingEdit: true
   };
 
+  // Posting options: manual overrides take priority, then profile template defaults
+  const profile = state.profiles?.[pendingEvent.groupId]?.profiles?.[pendingEvent.profileKey];
+  const overrides = pendingEvent.manualOverrides || {};
+  fakeEvent.discordSync = overrides.discordSync ?? profile?.discordSync ?? true;
+  fakeEvent.webhookPost = overrides.webhookPost ?? profile?.webhookPost ?? false;
+  fakeEvent.calendarCreate = overrides.calendarCreate ?? profile?.calendarSync ?? false;
+  fakeEvent.calendarRemindersEnabled = overrides.calendarRemindersEnabled ?? profile?.calendarRemindersEnabled ?? false;
+  fakeEvent.calendarReminders = overrides.calendarReminders ?? profile?.calendarReminders ?? [];
+  fakeEvent.webhookMessageEnabled = overrides.webhookMessageEnabled ?? profile?.webhookMessageEnabled ?? false;
+  fakeEvent.webhookMessage = overrides.webhookMessage ?? profile?.webhookMessage ?? "";
+  fakeEvent.webhookImagePath = overrides.webhookImagePath ?? profile?.webhookImagePath ?? "";
+
   applyModifyFormFromEvent(fakeEvent);
   dom.modifyOverlay.classList.remove("is-hidden");
 }
@@ -1009,7 +1022,16 @@ async function handlePendingSave() {
       durationMinutes,
       timezone: manualTimezone,
       manualDate,
-      manualTime
+      manualTime,
+      // Posting options
+      discordSync: dom.modifyDiscordSync?.checked ?? true,
+      webhookPost: dom.modifyWebhookPost?.checked ?? false,
+      calendarCreate: dom.modifyCalendarSync?.checked ?? false,
+      calendarRemindersEnabled: dom.modifyCalendarRemindersEnabled?.checked ?? false,
+      calendarReminders: readCalendarRemindersFromDom(dom.modifyCalendarRemindersList),
+      webhookMessageEnabled: dom.modifyWebhookMessageEnabled?.checked ?? false,
+      webhookMessage: dom.modifyWebhookMessage?.value || "",
+      webhookImagePath: dom.modifyWebhookImagePath?.value || ""
     };
 
     const result = await modifyApi.pendingAction({
@@ -1119,6 +1141,62 @@ function applyModifyFormFromEvent(event) {
   renderModifyProfileOptions(event.groupId);
   void renderModifyRoleRestrictions();
   void updateModifyTogglesVisibility(event.groupId);
+
+  // Posting options — only for pending events
+  const isPending = !!state.modify.selectedPendingEvent;
+  if (dom.modifyPostingOptions) {
+    dom.modifyPostingOptions.classList.toggle("is-hidden", !isPending);
+  }
+  if (isPending) {
+    const groupId = event.groupId;
+    const hasDiscord = isGroupDiscordConfigured(groupId);
+    const calendarEnabled = state.settings?.calendarEnabled === true;
+    const hasKit = isGroupKitActive(groupId);
+
+    const hasWebhook = isGroupWebhookConfigured(groupId);
+
+    // Discord sync
+    if (dom.modifyDiscordSyncField) dom.modifyDiscordSyncField.classList.toggle("is-hidden", !hasDiscord);
+    if (dom.modifyDiscordSync) dom.modifyDiscordSync.checked = event.discordSync !== false;
+
+    // Webhook post
+    if (dom.modifyWebhookPostField) dom.modifyWebhookPostField.classList.toggle("is-hidden", !hasWebhook);
+    if (dom.modifyWebhookPost) dom.modifyWebhookPost.checked = Boolean(event.webhookPost);
+
+    // Calendar sync
+    if (dom.modifyCalendarSyncField) dom.modifyCalendarSyncField.classList.toggle("is-hidden", !calendarEnabled);
+    if (dom.modifyCalendarSync) dom.modifyCalendarSync.checked = Boolean(event.calendarCreate);
+
+    // Calendar reminders
+    if (dom.modifyCalendarRemindersEnabled) dom.modifyCalendarRemindersEnabled.checked = Boolean(event.calendarRemindersEnabled);
+    renderCalendarReminders(dom.modifyCalendarRemindersList, event.calendarReminders || []);
+    updateModifyCalendarRemindersVisibility();
+
+    // Webhook message (depends on webhook post + kit)
+    const showWebhook = hasKit && dom.modifyWebhookPost?.checked;
+    if (dom.modifyWebhookMessageSection) dom.modifyWebhookMessageSection.classList.toggle("is-hidden", !showWebhook);
+    if (dom.modifyWebhookMessageEnabled) dom.modifyWebhookMessageEnabled.checked = Boolean(event.webhookMessageEnabled);
+    if (dom.modifyWebhookMessage) dom.modifyWebhookMessage.value = event.webhookMessage || "";
+    if (dom.modifyWebhookImagePath) dom.modifyWebhookImagePath.value = event.webhookImagePath || "";
+    if (dom.modifyWebhookMessageInput) dom.modifyWebhookMessageInput.classList.toggle("is-hidden", !event.webhookMessageEnabled);
+  }
+}
+
+export function updateModifyCalendarRemindersVisibility() {
+  const calendarOn = dom.modifyCalendarSync?.checked === true;
+  if (dom.modifyCalendarRemindersEnabledField) dom.modifyCalendarRemindersEnabledField.classList.toggle("is-hidden", !calendarOn);
+  const remindersOn = calendarOn && dom.modifyCalendarRemindersEnabled?.checked === true;
+  if (dom.modifyCalendarRemindersList) dom.modifyCalendarRemindersList.classList.toggle("is-hidden", !remindersOn);
+  if (dom.modifyCalendarReminderAdd) dom.modifyCalendarReminderAdd.classList.toggle("is-hidden", !remindersOn);
+  if (dom.modifyCalendarRemindersHint) dom.modifyCalendarRemindersHint.classList.toggle("is-hidden", !remindersOn);
+}
+
+export function updateModifyWebhookVisibility() {
+  const groupId = state.modify.selectedPendingEvent?.groupId;
+  if (!groupId) return;
+  const hasKit = isGroupKitActive(groupId);
+  const show = hasKit && dom.modifyWebhookPost?.checked;
+  if (dom.modifyWebhookMessageSection) dom.modifyWebhookMessageSection.classList.toggle("is-hidden", !show);
 }
 
 async function updateModifyTogglesVisibility(groupId) {

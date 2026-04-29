@@ -816,6 +816,13 @@ function refreshThemePresetOptions(selected) {
   dom.settingsTheme.value = resolvePresetKey(selected);
 }
 
+/** Re-render theme dropdown labels with current translations. */
+export function syncThemeLocalization() {
+  if (!dom.settingsTheme) return;
+  const current = dom.settingsTheme.value;
+  refreshThemePresetOptions(current);
+}
+
 function syncThemeControls(colors) {
   const normalized = normalizeThemeColors(colors);
   themeControls.forEach((controls, key) => {

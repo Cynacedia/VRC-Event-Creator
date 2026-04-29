@@ -165,9 +165,58 @@ export const ru = {
       selectGroup: "Выберите группу...",
       saveButton: "Сохранить",
       saved: "Настройки Discord сохранены.",
-      syncLabel: "Синхронизировать с Discord",
+      syncLabel: "Опубликовать в Discord",
+      eventLabel: "Создать событие Discord",
       syncSuccess: "Мероприятие Discord создано для «{title}»",
       syncFailed: "Синхронизация с Discord не удалась для «{title}»: {error}"
+    },
+    webhook: {
+      postLabel: "Отправить Discord Webhook",
+      enableLabel: "Включить Webhook",
+      syncSuccess: "Webhook отправлен для \"{title}\"",
+      syncFailed: "Не удалось отправить webhook для \"{title}\": {error}"
+    },
+    calendar: {
+      title: "Интеграция с календарём",
+      description: "Создаёт файлы календаря .ics с напоминаниями, сохраняемые локально или прикрепляемые к публикациям webhook.",
+      enable: "Включить создание файлов календаря",
+      createInvite: "Создать приглашение календаря .ics",
+      remindersTitle: "Напоминания календаря .ics",
+      enableReminders: "Включить напоминания календаря .ics",
+      remindersDescription: "Настройте напоминания по умолчанию для файлов .ics.",
+      addReminder: "Добавить напоминание",
+      postToDiscord: "Отправить .ics в Discord",
+      unit: {
+        minutes: "минут",
+        hours: "часов",
+        days: "дней"
+      },
+      syncLabel: "Прикрепить файл .ics",
+      syncSuccess: "Файл календаря отправлен для \"{title}\"",
+      syncFailed: "Ошибка отправки файла календаря для \"{title}\": {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Проверить вебхук",
+      webhookTestSuccess: "Вебхук подтверждён: {webhookName}",
+      webhookTestFailed: "Проверка вебхука не удалась. Проверьте URL.",
+      webhookMissing: "Сначала введите URL вебхука.",
+      remindersHint: "Некоторые приложения-календари могут использовать только первое напоминание.",
+      saveDirLabel: "Директория сохранения календаря",
+      autoSaved: "Файл календаря сохранён: {filePath}"
+    },
+    eckit: {
+      importButton: "Импортировать кит",
+      webhookName: "Отображаемое имя вебхука",
+      webhookNamePlaceholder: "События моей группы",
+      embedColor: "Цвет вставки",
+      avatarUrl: "URL аватара",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Прикрепить пользовательское сообщение к вебхуку",
+      messageTitle: "Пользовательское сообщение вебхука",
+      messagePlaceholder: "Напишите пользовательское сообщение для включения в вебхук...",
+      attachImage: "Прикрепить изображение",
+      noImage: "Изображение не выбрано",
+      selectImage: "Выбрать"
     },
     saveButton: "Сохранить настройки",
     saved: "Настройки сохранены."
@@ -351,7 +400,8 @@ export const ru = {
       cancelFailed: "Не удалось отменить ожидающее событие.",
       editSaved: "Ожидающее событие обновлено.",
       editFailed: "Не удалось обновить ожидающее событие."
-    }
+    },
+    postingOptions: "Параметры публикации"
   },
   profiles: {
     title: "Управление шаблонами",

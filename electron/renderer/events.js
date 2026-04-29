@@ -4,7 +4,7 @@ import { buildTimezones, ensureTimezoneOption, enforceTagsInput, sanitizeText, f
 import { EVENT_DESCRIPTION_LIMIT, EVENT_NAME_LIMIT, LANGUAGES, PLATFORMS, TAG_LIMIT } from "./config.js";
 import { t, getCurrentLanguage, getLanguageDisplayName } from "./i18n/index.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
-import { updateDiscordVisibility } from "./profiles.js";
+import { updateDiscordVisibility, updateCalendarVisibility, readCalendarRemindersFromDom, renderCalendarReminders } from "./profiles.js";
 
 const EVENT_HOURLY_LIMIT = 10;
 const EVENT_HOURLY_WINDOW_MS = 60 * 60 * 1000;
@@ -731,9 +731,19 @@ export function applyManualEventDefaults(options = {}) {
     renderEventLanguageList();
     renderEventPlatformList();
     if (dom.eventDiscordSyncCheck) dom.eventDiscordSyncCheck.checked = true;
+    if (dom.eventWebhookPostCheck) dom.eventWebhookPostCheck.checked = false;
+    if (dom.eventCalendarCreateCheck) dom.eventCalendarCreateCheck.checked = false;
+    if (dom.eventCalendarRemindersEnabled) dom.eventCalendarRemindersEnabled.checked = false;
+    if (dom.eventCalendarRemindersList) dom.eventCalendarRemindersList.innerHTML = "";
+    if (dom.eventWebhookMessageEnabled) dom.eventWebhookMessageEnabled.checked = false;
+    if (dom.eventWebhookMessage) dom.eventWebhookMessage.value = "";
+    if (dom.eventWebhookImagePath) dom.eventWebhookImagePath.value = "";
+    if (dom.eventWebhookMessageInput) dom.eventWebhookMessageInput.classList.add("is-hidden");
   }
   updateDateMode(null);
   updateDateOptions(null, null);
+  updateDiscordVisibility();
+  updateCalendarVisibility();
 }
 
 export async function renderEventRoleRestrictions(api) {
@@ -793,6 +803,7 @@ export async function handleEventGroupChange(api) {
   // Update featured checkbox visibility based on verified groups
   void updateEventTogglesVisibility(api);
   updateDiscordVisibility();
+  updateCalendarVisibility();
 }
 
 async function updateEventTogglesVisibility(api) {
@@ -954,7 +965,14 @@ export async function handleEventCreate(api) {
     imageId: dom.eventImageId.value.trim() || null,
     sendCreationNotification: Boolean(dom.eventSendNotification.checked),
     featured: Boolean(dom.eventFeatured?.checked),
-    discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true
+    discordSync: dom.eventDiscordSyncCheck ? dom.eventDiscordSyncCheck.checked : true,
+    webhookPost: dom.eventWebhookPostCheck ? dom.eventWebhookPostCheck.checked : false,
+    calendarCreate: dom.eventCalendarCreateCheck ? dom.eventCalendarCreateCheck.checked : false,
+    calendarRemindersEnabled: dom.eventCalendarRemindersEnabled ? dom.eventCalendarRemindersEnabled.checked : false,
+    calendarReminders: readCalendarRemindersFromDom(dom.eventCalendarRemindersList),
+    webhookMessageEnabled: dom.eventWebhookMessageEnabled ? dom.eventWebhookMessageEnabled.checked : false,
+    webhookMessage: dom.eventWebhookMessage ? dom.eventWebhookMessage.value : "",
+    webhookImagePath: dom.eventWebhookImagePath ? dom.eventWebhookImagePath.value : ""
   };
   if (eventData.accessType === "group") {
     eventData.roleIds = (state.event.roleIds || []).filter(id => typeof id === "string" && id.trim());
@@ -1183,6 +1201,34 @@ export function applyProfileToEventForm(groupId, profileKey, api) {
   if (dom.eventDiscordSyncCheck) {
     dom.eventDiscordSyncCheck.checked = profile.discordSync === true;
   }
+  // Apply template's Webhook post preference
+  if (dom.eventWebhookPostCheck) {
+    dom.eventWebhookPostCheck.checked = profile.webhookPost === true;
+  }
+  // Apply template's Calendar preferences
+  if (dom.eventCalendarCreateCheck) {
+    dom.eventCalendarCreateCheck.checked = profile.calendarSync === true;
+  }
+  if (dom.eventCalendarRemindersEnabled) {
+    dom.eventCalendarRemindersEnabled.checked = profile.calendarRemindersEnabled === true;
+  }
+  // Render template reminders into event form
+  renderCalendarReminders(dom.eventCalendarRemindersList, profile.calendarReminders || []);
+  // Apply template's webhook message settings
+  if (dom.eventWebhookMessageEnabled) {
+    dom.eventWebhookMessageEnabled.checked = profile.webhookMessageEnabled === true;
+  }
+  if (dom.eventWebhookMessage) {
+    dom.eventWebhookMessage.value = profile.webhookMessage || "";
+  }
+  if (dom.eventWebhookImagePath) {
+    dom.eventWebhookImagePath.value = profile.webhookImagePath || "";
+  }
+  if (dom.eventWebhookMessageInput) {
+    dom.eventWebhookMessageInput.classList.toggle("is-hidden", !profile.webhookMessageEnabled);
+  }
+  updateDiscordVisibility();
+  updateCalendarVisibility();
 }
 
 function getProfileLabel(profileKey, profile) {

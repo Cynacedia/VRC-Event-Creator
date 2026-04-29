@@ -48,7 +48,7 @@ The bot will appear in your member list but will stay offline - it doesn't need 
 2. Select the VRChat group you want to link, enter your bot token and server ID, then save
 3. Use **"Verify Bot Token"** to confirm the token works
 
-Each event template has a **"Sync to Discord"** toggle in the Basics tab. This is enabled by default when Discord integration is active. You can then toggle it to disable it for events you don't want to post to Discord.
+Each event template has a **"Post to Discord"** toggle in the Basics tab. This is enabled by default when Discord integration is active. You can then toggle it to disable it for events you don't want to post to Discord.
 
 **Discord sync never blocks VRChat event creation.** If anything goes wrong on the Discord side, your VRChat event still gets created normally.
 
@@ -64,7 +64,7 @@ Yes, as long as it has the **Create Events** permission in the target server.
 
 Each person who creates events needs the bot token on their machine. Options:
 - **Share the token** with trusted staff
-- **Have one person manage Discord sync** while others disable "Sync to Discord"
+- **Have one person manage Discord sync** while others disable "Post to Discord"
 - **Create separate bots** per staff member
 
 ### Is my bot token safe?
@@ -85,4 +85,4 @@ No, the app only creates them. Manage Discord Events directly in Discord.
 | "Bot lacks permission to create events" | Reinvite the bot with Create Events permission, or add it via Server Settings > Roles |
 | "Discord server not found" | Double-check the Server ID (right-click server > Copy Server ID) |
 | "Discord rate limit hit" | Wait a minute and try again |
-| Events created in VRChat but not in Discord | Check that "Sync to Discord" is enabled and the group has a valid bot token + server ID |
+| Events created in VRChat but not in Discord | Check that "Post to Discord" is enabled and the group has a valid bot token + server ID |

@@ -2,6 +2,41 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
+## [1.2.0] - 2026-04-29
+
+### Added
+- **Calendar Integration** — Generate .ics calendar invite files with configurable reminders when VRChat events are created
+  - Per-template and per-event "Create .ics Calendar Invite" toggle with reminder configuration
+  - Preset reminder intervals (5min to 1 week) compatible with Outlook, Apple Calendar, and other clients
+  - Reminders sorted longest-first for best compatibility with single-reminder clients
+  - Discord webhook delivery: posts a rich embed with event details, banner image, group icon, and .ics file attachment
+  - Discord embed uses unix timestamps (each viewer sees their local timezone) and language-agnostic emoji labels
+  - .ics files always auto-save to a local directory when calendar is enabled
+  - Local save dialog for manual .ics export
+  - Deterministic ICS UIDs for update-safe re-delivery
+  - Per-group webhook URL configuration with test/verify button (encrypted storage)
+- **EC Kit** — Webhook identity customization for groups with an active license
+  - Custom webhook display name, avatar URL, and embed color per group
+  - Per-template and per-event custom webhook message textarea and image attachment
+  - Pending automated events can have custom message/image edited before posting
+  - Ed25519 signed license verification (offline, public key in app)
+  - Import button in Discord Integration per-group settings
+- Calendar integration setting under Advanced Settings
+- Translations for all new strings across all 10 supported languages
+
+### Changed
+- **Decoupled posting options** — Discord scheduled events, Discord webhook posts, and .ics calendar file generation are now three independent toggles
+  - "Create Discord Event" — creates a Discord scheduled event (requires bot token + guild ID)
+  - "Post Discord Webhook" — posts to a Discord webhook (requires webhook URL, independent of Discord events and calendar)
+  - "Create .ics Calendar Invite" — generates and auto-saves an .ics file (independent of webhook and Discord events)
+  - When webhook and calendar are both enabled, .ics is attached to the webhook post and also auto-saved
+  - When webhook and Discord event are both enabled, webhook message includes the Discord event link
+  - Kit custom message/image fields now depend only on the webhook toggle being enabled
+- "Sync to Discord" renamed to "Create Discord Event" across all languages
+- Webhook URL field in Discord settings now visible when Discord integration is enabled (previously required calendar)
+- Calendar setup guides rewritten for all 10 languages to reflect the decoupled architecture
+- Linux build now uses .ico icon (electron-builder auto-converts to PNG)
+
 ## [1.1.3] - 2026-03-08
 
 ### Fixed

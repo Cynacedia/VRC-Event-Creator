@@ -165,9 +165,58 @@ export const nl = {
       selectGroup: "Selecteer een groep...",
       saveButton: "Opslaan",
       saved: "Discord-instellingen opgeslagen.",
-      syncLabel: "Synchroniseren met Discord",
+      syncLabel: "Publiceren op Discord",
+      eventLabel: "Discord-evenement maken",
       syncSuccess: "Discord-evenement aangemaakt voor \"{title}\"",
       syncFailed: "Discord-synchronisatie mislukt voor \"{title}\": {error}"
+    },
+    webhook: {
+      postLabel: "Discord-Webhook posten",
+      enableLabel: "Webhook inschakelen",
+      syncSuccess: "Webhook verzonden voor \"{title}\"",
+      syncFailed: "Webhook-levering mislukt voor \"{title}\": {error}"
+    },
+    calendar: {
+      title: "Kalender Integratie",
+      description: "Genereert .ics-kalenderbestanden met herinneringen, lokaal opgeslagen of bijgevoegd aan webhook-berichten.",
+      enable: "Kalenderbestand generatie inschakelen",
+      createInvite: ".ics kalenderuitnodiging maken",
+      remindersTitle: ".ics kalenderherinneringen",
+      enableReminders: ".ics kalenderherinneringen inschakelen",
+      remindersDescription: "Configureer standaard herinneringen in .ics bestanden.",
+      addReminder: "Herinnering Toevoegen",
+      postToDiscord: ".ics naar Discord posten",
+      unit: {
+        minutes: "minuten",
+        hours: "uren",
+        days: "dagen"
+      },
+      syncLabel: ".ics bestand bijvoegen",
+      syncSuccess: "Kalenderbestand verstuurd voor \"{title}\"",
+      syncFailed: "Kalenderbestand verzending mislukt voor \"{title}\": {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Webhook Testen",
+      webhookTestSuccess: "Webhook geverifieerd: {webhookName}",
+      webhookTestFailed: "Webhook test mislukt. Controleer de URL.",
+      webhookMissing: "Voer eerst een webhook URL in.",
+      remindersHint: "Sommige kalender-apps gebruiken mogelijk alleen de eerste herinnering.",
+      saveDirLabel: "Kalender opslagmap",
+      autoSaved: "Kalenderbestand opgeslagen: {filePath}"
+    },
+    eckit: {
+      importButton: "Kit Importeren",
+      webhookName: "Webhook Weergavenaam",
+      webhookNamePlaceholder: "Mijn Groep Evenementen",
+      embedColor: "Embed Kleur",
+      avatarUrl: "Avatar URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Aangepast webhook bericht bijvoegen",
+      messageTitle: "Aangepast Webhook Bericht",
+      messagePlaceholder: "Schrijf een aangepast bericht om bij de webhook post te voegen...",
+      attachImage: "Afbeelding bijvoegen",
+      noImage: "Geen afbeelding geselecteerd",
+      selectImage: "Selecteren"
     },
     saveButton: "Instellingen opslaan",
     saved: "Instellingen opgeslagen."
@@ -351,7 +400,8 @@ export const nl = {
       cancelFailed: "Kon evenement in afwachting niet annuleren.",
       editSaved: "Evenement in afwachting bijgewerkt.",
       editFailed: "Kon evenement in afwachting niet bijwerken."
-    }
+    },
+    postingOptions: "Publicatieopties"
   },
   profiles: {
     title: "Sjablonen beheren",

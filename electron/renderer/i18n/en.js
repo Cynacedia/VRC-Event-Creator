@@ -165,9 +165,58 @@ export const en = {
       selectGroup: "Select a group...",
       saveButton: "Save",
       saved: "Discord settings saved.",
-      syncLabel: "Sync to Discord",
+      syncLabel: "Post to Discord",
+      eventLabel: "Create Discord Event",
       syncSuccess: "Discord event created for \"{title}\"",
       syncFailed: "Discord sync failed for \"{title}\": {error}"
+    },
+    webhook: {
+      postLabel: "Post Discord Webhook",
+      enableLabel: "Enable Webhook",
+      syncSuccess: "Webhook sent for \"{title}\"",
+      syncFailed: "Webhook delivery failed for \"{title}\": {error}"
+    },
+    calendar: {
+      title: "Calendar Integration",
+      description: "Generate .ics calendar files with reminders, auto-saved locally or attached to webhook posts.",
+      enable: "Enable calendar file generation",
+      createInvite: "Create .ics Calendar Invite",
+      remindersTitle: ".ics Calendar Reminders",
+      enableReminders: "Enable .ics Calendar Reminders",
+      remindersDescription: "Configure default reminders included in .ics files.",
+      addReminder: "Add Reminder",
+      postToDiscord: "Post .ics to Discord",
+      unit: {
+        minutes: "minutes",
+        hours: "hours",
+        days: "days"
+      },
+      syncLabel: "Attach .ics file",
+      syncSuccess: "Calendar file sent for \"{title}\"",
+      syncFailed: "Calendar file delivery failed for \"{title}\": {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Test Webhook",
+      webhookTestSuccess: "Webhook verified: {webhookName}",
+      webhookTestFailed: "Webhook test failed. Check the URL.",
+      webhookMissing: "Enter a webhook URL first.",
+      remindersHint: "Some calendar apps may only use the first reminder.",
+      saveDirLabel: "Calendar save directory",
+      autoSaved: "Calendar file saved: {filePath}"
+    },
+    eckit: {
+      importButton: "Import Kit",
+      webhookName: "Webhook Display Name",
+      webhookNamePlaceholder: "My Group Events",
+      embedColor: "Embed Color",
+      avatarUrl: "Avatar URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Attach Custom Webhook Message",
+      messageTitle: "Custom Webhook Message",
+      messagePlaceholder: "Write a custom message to include with the webhook post...",
+      attachImage: "Attach Image",
+      noImage: "No image selected",
+      selectImage: "Select"
     },
     saveButton: "Save Settings",
     saved: "Settings saved."
@@ -351,7 +400,8 @@ export const en = {
       cancelFailed: "Could not cancel pending event.",
       editSaved: "Pending event updated.",
       editFailed: "Could not update pending event."
-    }
+    },
+    postingOptions: "Posting Options"
   },
   profiles: {
     title: "Manage Templates",

@@ -165,9 +165,58 @@ export const fr = {
       selectGroup: "Sélectionner un groupe...",
       saveButton: "Enregistrer",
       saved: "Paramètres Discord enregistrés.",
-      syncLabel: "Synchroniser avec Discord",
+      syncLabel: "Publier sur Discord",
+      eventLabel: "Créer un événement Discord",
       syncSuccess: "Événement Discord créé pour « {title} »",
       syncFailed: "Synchronisation Discord échouée pour « {title} » : {error}"
+    },
+    webhook: {
+      postLabel: "Publier le Webhook Discord",
+      enableLabel: "Activer le Webhook",
+      syncSuccess: "Webhook envoyé pour \"{title}\"",
+      syncFailed: "Échec de livraison du webhook pour \"{title}\" : {error}"
+    },
+    calendar: {
+      title: "Intégration Calendrier",
+      description: "Génère des fichiers calendrier .ics avec rappels, enregistrés localement ou joints aux publications webhook.",
+      enable: "Activer la génération de fichiers calendrier",
+      createInvite: "Créer une invitation calendrier .ics",
+      remindersTitle: "Rappels calendrier .ics",
+      enableReminders: "Activer les rappels calendrier .ics",
+      remindersDescription: "Configurez les rappels par défaut inclus dans les fichiers .ics.",
+      addReminder: "Ajouter un Rappel",
+      postToDiscord: "Publier .ics sur Discord",
+      unit: {
+        minutes: "minutes",
+        hours: "heures",
+        days: "jours"
+      },
+      syncLabel: "Joindre le fichier .ics",
+      syncSuccess: "Fichier calendrier envoyé pour \"{title}\"",
+      syncFailed: "Échec de l'envoi du fichier calendrier pour \"{title}\" : {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Tester le Webhook",
+      webhookTestSuccess: "Webhook vérifié : {webhookName}",
+      webhookTestFailed: "Test du webhook échoué. Vérifiez l'URL.",
+      webhookMissing: "Entrez d'abord une URL de webhook.",
+      remindersHint: "Certaines applications de calendrier peuvent n'utiliser que le premier rappel.",
+      saveDirLabel: "Répertoire de sauvegarde du calendrier",
+      autoSaved: "Fichier calendrier sauvegardé : {filePath}"
+    },
+    eckit: {
+      importButton: "Importer le Kit",
+      webhookName: "Nom du Webhook",
+      webhookNamePlaceholder: "Événements de Mon Groupe",
+      embedColor: "Couleur de l'Embed",
+      avatarUrl: "URL de l'Avatar",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "Joindre un message personnalisé au webhook",
+      messageTitle: "Message personnalisé du webhook",
+      messagePlaceholder: "Écrivez un message personnalisé à inclure avec le webhook...",
+      attachImage: "Joindre une image",
+      noImage: "Aucune image sélectionnée",
+      selectImage: "Sélectionner"
     },
     saveButton: "Enregistrer les paramètres",
     saved: "Paramètres enregistrés."
@@ -351,7 +400,8 @@ export const fr = {
       cancelFailed: "Impossible d'annuler l'événement en attente.",
       editSaved: "Événement en attente mis à jour.",
       editFailed: "Impossible de mettre à jour l'événement en attente."
-    }
+    },
+    postingOptions: "Options de publication"
   },
     profiles: {
     title: "Gérer les modèles",

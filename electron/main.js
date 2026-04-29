@@ -3,12 +3,19 @@ const { autoUpdater } = require("electron-updater");
 
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const { DateTime } = require("luxon");
 const { VRChat } = require("vrchat");
 const { KeyvFile } = require("keyv-file");
 const { generateDateOptionsFromPatterns, safeZone } = require("./core/date-utils");
 const automationEngine = require("./core/automation-engine");
 const discord = require("./core/discord");
+const ics = require("./core/ics");
+const webhook = require("./core/webhook");
+const debugModule = require("./core/debug-log");
+const galleryCacheModule = require("./core/gallery-cache");
+const themeStoreModule = require("./core/theme-store");
+const eckit = require("./core/eckit");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -38,207 +45,18 @@ if (!gotInstanceLock) {
   });
 }
 
-// Debug logging for API calls (only in dev mode)
-// Debug log file path (created after app is ready)
-let DEBUG_LOG_PATH = null;
-
+// Debug logging — delegated to core/debug-log.js
 function initDebugLog() {
-  if (!IS_DEV) return;
-  const logDir = app.getPath("userData");
-  DEBUG_LOG_PATH = path.join(logDir, "debug-api.json");
-  // Initialize with empty array
-  try {
-    fs.writeFileSync(DEBUG_LOG_PATH, "[\n", "utf8");
-  } catch (e) {
-    // Ignore
-  }
+  debugModule.init(app.getPath("userData"), IS_DEV);
 }
 
-let debugLogFirstEntry = true;
+const finalizeDebugLog = debugModule.finalize;
+const debugLog = debugModule.log;
+const debugApiCall = debugModule.apiCall;
+const normalizeVersion = debugModule.normalizeVersion;
+const compareVersions = debugModule.compareVersions;
 
-function writeDebugLog(entry) {
-  if (!IS_DEV || !DEBUG_LOG_PATH) return;
-  try {
-    // Sanitize entry to prevent potential issues
-    const sanitized = typeof entry === 'object' && entry !== null ? entry : { data: String(entry) };
-
-    // Validate and sanitize JSON before writing to prevent injection attacks
-    // This creates a safe copy by serializing and parsing, removing any functions or dangerous content
-    let safeData;
-    try {
-      const jsonString = JSON.stringify(sanitized, (key, value) => {
-        // Filter out functions and symbols which could be dangerous
-        if (typeof value === 'function' || typeof value === 'symbol') {
-          return undefined;
-        }
-        // Limit string length to prevent DoS via extremely large strings
-        if (typeof value === 'string' && value.length > 10000) {
-          return value.substring(0, 10000) + '... [truncated]';
-        }
-        return value;
-      });
-      safeData = jsonString;
-    } catch (jsonError) {
-      // If JSON serialization fails, create a safe error log entry
-      safeData = JSON.stringify({
-        type: 'log',
-        timestamp: new Date().toISOString(),
-        message: 'Failed to serialize log entry',
-        error: String(jsonError)
-      });
-    }
-
-    const prefix = debugLogFirstEntry ? "" : ",\n";
-    debugLogFirstEntry = false;
-    // codeql[js/http-to-file-access] - Data is sanitized through JSON.stringify replacer function that filters dangerous content
-    fs.appendFileSync(DEBUG_LOG_PATH, prefix + safeData, "utf8");
-  } catch (e) {
-    // Ignore write errors
-  }
-}
-
-function finalizeDebugLog() {
-  if (!IS_DEV || !DEBUG_LOG_PATH) return;
-  try {
-    fs.appendFileSync(DEBUG_LOG_PATH, "\n]", "utf8");
-  } catch (e) {
-    // Ignore
-  }
-}
-
-// ANSI color codes for terminal output
-const DEBUG_COLORS = {
-  reset: "\x1b[0m",
-  bright: "\x1b[1m",
-  dim: "\x1b[2m",
-  cyan: "\x1b[36m",
-  yellow: "\x1b[33m",
-  green: "\x1b[32m",
-  red: "\x1b[31m",
-  magenta: "\x1b[35m",
-  blue: "\x1b[34m",
-  bgBlue: "\x1b[44m",
-  bgGreen: "\x1b[42m",
-  bgRed: "\x1b[41m",
-  bgYellow: "\x1b[43m",
-  white: "\x1b[37m"
-};
-
-function debugLog(context, ...args) {
-  if (IS_DEV) {
-    const timestamp = new Date().toISOString();
-    const timeStr = `${DEBUG_COLORS.dim}${timestamp}${DEBUG_COLORS.reset}`;
-    console.log(`${timeStr} ${DEBUG_COLORS.cyan}[${context}]${DEBUG_COLORS.reset}`, ...args);
-    // Write JSON entry to log file
-    writeDebugLog({
-      type: "log",
-      timestamp,
-      context,
-      message: args.map(a => typeof a === "object" ? a : String(a))
-    });
-  }
-}
-
-function debugApiCall(name, params) {
-  if (IS_DEV) {
-    const timestamp = new Date().toISOString();
-    const divider = `${DEBUG_COLORS.blue}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
-    const header = `${DEBUG_COLORS.bgBlue}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ▶ API REQUEST: ${name} ${DEBUG_COLORS.reset}`;
-    console.log("");
-    console.log(divider);
-    console.log(header);
-    console.log(divider);
-    console.log(`${DEBUG_COLORS.yellow}Parameters:${DEBUG_COLORS.reset}`);
-    console.log(JSON.stringify(params, null, 2));
-    // Write JSON entry to log file
-    writeDebugLog({
-      type: "request",
-      timestamp,
-      api: name,
-      params
-    });
-  }
-}
-
-function normalizeVersion(version) {
-  return String(version || "").trim().replace(/^v/i, "");
-}
-
-function compareVersions(a, b) {
-  const left = normalizeVersion(a).split(".").map(part => parseInt(part, 10) || 0);
-  const right = normalizeVersion(b).split(".").map(part => parseInt(part, 10) || 0);
-  const length = Math.max(left.length, right.length);
-  for (let i = 0; i < length; i += 1) {
-    const leftValue = left[i] || 0;
-    const rightValue = right[i] || 0;
-    if (leftValue > rightValue) {
-      return 1;
-    }
-    if (leftValue < rightValue) {
-      return -1;
-    }
-  }
-  return 0;
-}
-
-function debugApiResponse(name, response, error = null) {
-  if (IS_DEV) {
-    const timestamp = new Date().toISOString();
-    if (error) {
-      const divider = `${DEBUG_COLORS.red}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
-      const header = `${DEBUG_COLORS.bgRed}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ✖ API ERROR: ${name} ${DEBUG_COLORS.reset}`;
-      console.log(divider);
-      console.log(header);
-      console.log(divider);
-      console.log(`${DEBUG_COLORS.red}Status:${DEBUG_COLORS.reset} ${error?.response?.status || "N/A"} ${error?.response?.statusText || ""}`);
-      console.log(`${DEBUG_COLORS.red}Message:${DEBUG_COLORS.reset} ${error?.message || "Unknown error"}`);
-      if (error?.response?.data) {
-        console.log(`${DEBUG_COLORS.red}Response Data:${DEBUG_COLORS.reset}`);
-        console.log(JSON.stringify(error.response.data, null, 2));
-      }
-      if (error?.stack) {
-        console.log(`${DEBUG_COLORS.dim}Stack: ${error.stack}${DEBUG_COLORS.reset}`);
-      }
-      console.log(divider);
-      console.log("");
-      // Write JSON entry to log file
-      writeDebugLog({
-        type: "error",
-        timestamp,
-        api: name,
-        status: error?.response?.status || null,
-        statusText: error?.response?.statusText || null,
-        message: error?.message || "Unknown error",
-        responseData: error?.response?.data || null
-      });
-    } else {
-      const divider = `${DEBUG_COLORS.green}${"─".repeat(60)}${DEBUG_COLORS.reset}`;
-      const header = `${DEBUG_COLORS.bgGreen}${DEBUG_COLORS.white}${DEBUG_COLORS.bright} ✔ API RESPONSE: ${name} ${DEBUG_COLORS.reset}`;
-      console.log(divider);
-      console.log(header);
-      console.log(divider);
-      console.log(`${DEBUG_COLORS.green}Status:${DEBUG_COLORS.reset} ${response?.status || "N/A"} ${response?.statusText || ""}`);
-      console.log(`${DEBUG_COLORS.green}Data Type:${DEBUG_COLORS.reset} ${typeof response?.data}`);
-      if (response?.data && typeof response.data === "object") {
-        const keys = Array.isArray(response.data) ? `Array[${response.data.length}]` : Object.keys(response.data).join(", ");
-        console.log(`${DEBUG_COLORS.green}Data Keys:${DEBUG_COLORS.reset} ${keys}`);
-      }
-      console.log(`${DEBUG_COLORS.magenta}Response Data:${DEBUG_COLORS.reset}`);
-      console.log(JSON.stringify(response?.data, null, 2));
-      console.log(divider);
-      console.log("");
-      // Write JSON entry to log file
-      writeDebugLog({
-        type: "response",
-        timestamp,
-        api: name,
-        status: response?.status || null,
-        statusText: response?.statusText || null,
-        data: response?.data || null
-      });
-    }
-  }
-}
+const debugApiResponse = debugModule.apiResponse;
 const pkg = (() => {
   const pkgPath = path.join(__dirname, "..", "package.json");
   return JSON.parse(fs.readFileSync(pkgPath, "utf8"));
@@ -300,22 +118,19 @@ let DATA_DIR;
 let PROFILES_PATH;
 let CACHE_PATH;
 let SETTINGS_PATH;
-let THEMES_PATH;
 let PENDING_EVENTS_PATH;
 let AUTOMATION_STATE_PATH;
 let GALLERY_CACHE_DIR;
 let GALLERY_MANIFEST_PATH;
+let KITS_DIR;
+let WEBHOOK_IMAGES_DIR;
 let settings;
 let vrchat;
-let themeStore;
-let THEME_PRESETS_DIR;
-let THEME_PRESETS_SEED_PATH;
-let THEME_PRESETS_BUNDLED_DIR;
-const RESERVED_THEME_PRESET_KEYS = new Set(["default", "wired", "custom", "blue"]);
 const groupPermissionCache = new Map();
 const groupPrivacyCache = new Map();
 const groupRolesCache = new Map();
 const groupTagsCache = new Map();
+const groupIconCache = new Map();
 const FAILED_GET_CACHE_MS = 15 * 60 * 1000;
 const GET_DEDUPE_WINDOW_MS = 10 * 1000;
 const failedGetRequests = new Map();
@@ -333,20 +148,47 @@ function initializePaths() {
   PROFILES_PATH = path.join(DATA_DIR, "profiles.json");
   CACHE_PATH = path.join(DATA_DIR, "cache.json");
   SETTINGS_PATH = path.join(DATA_DIR, "settings.json");
-  THEMES_PATH = path.join(DATA_DIR, "themes.json");
   PENDING_EVENTS_PATH = path.join(DATA_DIR, "pending-events.json");
   AUTOMATION_STATE_PATH = path.join(DATA_DIR, "automation-state.json");
   GALLERY_CACHE_DIR = path.join(DATA_DIR, "gallery-cache");
   GALLERY_MANIFEST_PATH = path.join(GALLERY_CACHE_DIR, "manifest.json");
-  THEME_PRESETS_DIR = path.join(DATA_DIR, "themes");
-  THEME_PRESETS_SEED_PATH = path.join(THEME_PRESETS_DIR, ".seeded");
-  THEME_PRESETS_BUNDLED_DIR = path.join(__dirname, "themes");
+  galleryCacheModule.init({
+    cacheDir: GALLERY_CACHE_DIR,
+    manifestPath: GALLERY_MANIFEST_PATH,
+    getVrchat: () => vrchat,
+    debugLog: debugLog
+  });
+  KITS_DIR = path.join(DATA_DIR, "kits");
+  WEBHOOK_IMAGES_DIR = path.join(DATA_DIR, "webhook-images");
+  eckit.loadKits(KITS_DIR);
   settings = loadSettings();
-  const rawThemeStore = loadThemeStoreRaw();
-  themeStore = normalizeThemeStore(rawThemeStore);
-  seedThemePresets();
-  migrateThemeStorePresets(rawThemeStore);
+  themeStoreModule.init({
+    themesPath: path.join(DATA_DIR, "themes.json"),
+    presetsDir: path.join(DATA_DIR, "themes"),
+    seedPath: path.join(DATA_DIR, "themes", ".seeded"),
+    bundledDir: path.join(__dirname, "themes"),
+    getMainWindow: () => mainWindow,
+    dialog
+  });
+  const rawThemeStore = themeStoreModule.loadThemeStoreRaw();
+  themeStoreModule.setThemeStore(themeStoreModule.normalizeThemeStore(rawThemeStore));
+  themeStoreModule.seedThemePresets();
+  themeStoreModule.migrateThemeStorePresets(rawThemeStore);
   vrchat = createClient();
+}
+
+function normalizeCalendarReminders(raw) {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return [{ value: 30, unit: "minutes" }];
+  }
+  const validUnits = ["minutes", "hours", "days"];
+  const normalized = raw
+    .filter(r => r && typeof r === "object" && typeof r.value === "number" && validUnits.includes(r.unit))
+    .map(r => ({
+      value: Math.max(1, Math.min(r.unit === "days" ? 7 : r.unit === "hours" ? 168 : 10080, Math.floor(r.value))),
+      unit: r.unit
+    }));
+  return normalized.length ? normalized : [{ value: 30, unit: "minutes" }];
 }
 
 function normalizeSettings(raw) {
@@ -360,7 +202,10 @@ function normalizeSettings(raw) {
       enableImportExport: false,
       autoUploadImages: false,
       startOnStartup: false,
-      discordEnabled: false
+      discordEnabled: false,
+      calendarEnabled: false,
+      calendarSaveDir: "",
+      calendarReminders: [{ value: 30, unit: "minutes" }]
     };
   }
   return {
@@ -371,7 +216,10 @@ function normalizeSettings(raw) {
     enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
     autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false,
     startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false,
-    discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false
+    discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false,
+    calendarEnabled: typeof raw.calendarEnabled === "boolean" ? raw.calendarEnabled : false,
+    calendarSaveDir: typeof raw.calendarSaveDir === "string" ? raw.calendarSaveDir : "",
+    calendarReminders: normalizeCalendarReminders(raw.calendarReminders)
   };
 }
 
@@ -384,473 +232,7 @@ function loadSettings() {
   }
 }
 
-// Gallery cache helper functions
-function ensureGalleryCacheDir() {
-  try {
-    fs.mkdirSync(GALLERY_CACHE_DIR, { recursive: true });
-  } catch (err) {
-    debugLog("galleryCache", "Failed to create cache directory:", err.message);
-  }
-}
-
-function loadGalleryCacheManifest() {
-  try {
-    const raw = JSON.parse(fs.readFileSync(GALLERY_MANIFEST_PATH, "utf8"));
-    if (raw.version !== 1) return { version: 1, images: {} };
-    return raw;
-  } catch {
-    return { version: 1, images: {} };
-  }
-}
-
-function saveGalleryCacheManifest(manifest) {
-  try {
-    ensureGalleryCacheDir();
-    fs.writeFileSync(GALLERY_MANIFEST_PATH, JSON.stringify(manifest, null, 2), "utf8");
-  } catch (err) {
-    debugLog("galleryCache", "Failed to save manifest:", err.message);
-  }
-}
-
-async function downloadGalleryImage(imageId, _remoteUrl, mimeType) {
-  try {
-    ensureGalleryCacheDir();
-    const ext = mimeType === "image/png" ? ".png" : ".jpg";
-    const localFileName = `${imageId}${ext}`;
-    const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
-
-    // Validate that the resolved path is within the cache directory (prevent path traversal)
-    const normalizedPath = path.normalize(localPath);
-    const normalizedCacheDir = path.normalize(GALLERY_CACHE_DIR);
-    if (!normalizedPath.startsWith(normalizedCacheDir)) {
-      debugLog("galleryCache", `Invalid path detected for ${imageId}`);
-      return null;
-    }
-
-    // Use SDK's authenticated downloadFileVersion method
-    // First get file info to determine version
-    const fileRes = await vrchat.getFile({
-      path: { fileId: imageId },
-      throwOnError: false
-    });
-    const file = fileRes?.data;
-    if (!file || !file.versions?.length) {
-      debugLog("galleryCache", `No file data or versions for ${imageId}`);
-      return null;
-    }
-
-    const lastVersion = file.versions[file.versions.length - 1];
-    const versionNum = lastVersion?.version ?? 1;
-
-    debugLog("galleryCache", `Downloading ${imageId} version ${versionNum} via SDK`);
-
-    const downloadRes = await vrchat.downloadFileVersion({
-      path: { fileId: imageId, versionId: versionNum },
-      throwOnError: false
-    });
-
-    const blob = downloadRes?.data;
-    if (!blob) {
-      debugLog("galleryCache", `Failed to download ${imageId}: no blob data`);
-      return null;
-    }
-
-    const arrayBuffer = await blob.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
-    if (buffer.length > MAX_IMAGE_SIZE) {
-      debugLog("galleryCache", `Downloaded image too large for ${imageId}: ${buffer.length} bytes`);
-      return null;
-    }
-
-    // Verify buffer contains valid image data by checking magic bytes
-    const isValidImage =
-      (buffer.length >= 8 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) || // PNG
-      (buffer.length >= 3 && buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) || // JPEG
-      (buffer.length >= 12 && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50); // WebP
-
-    if (!isValidImage) {
-      debugLog("galleryCache", `Invalid image data for ${imageId}`);
-      return null;
-    }
-
-    fs.writeFileSync(localPath, buffer);
-
-    const manifest = loadGalleryCacheManifest();
-    manifest.images[imageId] = {
-      localPath: localFileName,
-      cachedAt: Date.now(),
-      lastAccessed: Date.now(),
-      size: buffer.length,
-      mimeType
-    };
-    saveGalleryCacheManifest(manifest);
-
-    debugLog("galleryCache", `Cached image: ${imageId} (${buffer.length} bytes)`);
-    return localFileName;
-  } catch (err) {
-    debugLog("galleryCache", `Error caching ${imageId}:`, err.message);
-    return null;
-  }
-}
-
-function getCachedImageAsDataUrl(imageId) {
-  try {
-    const manifest = loadGalleryCacheManifest();
-    const entry = manifest.images[imageId];
-    if (!entry) return null;
-
-    const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
-    if (!fs.existsSync(localPath)) {
-      // File missing, remove from manifest
-      delete manifest.images[imageId];
-      saveGalleryCacheManifest(manifest);
-      return null;
-    }
-
-    const buffer = fs.readFileSync(localPath);
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${entry.mimeType};base64,${base64}`;
-
-    // Update last accessed time
-    entry.lastAccessed = Date.now();
-    saveGalleryCacheManifest(manifest);
-
-    return dataUrl;
-  } catch (err) {
-    debugLog("galleryCache", `Error reading cached image ${imageId}:`, err.message);
-    return null;
-  }
-}
-
-function cleanGalleryCache(maxAgeDays = 30) {
-  try {
-    const manifest = loadGalleryCacheManifest();
-    const maxAgeMs = maxAgeDays * 24 * 60 * 60 * 1000;
-    const now = Date.now();
-    let removed = 0;
-
-    for (const [imageId, entry] of Object.entries(manifest.images)) {
-      const age = now - (entry.lastAccessed || entry.cachedAt);
-      if (age > maxAgeMs) {
-        const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
-        try {
-          fs.unlinkSync(localPath);
-        } catch { /* ignore */ }
-        delete manifest.images[imageId];
-        removed++;
-      }
-    }
-
-    if (removed > 0) {
-      saveGalleryCacheManifest(manifest);
-      debugLog("galleryCache", `Cleaned ${removed} stale cache entries`);
-    }
-    return removed;
-  } catch (err) {
-    debugLog("galleryCache", "Error cleaning cache:", err.message);
-    return 0;
-  }
-}
-
-function removeDeletedFromGalleryCache(currentImageIds) {
-  try {
-    const manifest = loadGalleryCacheManifest();
-    const currentSet = new Set(currentImageIds);
-    let removed = 0;
-
-    for (const cachedId of Object.keys(manifest.images)) {
-      if (!currentSet.has(cachedId)) {
-        const entry = manifest.images[cachedId];
-        const localPath = path.join(GALLERY_CACHE_DIR, entry.localPath);
-        try {
-          fs.unlinkSync(localPath);
-        } catch { /* ignore */ }
-        delete manifest.images[cachedId];
-        removed++;
-      }
-    }
-
-    if (removed > 0) {
-      saveGalleryCacheManifest(manifest);
-      debugLog("galleryCache", `Removed ${removed} deleted images from cache`);
-    }
-    return removed;
-  } catch (err) {
-    debugLog("galleryCache", "Error removing deleted images:", err.message);
-    return 0;
-  }
-}
-
-function loadThemeStoreRaw() {
-  try {
-    return JSON.parse(fs.readFileSync(THEMES_PATH, "utf8"));
-  } catch (err) {
-    return {};
-  }
-}
-
-function normalizeThemeStore(raw) {
-  let selectedPreset = typeof raw?.selectedPreset === "string" ? raw.selectedPreset : "default";
-  if (selectedPreset === "blue") {
-    selectedPreset = "default";
-  }
-  const customColors = raw?.customColors && typeof raw.customColors === "object" ? raw.customColors : null;
-  return { selectedPreset, customColors };
-}
-
-function saveThemeStore(nextStore) {
-  themeStore = normalizeThemeStore(nextStore);
-  fs.writeFileSync(THEMES_PATH, JSON.stringify(themeStore, null, 2));
-  return themeStore;
-}
-
-function sanitizeThemePresetKey(value) {
-  return String(value || "")
-    .trim()
-    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
-    .trim();
-}
-
-function ensureThemePresetDir() {
-  if (!THEME_PRESETS_DIR) {
-    return;
-  }
-  fs.mkdirSync(THEME_PRESETS_DIR, { recursive: true });
-}
-
-function loadSeededThemeKeys() {
-  try {
-    if (fs.existsSync(THEME_PRESETS_SEED_PATH)) {
-      const content = fs.readFileSync(THEME_PRESETS_SEED_PATH, "utf8");
-      const parsed = JSON.parse(content);
-      if (Array.isArray(parsed)) {
-        return new Set(parsed.map(k => String(k).toLowerCase()));
-      }
-    }
-  } catch (err) {
-    // Ignore read errors
-  }
-  return new Set();
-}
-
-function saveSeededThemeKeys(keys) {
-  try {
-    fs.writeFileSync(THEME_PRESETS_SEED_PATH, JSON.stringify(Array.from(keys)));
-  } catch (err) {
-    // Ignore write errors
-  }
-}
-
-function seedThemePresets() {
-  if (!THEME_PRESETS_DIR || !THEME_PRESETS_BUNDLED_DIR) {
-    return;
-  }
-  if (!fs.existsSync(THEME_PRESETS_BUNDLED_DIR)) {
-    return;
-  }
-  ensureThemePresetDir();
-  const seededKeys = loadSeededThemeKeys();
-  const bundled = fs.readdirSync(THEME_PRESETS_BUNDLED_DIR)
-    .filter(file => file.toLowerCase().endsWith(".json"));
-  bundled.forEach(file => {
-    const key = path.basename(file, ".json").toLowerCase();
-    // Skip if already seeded
-    if (seededKeys.has(key)) {
-      return;
-    }
-    const source = path.join(THEME_PRESETS_BUNDLED_DIR, file);
-    const target = path.join(THEME_PRESETS_DIR, file);
-    try {
-      fs.copyFileSync(source, target);
-      seededKeys.add(key);
-    } catch (err) {
-      // Ignore copy errors
-    }
-  });
-  saveSeededThemeKeys(seededKeys);
-}
-
-function readThemePresetFile(filePath) {
-  try {
-    const raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
-    const key = path.basename(filePath, ".json");
-    if (!key || RESERVED_THEME_PRESET_KEYS.has(key.toLowerCase())) {
-      return null;
-    }
-    let colors = null;
-    if (raw?.colors && typeof raw.colors === "object") {
-      colors = raw.colors;
-    } else if (raw && typeof raw === "object" && !raw.name) {
-      colors = raw;
-    }
-    if (!colors || typeof colors !== "object") {
-      return null;
-    }
-    const name = typeof raw?.name === "string" && raw.name.trim() ? raw.name.trim() : key;
-    return { key, name, colors };
-  } catch (err) {
-    return null;
-  }
-}
-
-function loadThemePresets() {
-  if (!THEME_PRESETS_DIR) {
-    return [];
-  }
-  ensureThemePresetDir();
-  let files = [];
-  try {
-    files = fs.readdirSync(THEME_PRESETS_DIR).filter(file => file.toLowerCase().endsWith(".json"));
-  } catch (err) {
-    return [];
-  }
-  const presets = [];
-  files.forEach(file => {
-    const preset = readThemePresetFile(path.join(THEME_PRESETS_DIR, file));
-    if (preset) {
-      presets.push(preset);
-    }
-  });
-  return presets;
-}
-
-function writeThemePresetFile({ key, name, colors, allowOverwrite }) {
-  ensureThemePresetDir();
-  const safeName = typeof name === "string" ? name.trim() : "";
-  if (!safeName) {
-    throw new Error("Theme name required.");
-  }
-  let baseKey = sanitizeThemePresetKey(key || safeName);
-  if (!baseKey || RESERVED_THEME_PRESET_KEYS.has(baseKey.toLowerCase())) {
-    baseKey = sanitizeThemePresetKey(safeName) || "theme";
-  }
-  let finalKey = baseKey;
-  let targetPath = path.join(THEME_PRESETS_DIR, `${finalKey}.json`);
-  if (!allowOverwrite || !fs.existsSync(targetPath)) {
-    let index = 1;
-    while (fs.existsSync(targetPath) || RESERVED_THEME_PRESET_KEYS.has(finalKey.toLowerCase())) {
-      finalKey = `${baseKey}-${index}`;
-      targetPath = path.join(THEME_PRESETS_DIR, `${finalKey}.json`);
-      index += 1;
-    }
-  }
-  const payload = { name: safeName, colors: colors || {} };
-  fs.writeFileSync(targetPath, JSON.stringify(payload, null, 2));
-  return { key: finalKey, name: safeName, colors: payload.colors };
-}
-
-function saveThemePreset(payload) {
-  const name = typeof payload?.name === "string" ? payload.name.trim() : "";
-  const colors = payload?.colors && typeof payload.colors === "object" ? payload.colors : null;
-  if (!name || !colors) {
-    throw new Error("Invalid theme preset.");
-  }
-  const key = typeof payload?.key === "string" ? sanitizeThemePresetKey(payload.key) : "";
-  const allowOverwrite = Boolean(key && !RESERVED_THEME_PRESET_KEYS.has(key.toLowerCase()));
-  const result = writeThemePresetFile({ key: allowOverwrite ? key : null, name, colors, allowOverwrite });
-  return { presets: loadThemePresets(), selectedKey: result.key };
-}
-
-function deleteThemePreset(key) {
-  const safeKey = sanitizeThemePresetKey(key);
-  if (!safeKey || RESERVED_THEME_PRESET_KEYS.has(safeKey.toLowerCase())) {
-    return { presets: loadThemePresets() };
-  }
-  const targetPath = path.join(THEME_PRESETS_DIR, `${safeKey}.json`);
-  if (fs.existsSync(targetPath)) {
-    fs.unlinkSync(targetPath);
-  }
-  return { presets: loadThemePresets() };
-}
-
-async function importThemePreset() {
-  if (!mainWindow) {
-    return { ok: false, error: { code: "NO_WINDOW" } };
-  }
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ["openFile"],
-    title: "Import Theme",
-    filters: [{ name: "Theme JSON", extensions: ["json"] }]
-  });
-  if (result.canceled || !result.filePaths.length) {
-    return { ok: false, cancelled: true };
-  }
-  const filePath = result.filePaths[0];
-  let raw = null;
-  try {
-    raw = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch (err) {
-    return { ok: false, error: { code: "FILE_INVALID" } };
-  }
-  let colors = null;
-  if (raw?.colors && typeof raw.colors === "object") {
-    colors = raw.colors;
-  } else if (raw && typeof raw === "object") {
-    colors = raw;
-  }
-  if (!colors || typeof colors !== "object") {
-    return { ok: false, error: { code: "FILE_INVALID" } };
-  }
-  const fallbackName = path.basename(filePath, ".json");
-  const name = typeof raw?.name === "string" && raw.name.trim()
-    ? raw.name.trim()
-    : fallbackName || "Theme";
-  const saved = saveThemePreset({ name, colors });
-  return { ok: true, presets: saved.presets, selectedKey: saved.selectedKey };
-}
-
-async function exportThemePreset(payload) {
-  if (!mainWindow) {
-    return { ok: false, error: { code: "NO_WINDOW" } };
-  }
-  const name = typeof payload?.name === "string" ? payload.name.trim() : "";
-  const colors = payload?.colors && typeof payload.colors === "object" ? payload.colors : null;
-  if (!colors) {
-    return { ok: false, error: { code: "THEME_INVALID" } };
-  }
-  const defaultName = sanitizeThemePresetKey(name) || "theme";
-  const result = await dialog.showSaveDialog(mainWindow, {
-    title: "Export Theme",
-    defaultPath: `${defaultName}.json`,
-    filters: [{ name: "Theme JSON", extensions: ["json"] }]
-  });
-  if (result.canceled || !result.filePath) {
-    return { ok: false, cancelled: true };
-  }
-  const filePath = result.filePath.toLowerCase().endsWith(".json")
-    ? result.filePath
-    : `${result.filePath}.json`;
-  const payloadData = { name: name || defaultName, colors };
-  fs.writeFileSync(filePath, JSON.stringify(payloadData, null, 2));
-  return { ok: true };
-}
-
-function migrateThemeStorePresets(rawStore) {
-  const presets = rawStore?.presets && typeof rawStore.presets === "object" ? rawStore.presets : null;
-  if (!presets || !Object.keys(presets).length) {
-    return;
-  }
-  ensureThemePresetDir();
-  let selected = themeStore.selectedPreset;
-  Object.entries(presets).forEach(([name, colors]) => {
-    if (!name || typeof colors !== "object") {
-      return;
-    }
-    const result = writeThemePresetFile({
-      key: name,
-      name,
-      colors,
-      allowOverwrite: false
-    });
-    if (selected && selected.toLowerCase() === name.toLowerCase()) {
-      selected = result.key;
-    }
-  });
-  themeStore.selectedPreset = selected || themeStore.selectedPreset;
-  saveThemeStore(themeStore);
-}
+// Gallery cache — delegated to core/gallery-cache.js (initialized in initializePaths)
 
 function saveSettings(nextSettings) {
   settings = normalizeSettings(nextSettings);
@@ -903,30 +285,34 @@ function decryptToken(stored) {
 
 // --- Discord sync helper ---
 
-function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
-  if (!settings.discordEnabled) return;
+/**
+ * Create a Discord scheduled event. Returns a promise resolving to
+ * { eventId, guildId } on success, or null if skipped/failed.
+ */
+async function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+  if (!settings.discordEnabled) return null;
 
   const groupData = profiles[groupId];
-  if (!groupData) return;
+  if (!groupData) return null;
 
   const botToken = decryptToken(groupData.discordBotToken);
   const guildId = groupData.discordGuildId;
-  if (!botToken || !guildId) return;
+  if (!botToken || !guildId) return null;
 
   // Check event-level opt-out (from Create Event form)
-  if (eventData?.discordSync === false) return;
+  if (eventData?.discordSync === false) return null;
 
   // Check profile-level opt-in (existing templates must explicitly enable)
   const profile = groupData.profiles?.[profileKey];
-  if (profile && profile.discordSync !== true) return;
+  if (profile && profile.discordSync !== true) return null;
 
-  // Resolve image base64 if available (non-blocking)
-  const imagePromise = eventData.imageId
-    ? getImageBase64ForDiscord(eventData.imageId).catch(() => null)
-    : Promise.resolve(null);
+  try {
+    // Resolve image base64 if available
+    const imageBase64 = eventData.imageId
+      ? await getImageBase64ForDiscord(eventData.imageId).catch(() => null)
+      : null;
 
-  imagePromise.then(imageBase64 => {
-    return discord.createDiscordScheduledEvent({
+    const result = await discord.createDiscordScheduledEvent({
       botToken,
       guildId,
       name: eventData.title,
@@ -935,7 +321,7 @@ function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) 
       endTime: endsAtUtc,
       imageBase64
     });
-  }).then(result => {
+
     if (!result.ok) {
       debugLog("discord", "Failed to create Discord event:", result.error);
       if (mainWindow) {
@@ -944,17 +330,20 @@ function tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) 
           error: result.error
         });
       }
-    } else {
-      debugLog("discord", "Discord event created:", result.eventId);
-      if (mainWindow) {
-        mainWindow.webContents.send("discord:syncSuccess", {
-          eventTitle: eventData.title
-        });
-      }
+      return null;
     }
-  }).catch(err => {
+
+    debugLog("discord", "Discord event created:", result.eventId);
+    if (mainWindow) {
+      mainWindow.webContents.send("discord:syncSuccess", {
+        eventTitle: eventData.title
+      });
+    }
+    return { eventId: result.eventId, guildId };
+  } catch (err) {
     debugLog("discord", "Discord sync error:", err.message);
-  });
+    return null;
+  }
 }
 
 async function getImageBase64ForDiscord(imageId) {
@@ -976,6 +365,288 @@ async function getImageBase64ForDiscord(imageId) {
   } catch (err) {
     debugLog("discord", "Failed to fetch image for Discord:", err.message);
     return null;
+  }
+}
+
+// --- Calendar / Webhook sync helper ---
+
+async function getImageBufferForWebhook(fileId) {
+  if (!fileId) return null;
+  // Try gallery cache first (event images are often pre-cached)
+  const cachePath = path.join(GALLERY_CACHE_DIR, `${fileId}.png`);
+  if (fs.existsSync(cachePath)) {
+    return fs.readFileSync(cachePath);
+  }
+  // Download via authenticated VRChat SDK
+  try {
+    const fileRes = await vrchat.getFile({
+      path: { fileId },
+      throwOnError: false
+    });
+    const file = fileRes?.data;
+    if (!file || !file.versions?.length) return null;
+    const versionNum = file.versions[file.versions.length - 1]?.version ?? 1;
+    const downloadRes = await vrchat.downloadFileVersion({
+      path: { fileId, versionId: versionNum },
+      throwOnError: false
+    });
+    const blob = downloadRes?.data;
+    if (!blob) return null;
+    return Buffer.from(await blob.arrayBuffer());
+  } catch (err) {
+    debugLog("webhook", "Failed to fetch image for webhook:", err.message);
+    return null;
+  }
+}
+
+function truncateText(str, maxLength) {
+  if (!str || str.length <= maxLength) return str || "";
+  return str.slice(0, maxLength - 3) + "...";
+}
+
+/**
+ * Generate ICS content and build filename for an event.
+ * Shared helper used by both tryWebhookPost (for attachment) and tryIcsAutoSave.
+ * @returns {{ icsContent: string, filename: string }|null}
+ */
+function generateIcsForEvent(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+  const groupData = profiles[groupId];
+  if (!groupData) return null;
+
+  const profile = groupData.profiles?.[profileKey];
+
+  // Resolve reminders: from eventData (per-event), fallback to profile, fallback to default
+  let reminders = [];
+  if (eventData?.calendarRemindersEnabled && Array.isArray(eventData.calendarReminders)) {
+    reminders = eventData.calendarReminders;
+  } else if (profile?.calendarRemindersEnabled && Array.isArray(profile.calendarReminders)) {
+    reminders = profile.calendarReminders;
+  }
+
+  // Generate deterministic UID
+  const startMs = new Date(startsAtUtc).getTime();
+  const uid = `${groupId}-${startMs}@vrceventcreator`;
+
+  const icsContent = ics.generateIcsString({
+    title: eventData.title,
+    description: eventData.description || "",
+    startTime: startsAtUtc,
+    endTime: endsAtUtc,
+    location: "VRChat",
+    uid,
+    sequence: 0,
+    reminders
+  });
+
+  // Build filename: "Event Name - [YYYY-MM-DD].ics"
+  const safeTitle = (eventData.title || "event").replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+  const dateTag = new Date(startsAtUtc).toISOString().slice(0, 10);
+  const filename = `${safeTitle} - ${dateTag}.ics`;
+
+  return { icsContent, filename };
+}
+
+/**
+ * Check if ICS calendar creation is enabled for this event context.
+ */
+function isIcsEnabled(groupId, profileKey, eventData) {
+  if (!settings.calendarEnabled) return false;
+  if (eventData?.calendarCreate === false) return false;
+  const profile = profiles[groupId]?.profiles?.[profileKey];
+  if (profile && profile.calendarSync !== true) return false;
+  return true;
+}
+
+/**
+ * Post a message to a Discord webhook. Independent of Discord events and ICS.
+ * If ICS is also enabled, attaches the .ics file. If a Discord event was created,
+ * includes the event URL in the message (link mode instead of embed).
+ * @param {string} groupId
+ * @param {string} profileKey
+ * @param {object} eventData
+ * @param {string} startsAtUtc
+ * @param {string} endsAtUtc
+ * @param {{ eventId: string, guildId: string }|null} discordEvent - Discord event info if created
+ */
+function tryWebhookPost(groupId, profileKey, eventData, startsAtUtc, endsAtUtc, discordEvent) {
+  // Check per-event opt-out
+  if (eventData?.webhookPost === false) return;
+
+  const groupData = profiles[groupId];
+  if (!groupData) return;
+
+  // Check profile-level opt-in
+  const profile = groupData.profiles?.[profileKey];
+  if (profile && profile.webhookPost !== true) return;
+
+  // Webhook URL must exist
+  const webhookUrl = decryptToken(groupData.webhookUrl);
+  if (!webhookUrl) return;
+
+  // Generate ICS if calendar is also enabled (attach to webhook)
+  let icsContent = null;
+  let icsFilename = null;
+  if (isIcsEnabled(groupId, profileKey, eventData)) {
+    const icsResult = generateIcsForEvent(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
+    if (icsResult) {
+      icsContent = icsResult.icsContent;
+      icsFilename = icsResult.filename;
+    }
+  }
+
+  const defaultAvatarUrl = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`;
+
+  // Apply kit overrides if a valid kit exists for this group
+  const hasGroupKit = eckit.hasKit(groupId);
+  const kitAvatarUrl = hasGroupKit && groupData.webhookAvatarUrl ? groupData.webhookAvatarUrl : defaultAvatarUrl;
+  const kitWebhookName = hasGroupKit && groupData.webhookDisplayName ? groupData.webhookDisplayName : undefined;
+
+  // Custom message from event data (kit-unlocked feature)
+  const customMessage = hasGroupKit && eventData?.webhookMessage ? eventData.webhookMessage : "";
+
+  // Custom attachment from event data (kit-unlocked feature)
+  const customImagePath = hasGroupKit && eventData?.webhookImagePath ? eventData.webhookImagePath : "";
+  const customImageFilename = customImagePath ? path.basename(customImagePath) : null;
+  const customImagePromise = customImagePath
+    ? fs.promises.readFile(customImagePath).catch(() => null)
+    : Promise.resolve(null);
+
+  let webhookPromise;
+
+  if (discordEvent) {
+    // Discord event was created — post event link (+ optional .ics)
+    const eventUrl = `https://discord.com/events/${discordEvent.guildId}/${discordEvent.eventId}`;
+    const messageContent = customMessage ? `${customMessage}\n${eventUrl}` : eventUrl;
+    webhookPromise = customImagePromise.then(customImageBuffer => {
+      return webhook.sendWebhook({
+        webhookUrl,
+        icsContent,
+        filename: icsFilename,
+        content: messageContent,
+        imageBuffer: customImageBuffer,
+        imageFilename: customImageBuffer ? customImageFilename : null,
+        avatarUrl: kitAvatarUrl,
+        webhookName: kitWebhookName
+      });
+    });
+  } else {
+    // No Discord event — use embed with event details (+ optional .ics)
+    const startUnix = Math.floor(new Date(startsAtUtc).getTime() / 1000);
+    const endUnix = Math.floor(new Date(endsAtUtc).getTime() / 1000);
+
+    // Apply kit embed color override
+    const embedColor = hasGroupKit && groupData.webhookEmbedColor
+      ? parseInt(groupData.webhookEmbedColor.replace("#", ""), 16) || 0x1FC3AD
+      : 0x1FC3AD;
+
+    const embed = {
+      title: eventData.title,
+      description: truncateText(eventData.description || "", 300),
+      color: embedColor,
+      fields: [
+        { name: "\uD83D\uDCC6", value: `<t:${startUnix}:D>`, inline: true },
+        { name: "\uD83D\uDD50", value: `<t:${startUnix}:t> \u2014 <t:${endUnix}:t>`, inline: true },
+        { name: "\uD83D\uDC65", value: groupData.groupName || "VRChat Group", inline: true }
+      ]
+    };
+
+    // Resolve event image + group icon (non-blocking, parallel)
+    // Custom image takes priority over VRChat event image
+    const imagePromise = customImagePath
+      ? customImagePromise
+      : (eventData.imageId ? getImageBufferForWebhook(eventData.imageId).catch(() => null) : Promise.resolve(null));
+    const iconId = groupData.groupIconId || groupIconCache.get(groupId) || "";
+    const iconPromise = iconId
+      ? getImageBufferForWebhook(iconId).catch(() => null)
+      : Promise.resolve(null);
+
+    webhookPromise = Promise.all([imagePromise, iconPromise]).then(([imageBuffer, iconBuffer]) => {
+      if (imageBuffer) {
+        embed.image = { url: "attachment://banner.png" };
+      }
+      if (iconBuffer) {
+        embed.thumbnail = { url: "attachment://icon.png" };
+      }
+      return webhook.sendWebhook({
+        webhookUrl,
+        icsContent,
+        filename: icsFilename,
+        content: customMessage || undefined,
+        embed,
+        imageBuffer,
+        imageFilename: imageBuffer ? "banner.png" : null,
+        iconBuffer,
+        iconFilename: iconBuffer ? "icon.png" : null,
+        avatarUrl: kitAvatarUrl,
+        webhookName: kitWebhookName
+      });
+    });
+  }
+
+  webhookPromise.then(result => {
+    if (!result.ok) {
+      debugLog("webhook", "Failed to send webhook:", result.error);
+      if (mainWindow) {
+        mainWindow.webContents.send("webhook:syncFailed", {
+          eventTitle: eventData.title,
+          error: result.error
+        });
+      }
+    } else {
+      debugLog("webhook", "Webhook sent for:", eventData.title);
+      if (mainWindow) {
+        mainWindow.webContents.send("webhook:syncSuccess", {
+          eventTitle: eventData.title
+        });
+      }
+    }
+  }).catch(err => {
+    debugLog("webhook", "Webhook sync error:", err.message);
+  });
+}
+
+/**
+ * Auto-save an .ics calendar file to disk. Independent of webhook and Discord events.
+ * Always runs when ICS is enabled, regardless of webhook state.
+ * @param {string} groupId
+ * @param {string} profileKey
+ * @param {object} eventData
+ * @param {string} startsAtUtc
+ * @param {string} endsAtUtc
+ */
+function tryIcsAutoSave(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) {
+  if (!isIcsEnabled(groupId, profileKey, eventData)) return;
+
+  const groupData = profiles[groupId];
+  if (!groupData) return;
+
+  const icsResult = generateIcsForEvent(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
+  if (!icsResult) return;
+
+  const { icsContent, filename } = icsResult;
+
+  // Auto-create default save directory if not set
+  if (!settings.calendarSaveDir) {
+    const docsDir = app.getPath("documents");
+    settings.calendarSaveDir = path.join(docsDir, "VRC Event Creator .ics");
+    saveSettings(settings);
+  }
+  try {
+    // Save into group subfolder: {saveDir}/{GroupName}/{filename}
+    const safeGroupName = (groupData.groupName || "Unknown Group").replace(/[^a-zA-Z0-9_ -]/g, "").trim() || "Group";
+    const groupDir = path.join(settings.calendarSaveDir, safeGroupName);
+    fs.mkdirSync(groupDir, { recursive: true });
+    const savePath = path.join(groupDir, filename);
+    fs.writeFileSync(savePath, icsContent, "utf8");
+    debugLog("calendar", "ICS auto-saved:", savePath);
+    if (mainWindow) {
+      mainWindow.webContents.send("calendar:autoSaved", {
+        eventTitle: eventData.title,
+        filePath: savePath
+      });
+    }
+  } catch (err) {
+    debugLog("calendar", "ICS auto-save failed:", err.message);
   }
 }
 
@@ -1054,8 +725,14 @@ function normalizeProfiles(raw) {
     });
     output[groupId] = {
       groupName: groupData.groupName || "Unknown Group",
+      groupIconId: typeof groupData.groupIconId === "string" ? groupData.groupIconId : "",
       discordBotToken: typeof groupData.discordBotToken === "string" ? groupData.discordBotToken : "",
       discordGuildId: typeof groupData.discordGuildId === "string" ? groupData.discordGuildId : "",
+      webhookUrl: typeof groupData.webhookUrl === "string" ? groupData.webhookUrl : "",
+      // Kit-unlocked webhook customization (user-editable when kit is active)
+      webhookDisplayName: typeof groupData.webhookDisplayName === "string" ? groupData.webhookDisplayName : "",
+      webhookAvatarUrl: typeof groupData.webhookAvatarUrl === "string" ? groupData.webhookAvatarUrl : "",
+      webhookEmbedColor: typeof groupData.webhookEmbedColor === "string" ? groupData.webhookEmbedColor : "",
       profiles: normalizedProfiles
     };
   });
@@ -1907,7 +1584,7 @@ ipcMain.handle("discord:testConnection", async (_, botToken) => {
   return discord.testBotConnection(botToken);
 });
 
-ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, discordGuildId }) => {
+ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, discordGuildId, webhookDisplayName, webhookAvatarUrl, webhookEmbedColor }) => {
   if (!groupId || !profiles[groupId]) return { ok: false, error: "Group not found." };
   if (typeof discordBotToken === "string") {
     profiles[groupId].discordBotToken = encryptToken(discordBotToken);
@@ -1915,6 +1592,10 @@ ipcMain.handle("discord:updateGroupDiscord", (_, { groupId, discordBotToken, dis
   if (typeof discordGuildId === "string") {
     profiles[groupId].discordGuildId = discordGuildId;
   }
+  // Kit-unlocked customization fields
+  if (typeof webhookDisplayName === "string") profiles[groupId].webhookDisplayName = webhookDisplayName;
+  if (typeof webhookAvatarUrl === "string") profiles[groupId].webhookAvatarUrl = webhookAvatarUrl;
+  if (typeof webhookEmbedColor === "string") profiles[groupId].webhookEmbedColor = webhookEmbedColor;
   saveProfiles(profiles);
   return { ok: true };
 });
@@ -1927,30 +1608,153 @@ ipcMain.handle("discord:getGroupDiscord", (_, groupId) => {
   };
 });
 
-ipcMain.handle("theme:get", () => themeStore);
+// --- Calendar / Webhook IPC handlers ---
+
+ipcMain.handle("webhook:test", async (_, webhookUrl) => {
+  if (!webhookUrl) return { ok: false, error: "No webhook URL provided." };
+  return webhook.testWebhook(webhookUrl);
+});
+
+ipcMain.handle("webhook:updateGroupWebhook", (_, { groupId, webhookUrl }) => {
+  if (!groupId || !profiles[groupId]) return { ok: false, error: "Group not found." };
+  if (typeof webhookUrl === "string") {
+    profiles[groupId].webhookUrl = encryptToken(webhookUrl);
+  }
+  saveProfiles(profiles);
+  return { ok: true };
+});
+
+ipcMain.handle("webhook:getGroupWebhook", (_, groupId) => {
+  if (!groupId || !profiles[groupId]) return { webhookUrl: "" };
+  return {
+    webhookUrl: decryptToken(profiles[groupId].webhookUrl || "")
+  };
+});
+
+ipcMain.handle("calendar:generateAndSave", async (_, { eventData, startsAtUtc, endsAtUtc, groupId }) => {
+  const startMs = new Date(startsAtUtc).getTime();
+  const uid = `${groupId}-${startMs}@vrceventcreator`;
+  const icsContent = ics.generateIcsString({
+    title: eventData.title,
+    description: eventData.description || "",
+    startTime: startsAtUtc,
+    endTime: endsAtUtc,
+    location: "VRChat",
+    uid,
+    sequence: 0,
+    reminders: (eventData.calendarRemindersEnabled && Array.isArray(eventData.calendarReminders)) ? eventData.calendarReminders : []
+  });
+  const safeTitle = (eventData.title || "event").replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+  const dateTag = new Date(startsAtUtc).toISOString().slice(0, 10);
+  if (!mainWindow) return { ok: false, error: "No window." };
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title: "Save Calendar File",
+    defaultPath: `${safeTitle} - ${dateTag}.ics`,
+    filters: [{ name: "iCalendar File", extensions: ["ics"] }]
+  });
+  if (result.canceled || !result.filePath) return { ok: false, cancelled: true };
+  fs.writeFileSync(result.filePath, icsContent, "utf8");
+  return { ok: true };
+});
+
+ipcMain.handle("calendar:selectSaveDir", async () => {
+  if (!mainWindow) return { ok: false };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select Calendar Save Directory",
+    properties: ["openDirectory", "createDirectory"],
+    defaultPath: settings.calendarSaveDir || app.getPath("documents")
+  });
+  if (result.canceled || !result.filePaths?.length) return { ok: false, cancelled: true };
+  const dir = result.filePaths[0];
+  settings.calendarSaveDir = dir;
+  saveSettings(settings);
+  return { ok: true, dir };
+});
+
+ipcMain.handle("eckit:selectImage", async () => {
+  if (!mainWindow) return { ok: false };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select Webhook Attachment",
+    filters: [
+      { name: "Media", extensions: ["png", "jpg", "jpeg", "gif", "webp", "mp3", "mp4", "webm"] }
+    ],
+    properties: ["openFile"]
+  });
+  if (result.canceled || !result.filePaths?.length) return { ok: false, cancelled: true };
+  const filePath = result.filePaths[0];
+  try {
+    const stat = fs.statSync(filePath);
+    if (stat.size > 8 * 1024 * 1024) {
+      return { ok: false, error: "File must be under 8 MB." };
+    }
+    // Copy to app data so the image persists even if the original is moved/deleted
+    if (!WEBHOOK_IMAGES_DIR) {
+      debugLog("eckit:selectImage", "WEBHOOK_IMAGES_DIR not initialized");
+      return { ok: true, filePath };
+    }
+    const buffer = fs.readFileSync(filePath);
+    fs.mkdirSync(WEBHOOK_IMAGES_DIR, { recursive: true });
+    const hash = crypto.createHash("sha256").update(buffer).digest("hex").slice(0, 16);
+    const ext = path.extname(filePath).toLowerCase() || ".png";
+    const destPath = path.join(WEBHOOK_IMAGES_DIR, `${hash}${ext}`);
+    fs.writeFileSync(destPath, buffer);
+    return { ok: true, filePath: destPath };
+  } catch (err) {
+    debugLog("eckit:selectImage", "Error copying image:", err.message);
+    return { ok: false, error: `Could not read file: ${err.message}` };
+  }
+});
+
+
+// --- EC Kit IPC handlers ---
+
+ipcMain.handle("eckit:import", async () => {
+  if (!mainWindow) return { ok: false, error: "No window." };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Import Webhook Kit",
+    filters: [{ name: "EC Kit", extensions: ["eckit"] }],
+    properties: ["openFile"]
+  });
+  if (result.canceled || !result.filePaths?.length) return { ok: false, cancelled: true };
+  return eckit.importKit(result.filePaths[0], KITS_DIR);
+});
+
+ipcMain.handle("eckit:hasKit", (_, groupId) => {
+  return eckit.hasKit(groupId);
+});
+
+ipcMain.handle("eckit:getKit", (_, groupId) => {
+  return eckit.getKit(groupId);
+});
+
+ipcMain.handle("eckit:getKitGroupIds", () => {
+  return eckit.getKitGroupIds();
+});
+
+ipcMain.handle("theme:get", () => themeStoreModule.getThemeStore());
 
 ipcMain.handle("theme:set", (_, payload) => {
-  return saveThemeStore(payload);
+  return themeStoreModule.saveThemeStore(payload);
 });
 
 ipcMain.handle("themePresets:get", () => {
-  return { presets: loadThemePresets() };
+  return { presets: themeStoreModule.loadThemePresets() };
 });
 
 ipcMain.handle("themePresets:save", (_, payload) => {
-  return saveThemePreset(payload);
+  return themeStoreModule.saveThemePreset(payload);
 });
 
 ipcMain.handle("themePresets:delete", (_, key) => {
-  return deleteThemePreset(key);
+  return themeStoreModule.deleteThemePreset(key);
 });
 
 ipcMain.handle("themePresets:import", async () => {
-  return importThemePreset();
+  return themeStoreModule.importThemePreset();
 });
 
 ipcMain.handle("themePresets:export", async (_, payload) => {
-  return exportThemePreset(payload);
+  return themeStoreModule.exportThemePreset(payload);
 });
 
 ipcMain.handle("events:importJson", async () => {
@@ -2078,6 +1882,7 @@ ipcMain.handle("groups:list", async () => {
   const enriched = [];
   for (const group of limitedGroups) {
     const groupId = group.groupId || group.id;
+    if (groupId && group.iconId) groupIconCache.set(groupId, group.iconId);
     if (!groupId) {
       enriched.push({ ...group, canManageCalendar: false });
       continue;
@@ -2191,7 +1996,7 @@ ipcMain.handle("profiles:list", async () => {
 });
 
 ipcMain.handle("profiles:create", async (_, payload) => {
-  const { groupId, groupName, profileKey, data } = payload || {};
+  const { groupId, groupName, groupIconId, profileKey, data } = payload || {};
   if (!groupId || !profileKey || !data) {
     throw new Error("Invalid profile payload.");
   }
@@ -2203,13 +2008,14 @@ ipcMain.handle("profiles:create", async (_, payload) => {
     profiles[groupId] = { groupName: groupName || "Unknown Group", profiles: {} };
   }
   profiles[groupId].groupName = groupName || profiles[groupId].groupName;
+  if (groupIconId) profiles[groupId].groupIconId = groupIconId;
   profiles[groupId].profiles[profileKey] = data;
   saveProfiles(profiles);
   return profiles;
 });
 
 ipcMain.handle("profiles:update", async (_, payload) => {
-  const { groupId, groupName, profileKey, data } = payload || {};
+  const { groupId, groupName, groupIconId, profileKey, data } = payload || {};
   if (!groupId || !profileKey || !data) {
     throw new Error("Invalid profile payload.");
   }
@@ -2217,6 +2023,7 @@ ipcMain.handle("profiles:update", async (_, payload) => {
     profiles[groupId] = { groupName: groupName || "Unknown Group", profiles: {} };
   }
   profiles[groupId].groupName = groupName || profiles[groupId].groupName;
+  if (groupIconId) profiles[groupId].groupIconId = groupIconId;
   profiles[groupId].profiles[profileKey] = data;
   saveProfiles(profiles);
 
@@ -2357,8 +2164,11 @@ ipcMain.handle("events:create", async (_, payload) => {
         automationEngine.updatePendingEventsForProfile(groupId, profileKey, profile);
       }
     }
-    // Discord sync (fire-and-forget, never blocks VRC event creation)
-    tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
+    // Post-creation actions: Discord event, webhook, and ICS are independent
+    tryDiscordSync(groupId, profileKey, eventData, startsAtUtc, endsAtUtc).then(discordEvent => {
+      tryWebhookPost(groupId, profileKey, eventData, startsAtUtc, endsAtUtc, discordEvent);
+    });
+    tryIcsAutoSave(groupId, profileKey, eventData, startsAtUtc, endsAtUtc);
     return { ok: true, eventId };
   } catch (err) {
     debugApiResponse("createGroupCalendarEvent", null, err);
@@ -2407,7 +2217,28 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
     })
   );
   debugApiResponse("getGroupCalendarEvents (listGroup)", response);
-  const results = getCalendarEventList(response.data);
+  // Log raw event fields for recurring event API discovery (SDK may lag behind VRChat API)
+  const rawResults = getCalendarEventList(response.data);
+  if (rawResults.length > 0) {
+    const knownFields = new Set([
+      "id", "title", "description", "startsAt", "endsAt", "createdAt", "updatedAt",
+      "deletedAt", "category", "accessType", "featured", "isDraft", "imageId", "imageUrl",
+      "languages", "platforms", "roleIds", "tags", "type", "ownerId",
+      "interestedUserCount", "userInterest", "hostEarlyJoinMinutes",
+      "guestEarlyJoinMinutes", "closeInstanceAfterEndMinutes", "usesInstanceOverflow"
+    ]);
+    const sampleEvent = rawResults[0];
+    const allFields = Object.keys(sampleEvent);
+    const unknownFields = allFields.filter(k => !knownFields.has(k));
+    debugLog("API:discovery", `CalendarEvent fields (${allFields.length} total, ${unknownFields.length} unknown):`, allFields);
+    if (unknownFields.length > 0) {
+      debugLog("API:discovery", "Unknown fields:", unknownFields);
+      const unknownData = {};
+      unknownFields.forEach(k => { unknownData[k] = sampleEvent[k]; });
+      debugLog("API:discovery", "Unknown field values:", unknownData);
+    }
+  }
+  const results = rawResults;
   const mapped = mapGroupCalendarEvents(results, groupId, { upcomingOnly, includeNonEditable });
   if (automationEngine.isInitialized() && upcomingOnly && mapped.length < 100) {
     const reconcileResult = automationEngine.reconcilePublishedEvents(groupId, mapped);
@@ -2540,7 +2371,7 @@ ipcMain.handle("files:listGallery", async (_, payload) => {
   // Cache invalidation: remove images no longer in gallery
   if (offset === 0) {
     const currentIds = mappedFiles.map(f => f.id);
-    removeDeletedFromGalleryCache(currentIds);
+    galleryCacheModule.removeDeletedFromGalleryCache(currentIds);
   }
 
   return mappedFiles;
@@ -2717,7 +2548,7 @@ ipcMain.handle("files:uploadGalleryBase64", async (_, payload) => {
 ipcMain.handle("gallery:getCachedImage", async (_, payload) => {
   const { imageId } = payload || {};
   if (!imageId) return null;
-  return getCachedImageAsDataUrl(imageId);
+  return galleryCacheModule.getCachedImageAsDataUrl(imageId);
 });
 
 ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
@@ -2725,7 +2556,7 @@ ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
   if (!imageId) return null;
 
   // First check if already cached
-  let dataUrl = getCachedImageAsDataUrl(imageId);
+  let dataUrl = galleryCacheModule.getCachedImageAsDataUrl(imageId);
   if (dataUrl) return dataUrl;
 
   // Not cached, try to download using authenticated SDK method
@@ -2779,7 +2610,7 @@ ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
     }
 
     // Save to cache
-    ensureGalleryCacheDir();
+    galleryCacheModule.ensureGalleryCacheDir();
     const ext = mimeType === "image/png" ? ".png" : ".jpg";
     const localFileName = `${imageId}${ext}`;
     const localPath = path.join(GALLERY_CACHE_DIR, localFileName);
@@ -2795,16 +2626,16 @@ ipcMain.handle("gallery:getImageAsBase64", async (_, payload) => {
     fs.writeFileSync(localPath, buffer);
 
     // Update manifest
-    const manifest = loadGalleryCacheManifest();
+    const manifest = galleryCacheModule.loadGalleryCacheManifest();
     manifest.images[imageId] = {
       localPath: localFileName,
       mimeType,
       cachedAt: new Date().toISOString()
     };
-    saveGalleryCacheManifest(manifest);
+    galleryCacheModule.saveGalleryCacheManifest(manifest);
 
     debugLog("gallery", `Cached ${imageId} successfully`);
-    return getCachedImageAsDataUrl(imageId);
+    return galleryCacheModule.getCachedImageAsDataUrl(imageId);
   } catch (err) {
     debugLog("gallery", `Failed to fetch image ${imageId}:`, err.message);
     return null;
@@ -2831,7 +2662,7 @@ ipcMain.handle("gallery:checkImageExists", async (_, payload) => {
 ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {
   const { imageIds } = payload || {};
   if (!Array.isArray(imageIds)) return {};
-  const manifest = loadGalleryCacheManifest();
+  const manifest = galleryCacheModule.loadGalleryCacheManifest();
   const status = {};
   for (const id of imageIds) {
     status[id] = !!manifest.images[id];
@@ -2841,14 +2672,14 @@ ipcMain.handle("gallery:getCacheStatus", async (_, payload) => {
 
 ipcMain.handle("gallery:cleanCache", async (_, payload) => {
   const { maxAgeDays } = payload || {};
-  return cleanGalleryCache(maxAgeDays || 30);
+  return galleryCacheModule.cleanGalleryCache(maxAgeDays || 30);
 });
 
 ipcMain.handle("gallery:triggerBackgroundCache", async (_, payload) => {
   const { images } = payload || {};
   if (!Array.isArray(images) || images.length === 0) return;
 
-  const manifest = loadGalleryCacheManifest();
+  const manifest = galleryCacheModule.loadGalleryCacheManifest();
   const toDownload = images.filter(img => !manifest.images[img.id] && img.previewUrl);
 
   if (toDownload.length === 0) return;
@@ -2856,7 +2687,7 @@ ipcMain.handle("gallery:triggerBackgroundCache", async (_, payload) => {
   // Download images in background with throttling
   setImmediate(async () => {
     for (const img of toDownload) {
-      await downloadGalleryImage(img.id, img.previewUrl, img.mimeType || "image/png");
+      await galleryCacheModule.downloadGalleryImage(img.id, img.previewUrl, img.mimeType || "image/png");
       // Throttle: 100ms delay between downloads to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 100));
     }
@@ -3024,8 +2855,9 @@ app.whenReady().then(() => {
   profiles = loadProfiles();
   const startHidden = shouldStartHiddenAtLogin();
   createWindow({ startHidden });
-  if (IS_DEV && DEBUG_LOG_PATH) {
-    console.log(`\n📄 Debug log file: ${DEBUG_LOG_PATH}\n`);
+  if (IS_DEV) {
+    const logPath = debugModule.getLogPath?.() || "(unknown)";
+    console.log(`\n📄 Debug log file: ${logPath}\n`);
   }
 
   // Initialize automation engine after 2 seconds to allow UI to fully load
@@ -3104,7 +2936,11 @@ app.whenReady().then(() => {
           const startTime = new Date(pendingEvent.eventStartsAt);
           const durationMs = (details.duration || 120) * 60 * 1000;
           const endTime = new Date(startTime.getTime() + durationMs);
-          tryDiscordSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
+          // Post-creation actions: Discord event, webhook, and ICS are independent
+          tryDiscordSync(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString()).then(discordEvent => {
+            tryWebhookPost(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString(), discordEvent);
+          });
+          tryIcsAutoSave(groupId, profileKey, details, startTime.toISOString(), endTime.toISOString());
         }
       },
       debugLog: IS_DEV ? debugLog : () => {}

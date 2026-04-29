@@ -165,9 +165,58 @@ export const zh = {
       selectGroup: "选择群组...",
       saveButton: "保存",
       saved: "Discord 设置已保存。",
-      syncLabel: "同步到 Discord",
+      syncLabel: "发布到Discord",
+      eventLabel: "创建 Discord 活动",
       syncSuccess: "已为「{title}」创建 Discord 活动",
       syncFailed: "「{title}」的 Discord 同步失败：{error}"
+    },
+    webhook: {
+      postLabel: "发送 Discord Webhook",
+      enableLabel: "启用 Webhook",
+      syncSuccess: "已为「{title}」发送 Webhook",
+      syncFailed: "「{title}」的 Webhook 发送失败：{error}"
+    },
+    calendar: {
+      title: "日历集成",
+      description: "生成带有提醒的 .ics 日历文件，本地保存或附加到 Webhook 帖子中。",
+      enable: "启用日历文件生成",
+      createInvite: "创建.ics日历邀请",
+      remindersTitle: ".ics日历提醒",
+      enableReminders: "启用.ics日历提醒",
+      remindersDescription: "配置.ics文件中包含的默认提醒。",
+      addReminder: "添加提醒",
+      postToDiscord: "发布.ics到Discord",
+      unit: {
+        minutes: "分钟",
+        hours: "小时",
+        days: "天"
+      },
+      syncLabel: "附加.ics文件",
+      syncSuccess: "已发送\"{title}\"的日历文件",
+      syncFailed: "\"{title}\"的日历文件发送失败：{error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "测试Webhook",
+      webhookTestSuccess: "Webhook已验证：{webhookName}",
+      webhookTestFailed: "Webhook测试失败。请检查URL。",
+      webhookMissing: "请先输入Webhook URL。",
+      remindersHint: "某些日历应用可能只使用第一个提醒。",
+      saveDirLabel: "日历保存目录",
+      autoSaved: "日历文件已保存：{filePath}"
+    },
+    eckit: {
+      importButton: "导入套件",
+      webhookName: "Webhook显示名称",
+      webhookNamePlaceholder: "我的群组活动",
+      embedColor: "嵌入颜色",
+      avatarUrl: "头像URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "附加自定义Webhook消息",
+      messageTitle: "自定义Webhook消息",
+      messagePlaceholder: "编写要包含在Webhook帖子中的自定义消息...",
+      attachImage: "附加图片",
+      noImage: "未选择图片",
+      selectImage: "选择"
     },
     saveButton: "保存设置",
     saved: "设置已保存。"
@@ -351,7 +400,8 @@ export const zh = {
       cancelFailed: "无法取消待发布活动。",
       editSaved: "待发布活动已更新。",
       editFailed: "无法更新待发布活动。"
-    }
+    },
+    postingOptions: "发布选项"
   },
   profiles: {
     title: "管理模板",

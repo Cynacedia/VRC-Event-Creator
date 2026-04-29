@@ -165,9 +165,58 @@ export const ko = {
       selectGroup: "그룹 선택...",
       saveButton: "저장",
       saved: "Discord 설정이 저장되었습니다.",
-      syncLabel: "Discord에 동기화",
+      syncLabel: "Discord에 게시",
+      eventLabel: "Discord 이벤트 생성",
       syncSuccess: "\"{title}\" Discord 이벤트가 생성되었습니다",
       syncFailed: "\"{title}\" Discord 동기화 실패: {error}"
+    },
+    webhook: {
+      postLabel: "Discord Webhook 게시",
+      enableLabel: "Webhook 활성화",
+      syncSuccess: "\"{title}\" 웹훅 전송 완료",
+      syncFailed: "\"{title}\" 웹훅 전송 실패: {error}"
+    },
+    calendar: {
+      title: "캘린더 연동",
+      description: ".ics 캘린더 파일을 리마인더와 함께 생성하고, 로컬에 저장하거나 웹훅 게시물에 첨부합니다.",
+      enable: "캘린더 파일 생성 활성화",
+      createInvite: ".ics 캘린더 초대 생성",
+      remindersTitle: ".ics 캘린더 알림",
+      enableReminders: ".ics 캘린더 알림 활성화",
+      remindersDescription: ".ics 파일에 포함할 기본 알림을 설정합니다.",
+      addReminder: "알림 추가",
+      postToDiscord: ".ics를 Discord에 게시",
+      unit: {
+        minutes: "분",
+        hours: "시간",
+        days: "일"
+      },
+      syncLabel: ".ics 파일 첨부",
+      syncSuccess: "\"{title}\" 캘린더 파일이 전송되었습니다",
+      syncFailed: "\"{title}\" 캘린더 파일 전송 실패: {error}",
+      webhookLabel: "Webhook URL",
+      webhookPlaceholder: "https://discord.com/api/webhooks/...",
+      webhookTestButton: "Webhook 테스트",
+      webhookTestSuccess: "Webhook 확인됨: {webhookName}",
+      webhookTestFailed: "Webhook 테스트 실패. URL을 확인하세요.",
+      webhookMissing: "먼저 Webhook URL을 입력하세요.",
+      remindersHint: "일부 캘린더 앱은 첫 번째 알림만 사용할 수 있습니다.",
+      saveDirLabel: "캘린더 저장 디렉토리",
+      autoSaved: "캘린더 파일 저장됨: {filePath}"
+    },
+    eckit: {
+      importButton: "키트 가져오기",
+      webhookName: "Webhook 표시 이름",
+      webhookNamePlaceholder: "내 그룹 이벤트",
+      embedColor: "임베드 색상",
+      avatarUrl: "아바타 URL",
+      avatarUrlPlaceholder: "https://example.com/avatar.png",
+      attachMessage: "사용자 지정 Webhook 메시지 첨부",
+      messageTitle: "사용자 지정 Webhook 메시지",
+      messagePlaceholder: "Webhook 게시물에 포함할 사용자 지정 메시지를 작성하세요...",
+      attachImage: "이미지 첨부",
+      noImage: "선택된 이미지 없음",
+      selectImage: "선택"
     },
     saveButton: "설정 저장",
     saved: "설정이 저장되었습니다."
@@ -351,7 +400,8 @@ export const ko = {
       cancelFailed: "예정된 이벤트를 취소할 수 없습니다.",
       editSaved: "예정된 이벤트가 업데이트되었습니다.",
       editFailed: "예정된 이벤트를 업데이트할 수 없습니다."
-    }
+    },
+    postingOptions: "게시 옵션"
   },
   profiles: {
     title: "템플릿 관리",
