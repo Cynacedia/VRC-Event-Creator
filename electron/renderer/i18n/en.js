@@ -25,9 +25,9 @@ export const en = {
     },
     types: {
       template: "Templates",
-      templateHint: "Reusable autofill for repeated events. Pick a template when creating an event to skip entering the same details every time. Optional pattern-based date generation and automated posting.",
+      templateHint: "Reusable autofill for repeated events. Each event posts as a standalone, modifiable occurrence and can announce itself via Discord events, webhooks, and calendar invites. Optional automation and pattern-based scheduling.",
       series: "Series",
-      seriesHint: "Native VRChat recurring series. The server pre-generates all occurrences from a recurrence rule. No app or scheduling required."
+      seriesHint: "Native VRChat recurring series. The server pre-generates all occurrences from a recurrence rule. No app or scheduling required, but no announcements either."
     },
     empty: {
       all: "No schedules for this group.",
@@ -522,14 +522,14 @@ export const en = {
       audience: "Audience"
     },
     section: {
-      selection: "Template Selection",
-      basics: "Template Basics",
+      selection: "Schedule Selection",
+      basics: "Schedule Basics",
       schedule: "Schedule",
       audience: "Audience"
     },
     labels: {
       group: "Group",
-      profile: "Template"
+      profile: "Schedule"
     },
     buttons: {
       new: "New"
@@ -543,13 +543,13 @@ export const en = {
       groupAccess: "Choose a group with calendar access.",
       patternsInfo: "Patterns are used to pre-generate upcoming dates."
     },
-    existingProfile: "Existing Template",
-    existingProfilePlaceholder: "Select a template",
-    noProfiles: "No templates for this group",
-    newButton: "New Template",
-    saveButton: "Save Template",
-    displayName: "Template Name",
-    displayNamePlaceholder: "Community Hangout Template",
+    existingProfile: "Existing Schedule",
+    existingProfilePlaceholder: "Select a schedule",
+    noProfiles: "No schedules for this group",
+    newButton: "New",
+    saveButton: "Save",
+    displayName: "Schedule Name",
+    displayNamePlaceholder: "Community Hangout",
     access: "Access",
     durationDefault: "Default Duration (DD:HH:MM)",
     dateMode: "Date Mode",

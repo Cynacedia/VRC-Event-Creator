@@ -28,8 +28,8 @@ export function populateSeriesAccessDropdown() {
 
 export function populateSeriesTimezoneDropdown() {
   if (!dom.seriesTimezone) return;
-  const { systemTz, options } = buildTimezones();
-  renderSelect(dom.seriesTimezone, options);
+  const { systemTz, list } = buildTimezones();
+  renderSelect(dom.seriesTimezone, list);
   ensureTimezoneOption(dom.seriesTimezone, systemTz);
   dom.seriesTimezone.value = systemTz;
 }

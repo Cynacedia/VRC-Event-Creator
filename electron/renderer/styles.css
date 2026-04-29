@@ -3042,10 +3042,11 @@ input[type="color"]::-moz-color-swatch {
 .schedule-type-card span {
   font-size: var(--text-13);
   color: var(--text-muted);
+  font-family: var(--font-ui);
   text-transform: none;
   letter-spacing: normal;
   font-weight: normal;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 /* Series editor layout */
