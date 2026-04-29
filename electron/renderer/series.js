@@ -56,11 +56,11 @@ export function resetSeriesRecurrenceForm() {
   }
   if (dom.seriesFrequency) dom.seriesFrequency.value = "weekly";
   if (dom.seriesInterval) dom.seriesInterval.value = "1";
+  if (dom.seriesIntervalUnit) dom.seriesIntervalUnit.value = "weekly";
   document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]').forEach(cb => {
     cb.checked = false;
   });
-  if (dom.seriesEndAfterOccurrences) dom.seriesEndAfterOccurrences.checked = true;
-  if (dom.seriesEndAfterDate) dom.seriesEndAfterDate.checked = false;
+  if (dom.seriesEndType) dom.seriesEndType.value = "never";
   if (dom.seriesEndCount) dom.seriesEndCount.value = "10";
   if (dom.seriesEndDate) dom.seriesEndDate.value = "";
   if (dom.seriesModificationWarning) {
@@ -69,6 +69,7 @@ export function resetSeriesRecurrenceForm() {
   }
   populateSeriesTimezoneDropdown();
   updateSeriesFrequencyVisibility();
+  updateSeriesEndVisibility();
 }
 
 /** Apply an existing series's recurrence rule and event template to the wizard. */
@@ -94,20 +95,47 @@ export function applySeriesToWizard(seriesData) {
     ensureTimezoneOption(dom.seriesTimezone, rec.timezone);
     dom.seriesTimezone.value = rec.timezone;
   }
-  if (dom.seriesFrequency) dom.seriesFrequency.value = rec.frequency || "weekly";
-  if (dom.seriesInterval) dom.seriesInterval.value = String(rec.interval || 1);
-  document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]').forEach(cb => {
-    cb.checked = Array.isArray(rec.daysOfWeek) && rec.daysOfWeek.includes(cb.dataset.day);
-  });
-  const end = rec.end || { type: "afterOccurrences", count: 10 };
-  if (end.type === "afterDate") {
-    if (dom.seriesEndAfterDate) dom.seriesEndAfterDate.checked = true;
-    if (dom.seriesEndAfterOccurrences) dom.seriesEndAfterOccurrences.checked = false;
-    if (dom.seriesEndDate) dom.seriesEndDate.value = (end.date || "").slice(0, 10);
+
+  // Detect preset patterns and set the UI frequency accordingly
+  const days = Array.isArray(rec.daysOfWeek) ? [...rec.daysOfWeek].sort() : [];
+  const isWeekdaysPreset = rec.frequency === "weekly" && rec.interval === 1
+    && days.length === 5 && ["FR", "MO", "TH", "TU", "WE"].every(d => days.includes(d));
+  const isWeekendsPreset = rec.frequency === "weekly" && rec.interval === 1
+    && days.length === 2 && ["SA", "SU"].every(d => days.includes(d));
+  const isPlainPreset = rec.interval === 1 && days.length === 0;
+
+  let uiFreq;
+  if (isWeekdaysPreset) uiFreq = "weekdays";
+  else if (isWeekendsPreset) uiFreq = "weekends";
+  else if (isPlainPreset && ["daily", "weekly", "monthly", "yearly"].includes(rec.frequency)) {
+    uiFreq = rec.frequency;
   } else {
-    if (dom.seriesEndAfterOccurrences) dom.seriesEndAfterOccurrences.checked = true;
-    if (dom.seriesEndAfterDate) dom.seriesEndAfterDate.checked = false;
-    if (dom.seriesEndCount) dom.seriesEndCount.value = String(end.count || 10);
+    uiFreq = "custom";
+  }
+  if (dom.seriesFrequency) dom.seriesFrequency.value = uiFreq;
+  if (uiFreq === "custom") {
+    if (dom.seriesIntervalUnit) dom.seriesIntervalUnit.value = rec.frequency || "weekly";
+    if (dom.seriesInterval) dom.seriesInterval.value = String(rec.interval || 1);
+    document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]').forEach(cb => {
+      cb.checked = days.includes(cb.dataset.day);
+    });
+  } else {
+    if (dom.seriesInterval) dom.seriesInterval.value = "1";
+    if (dom.seriesIntervalUnit) dom.seriesIntervalUnit.value = "weekly";
+    document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]').forEach(cb => {
+      cb.checked = false;
+    });
+  }
+
+  // End condition
+  if (!rec.end) {
+    if (dom.seriesEndType) dom.seriesEndType.value = "never";
+  } else if (rec.end.type === "afterDate") {
+    if (dom.seriesEndType) dom.seriesEndType.value = "afterDate";
+    if (dom.seriesEndDate) dom.seriesEndDate.value = (rec.end.date || "").slice(0, 10);
+  } else {
+    if (dom.seriesEndType) dom.seriesEndType.value = "afterOccurrences";
+    if (dom.seriesEndCount) dom.seriesEndCount.value = String(rec.end.count || 10);
   }
   if (dom.seriesDuration) {
     dom.seriesDuration.value = formatDuration(tpl.duration || 120);
@@ -122,6 +150,7 @@ export function applySeriesToWizard(seriesData) {
     dom.seriesModificationWarning.textContent = "";
   }
   updateSeriesFrequencyVisibility();
+  updateSeriesEndVisibility();
 }
 
 /** Read the wizard form into a series payload. */
@@ -154,24 +183,43 @@ export function readSeriesFromWizard() {
     sendCreationNotification: Boolean(dom.profileSendNotification?.checked)
   };
 
-  const frequency = dom.seriesFrequency?.value || "weekly";
-  const interval = Math.max(1, Math.min(366, parseInt(dom.seriesInterval?.value || "1", 10) || 1));
+  // Map UI frequency selection to API recurrence object.
+  // Daily / Weekly / Monthly / Yearly are simple (interval=1).
+  // Weekdays = weekly with Mon-Fri; Weekends = weekly with Sat-Sun.
+  // Custom unlocks the unit dropdown + day-of-week checkboxes.
+  const uiFreq = dom.seriesFrequency?.value || "weekly";
   const timezone = dom.seriesTimezone?.value || "UTC";
-  const daysOfWeek = [];
-  document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]:checked').forEach(cb => {
-    daysOfWeek.push(cb.dataset.day);
-  });
-  let end;
-  if (dom.seriesEndAfterDate?.checked) {
-    const dateVal = dom.seriesEndDate?.value || "";
-    end = { type: "afterDate", date: dateVal ? `${dateVal}T23:59:00` : "" };
+  let recurrence;
+  if (uiFreq === "weekdays") {
+    recurrence = { frequency: "weekly", interval: 1, timezone, daysOfWeek: ["MO", "TU", "WE", "TH", "FR"] };
+  } else if (uiFreq === "weekends") {
+    recurrence = { frequency: "weekly", interval: 1, timezone, daysOfWeek: ["SA", "SU"] };
+  } else if (uiFreq === "custom") {
+    const unit = dom.seriesIntervalUnit?.value || "weekly";
+    const interval = Math.max(1, Math.min(366, parseInt(dom.seriesInterval?.value || "1", 10) || 1));
+    recurrence = { frequency: unit, interval, timezone };
+    if (unit === "weekly") {
+      const daysOfWeek = [];
+      document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]:checked').forEach(cb => {
+        daysOfWeek.push(cb.dataset.day);
+      });
+      if (daysOfWeek.length) recurrence.daysOfWeek = daysOfWeek;
+    }
   } else {
-    const count = Math.max(1, Math.min(366, parseInt(dom.seriesEndCount?.value || "10", 10) || 10));
-    end = { type: "afterOccurrences", count };
+    // daily / weekly / monthly / yearly
+    recurrence = { frequency: uiFreq, interval: 1, timezone };
   }
-  const recurrence = { frequency, interval, timezone };
-  if (frequency === "weekly" && daysOfWeek.length) recurrence.daysOfWeek = daysOfWeek;
-  if (end) recurrence.end = end;
+
+  // End condition
+  const endType = dom.seriesEndType?.value || "never";
+  if (endType === "afterDate") {
+    const dateVal = dom.seriesEndDate?.value || "";
+    if (dateVal) recurrence.end = { type: "afterDate", date: `${dateVal}T23:59:00` };
+  } else if (endType === "afterOccurrences") {
+    const count = Math.max(1, Math.min(366, parseInt(dom.seriesEndCount?.value || "10", 10) || 10));
+    recurrence.end = { type: "afterOccurrences", count };
+  }
+  // "never" → no end key
 
   // Build startsAt and endsAt
   const startDate = dom.seriesStartDate?.value || "";
@@ -195,10 +243,32 @@ export function readSeriesFromWizard() {
 
 // --- Visibility helpers ---
 
+/** Show/hide custom interval and weekday checkboxes based on frequency selection. */
 export function updateSeriesFrequencyVisibility() {
   const freq = dom.seriesFrequency?.value || "weekly";
+  // "Custom" is the only frequency that exposes interval + unit fields
+  if (dom.seriesCustomRow) {
+    dom.seriesCustomRow.classList.toggle("is-hidden", freq !== "custom");
+  }
+  // Day-of-week checkboxes appear only when Custom + weekly unit
+  let showDays = false;
+  if (freq === "custom") {
+    const unit = dom.seriesIntervalUnit?.value || "weekly";
+    showDays = unit === "weekly";
+  }
   if (dom.seriesDaysOfWeekField) {
-    dom.seriesDaysOfWeekField.classList.toggle("is-hidden", freq !== "weekly");
+    dom.seriesDaysOfWeekField.classList.toggle("is-hidden", !showDays);
+  }
+}
+
+/** Show/hide end-condition input rows based on dropdown. */
+export function updateSeriesEndVisibility() {
+  const endType = dom.seriesEndType?.value || "never";
+  if (dom.seriesEndOccurrencesRow) {
+    dom.seriesEndOccurrencesRow.classList.toggle("is-hidden", endType !== "afterOccurrences");
+  }
+  if (dom.seriesEndDateRow) {
+    dom.seriesEndDateRow.classList.toggle("is-hidden", endType !== "afterDate");
   }
 }
 
@@ -208,24 +278,29 @@ export function updateSeriesDurationPreview() {
   dom.seriesDurationPreview.textContent = formatDurationPreview(minutes);
 }
 
-/** Show/hide the type chooser and the appropriate mode container in step 3. */
+/** Show the appropriate mode container in step 3. Defaults to template if mode is null. */
 export function showScheduleMode(mode) {
-  // mode: "template" | "series" | null
-  if (dom.scheduleTypeChooser) {
-    dom.scheduleTypeChooser.classList.toggle("is-hidden", mode !== null);
-  }
+  // mode: "template" | "series" | null — null defaults to template (the existing flow)
+  const effectiveMode = mode || "template";
   if (dom.scheduleModeTemplate) {
-    dom.scheduleModeTemplate.classList.toggle("is-hidden", mode !== "template");
+    dom.scheduleModeTemplate.classList.toggle("is-hidden", effectiveMode !== "template");
   }
   if (dom.scheduleModeSeries) {
-    dom.scheduleModeSeries.classList.toggle("is-hidden", mode !== "series");
+    dom.scheduleModeSeries.classList.toggle("is-hidden", effectiveMode !== "series");
   }
-  // Visual selection state on the chooser cards
-  if (dom.scheduleTypeTemplateCard) {
-    dom.scheduleTypeTemplateCard.classList.toggle("is-active", mode === "template");
+  // Toggle button active state
+  if (dom.scheduleTypeTemplateBtn) {
+    dom.scheduleTypeTemplateBtn.classList.toggle("is-active", effectiveMode === "template");
   }
-  if (dom.scheduleTypeSeriesCard) {
-    dom.scheduleTypeSeriesCard.classList.toggle("is-active", mode === "series");
+  if (dom.scheduleTypeSeriesBtn) {
+    dom.scheduleTypeSeriesBtn.classList.toggle("is-active", effectiveMode === "series");
+  }
+  // Header blurb visibility
+  if (dom.scheduleModeBlurbTemplate) {
+    dom.scheduleModeBlurbTemplate.classList.toggle("is-hidden", effectiveMode !== "template");
+  }
+  if (dom.scheduleModeBlurbSeries) {
+    dom.scheduleModeBlurbSeries.classList.toggle("is-hidden", effectiveMode !== "series");
   }
 }
 

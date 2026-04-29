@@ -703,12 +703,14 @@ export function handleProfileWizardStepChange({ current, next }) {
   return true;
 }
 
-// Toggle visibility of step 3 chooser + mode containers based on state.schedules.editingType
+// Sync step 3 mode container visibility based on state.schedules.editingType.
+// Defaults to "template" if no type was chosen yet (the toggle always shows one mode).
 function syncStep3Mode(stepIndex) {
   if (stepIndex !== 2) return;
-  const editingType = state.schedules?.editingType || null;
-  if (dom.scheduleTypeChooser) {
-    dom.scheduleTypeChooser.classList.toggle("is-hidden", editingType !== null);
+  const editingType = state.schedules?.editingType || "template";
+  // Auto-default to template the first time the user lands on step 3 without a type
+  if (!state.schedules?.editingType) {
+    state.schedules.editingType = "template";
   }
   if (dom.scheduleModeTemplate) {
     dom.scheduleModeTemplate.classList.toggle("is-hidden", editingType !== "template");
@@ -716,11 +718,17 @@ function syncStep3Mode(stepIndex) {
   if (dom.scheduleModeSeries) {
     dom.scheduleModeSeries.classList.toggle("is-hidden", editingType !== "series");
   }
-  if (dom.scheduleTypeTemplateCard) {
-    dom.scheduleTypeTemplateCard.classList.toggle("is-active", editingType === "template");
+  if (dom.scheduleTypeTemplateBtn) {
+    dom.scheduleTypeTemplateBtn.classList.toggle("is-active", editingType === "template");
   }
-  if (dom.scheduleTypeSeriesCard) {
-    dom.scheduleTypeSeriesCard.classList.toggle("is-active", editingType === "series");
+  if (dom.scheduleTypeSeriesBtn) {
+    dom.scheduleTypeSeriesBtn.classList.toggle("is-active", editingType === "series");
+  }
+  if (dom.scheduleModeBlurbTemplate) {
+    dom.scheduleModeBlurbTemplate.classList.toggle("is-hidden", editingType !== "template");
+  }
+  if (dom.scheduleModeBlurbSeries) {
+    dom.scheduleModeBlurbSeries.classList.toggle("is-hidden", editingType !== "series");
   }
 }
 

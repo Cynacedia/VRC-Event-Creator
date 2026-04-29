@@ -12,7 +12,29 @@ export const en = {
     title: "Manage Schedules",
     subtitle: "Templates for announcement-driven scheduling and native VRChat recurring series.",
     section: {
-      selection: "Schedule Selection"
+      selection: "Schedule Selection",
+      scheduleHeading: "Schedule"
+    },
+    modeBlurb: {
+      template: "Templates autofill repeated events and post each occurrence individually with optional announcements.",
+      series: "A series is VRChat's native recurring event scheduler. The server pre-generates all occurrences. No announcements.",
+      moreInfo: "(more info)"
+    },
+    info: {
+      template: {
+        title: "Templates",
+        bullet1: "Each event posts as an independent calendar entry — modifiable per occurrence.",
+        bullet2: "Optionally announce each event via Discord scheduled events, webhooks, and .ics calendar invites.",
+        bullet3: "Combine with EC's automation and pattern-based scheduling for hands-off posting.",
+        bullet4: "Requires the app to be running for automated posting."
+      },
+      series: {
+        title: "Series",
+        bullet1: "VRChat pre-generates all occurrences server-side from a recurrence rule.",
+        bullet2: "Set-and-forget — no app required after creation.",
+        bullet3: "Limitations: no per-event announcements; the recurrence rule cannot be changed without regenerating all occurrences (modifications are lost).",
+        bullet4: "Best for stable, repeating events that don't need announcements (weekly meetups, office hours)."
+      }
     },
     labels: {
       schedule: "Schedule"
@@ -65,8 +87,17 @@ export const en = {
     frequency: {
       daily: "Daily",
       weekly: "Weekly",
+      weekdays: "Weekdays",
+      weekends: "Weekends",
       monthly: "Monthly",
-      yearly: "Yearly"
+      yearly: "Yearly",
+      custom: "Custom"
+    },
+    unit: {
+      days: "days",
+      weeks: "weeks",
+      months: "months",
+      years: "years"
     },
     days: {
       mo: "Mon",
@@ -78,10 +109,14 @@ export const en = {
       su: "Sun"
     },
     end: {
+      never: "Never",
       afterOccurrences: "After",
+      afterOccurrencesLabel: "After N occurrences",
       afterDate: "On date",
+      afterDateLabel: "On a specific date",
       occurrencesLabel: "occurrences"
     },
+    disclaimer: "A series can only be rescheduled before its first occurrence begins. Once it starts, you must delete it to change the date or time. Events can be scheduled up to one year ahead. Maximum event length is 31 days.",
     buttons: {
       save: "Save Series"
     },

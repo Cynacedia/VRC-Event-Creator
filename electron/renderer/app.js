@@ -21,6 +21,7 @@ import {
   handleSeriesUpdate,
   handleSeriesDelete,
   updateSeriesFrequencyVisibility,
+  updateSeriesEndVisibility,
   updateSeriesDurationPreview,
   populateSeriesTimezoneDropdown
 } from "./series.js";
@@ -1536,20 +1537,42 @@ import {
         });
       }
 
-      // Step 3 type chooser cards — set editingType and swap mode
-      if (dom.scheduleTypeTemplateCard) {
-        dom.scheduleTypeTemplateCard.addEventListener("click", () => {
+      // Step 3 type toggle (Template / Series segmented control)
+      if (dom.scheduleTypeTemplateBtn) {
+        dom.scheduleTypeTemplateBtn.addEventListener("click", () => {
+          if (state.schedules.editingType === "template") return;
           state.schedules.editingType = "template";
-          state.schedules.editingSeriesId = null;
+          // Don't clear the series form — DOM retains values for in-session toggle return
           showScheduleMode("template");
         });
       }
-      if (dom.scheduleTypeSeriesCard) {
-        dom.scheduleTypeSeriesCard.addEventListener("click", () => {
+      if (dom.scheduleTypeSeriesBtn) {
+        dom.scheduleTypeSeriesBtn.addEventListener("click", () => {
+          if (state.schedules.editingType === "series") return;
+          // Initialize series fields with sensible defaults the first time we toggle here
+          // in this session (only if start date is empty — preserves user input on toggle-back)
+          if (!dom.seriesStartDate?.value) {
+            resetSeriesRecurrenceForm();
+          }
           state.schedules.editingType = "series";
-          resetSeriesRecurrenceForm();
           showScheduleMode("series");
         });
+      }
+      // More info disclosure
+      if (dom.scheduleModeMoreInfo) {
+        dom.scheduleModeMoreInfo.addEventListener("click", () => {
+          if (dom.scheduleModeInfo) {
+            dom.scheduleModeInfo.classList.toggle("is-hidden");
+          }
+        });
+      }
+      // Series end-type dropdown — show/hide rows
+      if (dom.seriesEndType) {
+        dom.seriesEndType.addEventListener("change", () => updateSeriesEndVisibility());
+      }
+      // Series interval-unit dropdown — re-evaluate weekday checkbox visibility
+      if (dom.seriesIntervalUnit) {
+        dom.seriesIntervalUnit.addEventListener("change", () => updateSeriesFrequencyVisibility());
       }
 
       dom.profileGroup.addEventListener("change", async () => {

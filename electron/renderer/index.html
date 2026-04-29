@@ -482,19 +482,37 @@
                 </div>
 
                 <div class="wizard-step is-hidden" data-step="3">
-                  <!-- Type chooser at the top of step 3 -->
-                  <div class="card" id="schedule-type-chooser">
-                    <h3 data-i18n="schedules.new.pickType">Schedule Type</h3>
-                    <p class="hint" data-i18n="schedules.new.pickTypeHint">Choose how this schedule will produce events.</p>
-                    <div class="schedule-type-options">
-                      <button data-type="template" class="schedule-type-card" id="schedule-type-template-card" type="button">
-                        <strong data-i18n="schedules.types.template">Templates</strong>
-                        <span data-i18n="schedules.types.templateHint">Reusable autofill for repeated events. Each event posts as a standalone, modifiable occurrence and can announce itself via Discord events, webhooks, and calendar invites. Optional automation and pattern-based scheduling.</span>
-                      </button>
-                      <button data-type="series" class="schedule-type-card" id="schedule-type-series-card" type="button">
-                        <strong data-i18n="schedules.types.series">Series</strong>
-                        <span data-i18n="schedules.types.seriesHint">Native VRChat recurring series. The server pre-generates all occurrences from a recurrence rule. No app or scheduling required, but no announcements either.</span>
-                      </button>
+                  <!-- Schedule header with type toggle -->
+                  <div class="card schedule-header-card">
+                    <div class="schedule-header-row">
+                      <div>
+                        <h3 data-i18n="schedules.section.scheduleHeading">Schedule</h3>
+                        <p class="hint">
+                          <span id="schedule-mode-blurb-template" data-i18n="schedules.modeBlurb.template">Templates autofill repeated events and post each occurrence individually with optional announcements.</span>
+                          <span id="schedule-mode-blurb-series" class="is-hidden" data-i18n="schedules.modeBlurb.series">A series is VRChat's native recurring event scheduler. The server pre-generates all occurrences server-side. No announcements.</span>
+                          <button class="link-button" type="button" id="schedule-mode-more-info" data-i18n="schedules.modeBlurb.moreInfo">(more info)</button>
+                        </p>
+                      </div>
+                      <div class="schedule-type-toggle" role="group" aria-label="Schedule type">
+                        <button id="schedule-type-template-btn" class="schedule-toggle-btn" type="button" data-type="template" data-i18n="schedules.types.template">Template</button>
+                        <button id="schedule-type-series-btn" class="schedule-toggle-btn" type="button" data-type="series" data-i18n="schedules.types.series">Series</button>
+                      </div>
+                    </div>
+                    <div class="schedule-mode-info is-hidden" id="schedule-mode-info">
+                      <h4 data-i18n="schedules.info.template.title">Templates</h4>
+                      <ul>
+                        <li data-i18n="schedules.info.template.bullet1">Each event posts as an independent calendar entry — modifiable per occurrence.</li>
+                        <li data-i18n="schedules.info.template.bullet2">Optionally announce each event via Discord scheduled events, webhooks, and .ics calendar invites.</li>
+                        <li data-i18n="schedules.info.template.bullet3">Combine with EC's automation and pattern-based scheduling for hands-off posting.</li>
+                        <li data-i18n="schedules.info.template.bullet4">Requires the app to be running for automated posting.</li>
+                      </ul>
+                      <h4 data-i18n="schedules.info.series.title">Series</h4>
+                      <ul>
+                        <li data-i18n="schedules.info.series.bullet1">VRChat pre-generates all occurrences server-side from a recurrence rule.</li>
+                        <li data-i18n="schedules.info.series.bullet2">Set-and-forget — no app required after creation.</li>
+                        <li data-i18n="schedules.info.series.bullet3">Limitations: no per-event announcements; the recurrence rule cannot be changed without regenerating all occurrences (modifications are lost).</li>
+                        <li data-i18n="schedules.info.series.bullet4">Best for stable, repeating events that don't need announcements (weekly meetups, office hours).</li>
+                      </ul>
                     </div>
                   </div>
 
@@ -632,8 +650,8 @@
                   <!-- Series-mode content -->
                   <div data-schedule-mode="series" class="is-hidden" id="schedule-mode-series">
                     <div class="card">
-                      <h3 data-i18n="series.section.recurrence">Recurrence</h3>
-                      <div class="grid two">
+                      <p class="hint info" data-i18n="series.disclaimer">A series can only be rescheduled before its first occurrence begins. Once it starts, you must delete it to change the date or time. Events can be scheduled up to one year ahead. Maximum event length is 31 days.</p>
+                      <div class="grid three">
                         <div class="field">
                           <label for="series-start-date" data-i18n="series.labels.startDate">First Occurrence Date</label>
                           <input id="series-start-date" type="date" />
@@ -641,6 +659,10 @@
                         <div class="field">
                           <label for="series-start-time" data-i18n="series.labels.startTime">Start Time</label>
                           <input id="series-start-time" type="time" />
+                        </div>
+                        <div class="field">
+                          <label for="series-timezone" data-i18n="common.fields.timezone">Timezone</label>
+                          <select id="series-timezone"></select>
                         </div>
                       </div>
                       <div class="grid two">
@@ -650,24 +672,32 @@
                           <div class="hint" id="series-duration-preview"></div>
                         </div>
                         <div class="field">
-                          <label for="series-timezone" data-i18n="common.fields.timezone">Timezone</label>
-                          <select id="series-timezone"></select>
-                        </div>
-                      </div>
-                      <div class="grid two">
-                        <div class="field">
                           <label for="series-frequency" data-i18n="series.labels.frequency">Frequency</label>
                           <select id="series-frequency">
                             <option value="daily" data-i18n="series.frequency.daily">Daily</option>
                             <option value="weekly" data-i18n="series.frequency.weekly" selected>Weekly</option>
+                            <option value="weekdays" data-i18n="series.frequency.weekdays">Weekdays</option>
+                            <option value="weekends" data-i18n="series.frequency.weekends">Weekends</option>
                             <option value="monthly" data-i18n="series.frequency.monthly">Monthly</option>
                             <option value="yearly" data-i18n="series.frequency.yearly">Yearly</option>
+                            <option value="custom" data-i18n="series.frequency.custom">Custom</option>
                           </select>
                         </div>
+                      </div>
+
+                      <!-- Custom-only fields -->
+                      <div class="grid two is-hidden" id="series-custom-row">
                         <div class="field">
                           <label for="series-interval" data-i18n="series.labels.interval">Repeat every</label>
-                          <input id="series-interval" type="number" min="1" max="366" value="1" />
-                          <p class="hint" id="series-interval-hint" data-i18n="series.labels.intervalHint">e.g. every 1 week, every 2 months</p>
+                          <div class="inline-row">
+                            <input id="series-interval" type="number" min="1" max="366" value="1" />
+                            <select id="series-interval-unit">
+                              <option value="daily" data-i18n="series.unit.days">days</option>
+                              <option value="weekly" selected data-i18n="series.unit.weeks">weeks</option>
+                              <option value="monthly" data-i18n="series.unit.months">months</option>
+                              <option value="yearly" data-i18n="series.unit.years">years</option>
+                            </select>
+                          </div>
                         </div>
                       </div>
                       <div class="field is-hidden" id="series-days-of-week-field">
@@ -682,21 +712,19 @@
                           <label class="toggle"><input type="checkbox" data-day="SU" /><span data-i18n="series.days.su">Sun</span></label>
                         </div>
                       </div>
+
                       <div class="field">
-                        <label data-i18n="series.labels.endCondition">Ends</label>
-                        <div class="series-end-row">
-                          <label class="toggle">
-                            <input type="radio" name="series-end-type" value="afterOccurrences" id="series-end-after-occurrences" checked />
-                            <span data-i18n="series.end.afterOccurrences">After</span>
-                          </label>
+                        <label for="series-end-type" data-i18n="series.labels.endCondition">Ends</label>
+                        <select id="series-end-type">
+                          <option value="never" selected data-i18n="series.end.never">Never</option>
+                          <option value="afterOccurrences" data-i18n="series.end.afterOccurrencesLabel">After N occurrences</option>
+                          <option value="afterDate" data-i18n="series.end.afterDateLabel">On a specific date</option>
+                        </select>
+                        <div class="series-end-row is-hidden" id="series-end-occurrences-row">
                           <input id="series-end-count" type="number" min="1" max="366" value="10" />
                           <span data-i18n="series.end.occurrencesLabel">occurrences</span>
                         </div>
-                        <div class="series-end-row">
-                          <label class="toggle">
-                            <input type="radio" name="series-end-type" value="afterDate" id="series-end-after-date" />
-                            <span data-i18n="series.end.afterDate">On date</span>
-                          </label>
+                        <div class="series-end-row is-hidden" id="series-end-date-row">
                           <input id="series-end-date" type="date" />
                         </div>
                       </div>

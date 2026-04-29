@@ -324,10 +324,13 @@ export const dom = {
   scheduleGroupHint: document.getElementById("schedule-group-hint"),
   // Schedule type filter chips
   scheduleFilterChips: document.getElementById("schedule-filter-chips"),
-  // Step 3 type chooser cards + mode containers
-  scheduleTypeChooser: document.getElementById("schedule-type-chooser"),
-  scheduleTypeTemplateCard: document.getElementById("schedule-type-template-card"),
-  scheduleTypeSeriesCard: document.getElementById("schedule-type-series-card"),
+  // Step 3 type toggle + mode containers
+  scheduleTypeTemplateBtn: document.getElementById("schedule-type-template-btn"),
+  scheduleTypeSeriesBtn: document.getElementById("schedule-type-series-btn"),
+  scheduleModeBlurbTemplate: document.getElementById("schedule-mode-blurb-template"),
+  scheduleModeBlurbSeries: document.getElementById("schedule-mode-blurb-series"),
+  scheduleModeMoreInfo: document.getElementById("schedule-mode-more-info"),
+  scheduleModeInfo: document.getElementById("schedule-mode-info"),
   scheduleModeTemplate: document.getElementById("schedule-mode-template"),
   scheduleModeSeries: document.getElementById("schedule-mode-series"),
   // Series-specific recurrence inputs (in step 3)
@@ -337,11 +340,13 @@ export const dom = {
   seriesStartTime: document.getElementById("series-start-time"),
   seriesTimezone: document.getElementById("series-timezone"),
   seriesFrequency: document.getElementById("series-frequency"),
+  seriesCustomRow: document.getElementById("series-custom-row"),
   seriesInterval: document.getElementById("series-interval"),
-  seriesIntervalHint: document.getElementById("series-interval-hint"),
+  seriesIntervalUnit: document.getElementById("series-interval-unit"),
   seriesDaysOfWeekField: document.getElementById("series-days-of-week-field"),
-  seriesEndAfterOccurrences: document.getElementById("series-end-after-occurrences"),
-  seriesEndAfterDate: document.getElementById("series-end-after-date"),
+  seriesEndType: document.getElementById("series-end-type"),
+  seriesEndOccurrencesRow: document.getElementById("series-end-occurrences-row"),
+  seriesEndDateRow: document.getElementById("series-end-date-row"),
   seriesEndCount: document.getElementById("series-end-count"),
   seriesEndDate: document.getElementById("series-end-date"),
   seriesModificationWarning: document.getElementById("series-modification-warning")
