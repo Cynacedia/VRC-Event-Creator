@@ -15,9 +15,10 @@
  * @param {string} options.uid - Deterministic UID for this event
  * @param {number} [options.sequence] - SEQUENCE number for updates (default 0)
  * @param {Array<{value: number, unit: string}>} [options.reminders] - VALARM reminders
+ * @param {string} [options.rrule] - Optional RFC 5545 RRULE string for recurring events (no "RRULE:" prefix)
  * @returns {string} Complete ICS file content
  */
-function generateIcsString({ title, description, startTime, endTime, location, uid, sequence, reminders }) {
+function generateIcsString({ title, description, startTime, endTime, location, uid, sequence, reminders, rrule }) {
   const now = new Date();
   const lines = [
     "BEGIN:VCALENDAR",
@@ -37,6 +38,10 @@ function generateIcsString({ title, description, startTime, endTime, location, u
 
   if (description) {
     lines.push(`DESCRIPTION:${escapeText(description)}`);
+  }
+
+  if (rrule && typeof rrule === "string") {
+    lines.push(`RRULE:${rrule}`);
   }
 
   // Add VALARM blocks for each reminder (longest first — some clients only use the first)

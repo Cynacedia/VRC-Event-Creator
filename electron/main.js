@@ -116,6 +116,7 @@ const AUTOSTART_ARG = "--autostart";
 // These will be initialized after app is ready
 let DATA_DIR;
 let PROFILES_PATH;
+let SERIES_PATH;
 let CACHE_PATH;
 let SETTINGS_PATH;
 let PENDING_EVENTS_PATH;
@@ -146,6 +147,7 @@ function resolveDataDir() {
 function initializePaths() {
   DATA_DIR = resolveDataDir();
   PROFILES_PATH = path.join(DATA_DIR, "profiles.json");
+  SERIES_PATH = path.join(DATA_DIR, "series.json");
   CACHE_PATH = path.join(DATA_DIR, "cache.json");
   SETTINGS_PATH = path.join(DATA_DIR, "settings.json");
   PENDING_EVENTS_PATH = path.join(DATA_DIR, "pending-events.json");
@@ -753,6 +755,88 @@ function saveProfiles(nextProfiles) {
   fs.writeFileSync(PROFILES_PATH, JSON.stringify(profiles, null, 2));
 }
 
+// Series storage — local metadata for VRChat native recurring series
+let series = {};
+
+function normalizeRecurrence(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const validFreq = ["daily", "weekly", "monthly", "yearly"];
+  const frequency = validFreq.includes(raw.frequency) ? raw.frequency : "weekly";
+  const interval = Number.isFinite(raw.interval) && raw.interval >= 1 ? Math.floor(raw.interval) : 1;
+  const timezone = typeof raw.timezone === "string" && raw.timezone ? raw.timezone : "UTC";
+  const validDays = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
+  const daysOfWeek = Array.isArray(raw.daysOfWeek)
+    ? raw.daysOfWeek.filter(d => validDays.includes(d))
+    : [];
+  let end = null;
+  if (raw.end && typeof raw.end === "object") {
+    if (raw.end.type === "afterOccurrences" && Number.isFinite(raw.end.count) && raw.end.count >= 1) {
+      end = { type: "afterOccurrences", count: Math.floor(raw.end.count) };
+    } else if (raw.end.type === "afterDate" && typeof raw.end.date === "string") {
+      end = { type: "afterDate", date: raw.end.date };
+    }
+  }
+  const out = { frequency, interval, timezone };
+  if (daysOfWeek.length) out.daysOfWeek = daysOfWeek;
+  if (end) out.end = end;
+  return out;
+}
+
+function normalizeSeriesEventTemplate(raw) {
+  if (!raw || typeof raw !== "object") raw = {};
+  return {
+    title: typeof raw.title === "string" ? raw.title : "",
+    description: typeof raw.description === "string" ? raw.description : "",
+    category: typeof raw.category === "string" ? raw.category : "hangout",
+    duration: Number.isFinite(raw.duration) && raw.duration > 0 ? Math.floor(raw.duration) : 120,
+    accessType: ["public", "group"].includes(raw.accessType) ? raw.accessType : "public",
+    languages: Array.isArray(raw.languages) ? raw.languages.filter(s => typeof s === "string") : [],
+    platforms: Array.isArray(raw.platforms) ? raw.platforms.filter(s => typeof s === "string") : [],
+    tags: Array.isArray(raw.tags) ? raw.tags.filter(s => typeof s === "string") : [],
+    imageId: typeof raw.imageId === "string" ? raw.imageId : null,
+    roleIds: Array.isArray(raw.roleIds) ? raw.roleIds.filter(s => typeof s === "string") : [],
+    sendCreationNotification: Boolean(raw.sendCreationNotification)
+  };
+}
+
+function normalizeSeries(raw) {
+  if (!raw || typeof raw !== "object") return {};
+  const output = {};
+  Object.entries(raw).forEach(([groupId, groupSeries]) => {
+    if (!groupId || typeof groupSeries !== "object") return;
+    output[groupId] = {};
+    Object.entries(groupSeries).forEach(([seriesId, entry]) => {
+      if (!seriesId || !entry || typeof entry !== "object") return;
+      const recurrence = normalizeRecurrence(entry.recurrence);
+      if (!recurrence) return;
+      output[groupId][seriesId] = {
+        label: typeof entry.label === "string" ? entry.label : "Untitled Series",
+        groupId,
+        seriesId,
+        createdAt: typeof entry.createdAt === "string" ? entry.createdAt : new Date().toISOString(),
+        lastSyncedAt: typeof entry.lastSyncedAt === "string" ? entry.lastSyncedAt : null,
+        recurrence,
+        eventTemplate: normalizeSeriesEventTemplate(entry.eventTemplate)
+      };
+    });
+  });
+  return output;
+}
+
+function loadSeries() {
+  try {
+    const raw = JSON.parse(fs.readFileSync(SERIES_PATH, "utf8"));
+    return normalizeSeries(raw);
+  } catch (err) {
+    return {};
+  }
+}
+
+function saveSeries(nextSeries) {
+  series = normalizeSeries(nextSeries);
+  fs.writeFileSync(SERIES_PATH, JSON.stringify(series, null, 2));
+}
+
 function createClient() {
   return new VRChat({
     application: {
@@ -947,6 +1031,8 @@ function createWindow(options = {}) {
   });
 
   if (IS_DEV) {
+    // Auto-open dev tools on startup (temporary for series API test harness)
+    mainWindow.webContents.openDevTools({ mode: "detach" });
     mainWindow.webContents.on("before-input-event", (event, input) => {
       if (!input || input.type !== "keyDown") {
         return;
@@ -1187,7 +1273,11 @@ function mapGroupCalendarEvents(results, groupId, options = {}) {
           createdById: typeof createdByValue === "string" ? createdByValue : null,
           durationMinutes,
           timezone: getEventField(event, "timezone") || null,
-          featured: Boolean(featured)
+          featured: Boolean(featured),
+          // Series fields (native VRChat recurring event support)
+          seriesId: getEventField(event, "seriesId") || null,
+          occurrenceKind: getEventField(event, "occurrenceKind") || null,
+          occurrenceModified: Boolean(getEventField(event, "occurrenceModified"))
         };
       })
     .sort((a, b) => {
@@ -2073,6 +2163,259 @@ ipcMain.handle("profiles:delete", async (_, payload) => {
   return profiles;
 });
 
+// --- Series IPC handlers (VRChat native recurring events) ---
+
+ipcMain.handle("series:list", async (_, payload) => {
+  const { groupId } = payload || {};
+  if (!groupId) return {};
+  return series[groupId] || {};
+});
+
+ipcMain.handle("series:create", async (_, payload) => {
+  try {
+    const { groupId, label, eventTemplate, recurrence, startsAtUtc, endsAtUtc } = payload || {};
+    if (!groupId || !eventTemplate || !recurrence || !startsAtUtc || !endsAtUtc) {
+      throw new Error("Missing series payload fields.");
+    }
+    await ensureUser();
+    await ensureCalendarPermission(groupId);
+
+    const requestBody = {
+      title: eventTemplate.title,
+      description: eventTemplate.description || "",
+      startsAt: startsAtUtc,
+      endsAt: endsAtUtc,
+      category: eventTemplate.category || "hangout",
+      sendCreationNotification: Boolean(eventTemplate.sendCreationNotification),
+      accessType: eventTemplate.accessType || "public",
+      languages: Array.isArray(eventTemplate.languages) ? eventTemplate.languages : [],
+      platforms: Array.isArray(eventTemplate.platforms) ? eventTemplate.platforms : [],
+      tags: Array.isArray(eventTemplate.tags) ? eventTemplate.tags : [],
+      imageId: eventTemplate.imageId || null,
+      featured: false,
+      isDraft: false,
+      roleIds: Array.isArray(eventTemplate.roleIds) ? eventTemplate.roleIds : [],
+      // Series fields (not in SDK types yet — passed raw)
+      occurrenceKind: "series",
+      recurrence: normalizeRecurrence(recurrence)
+    };
+
+    debugApiCall("createGroupCalendarEvent (series)", { groupId, body: requestBody });
+    const response = await vrchat.createGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId },
+      body: requestBody
+    });
+    debugApiResponse("createGroupCalendarEvent (series)", response);
+
+    const seriesId = getEventId(response.data);
+    if (!seriesId) {
+      return { ok: false, error: { message: "Series created but no ID returned." } };
+    }
+
+    if (!series[groupId]) series[groupId] = {};
+    series[groupId][seriesId] = {
+      label: label || eventTemplate.title || "Untitled Series",
+      groupId,
+      seriesId,
+      createdAt: new Date().toISOString(),
+      lastSyncedAt: new Date().toISOString(),
+      recurrence: normalizeRecurrence(recurrence),
+      eventTemplate: normalizeSeriesEventTemplate(eventTemplate)
+    };
+    saveSeries(series);
+
+    return { ok: true, seriesId, data: response.data };
+  } catch (err) {
+    debugApiResponse("createGroupCalendarEvent (series)", null, err);
+    return {
+      ok: false,
+      error: {
+        status: err?.response?.status || null,
+        message: err?.message || "Could not create series."
+      }
+    };
+  }
+});
+
+ipcMain.handle("series:update", async (_, payload) => {
+  try {
+    const { groupId, seriesId, eventTemplate, recurrence, label } = payload || {};
+    if (!groupId || !seriesId) {
+      throw new Error("Missing series payload fields.");
+    }
+    await ensureUser();
+    await ensureCalendarPermission(groupId);
+
+    // Build minimal request body — only include fields that are present
+    const requestBody = {};
+    if (eventTemplate) {
+      if (typeof eventTemplate.title === "string") requestBody.title = eventTemplate.title;
+      if (typeof eventTemplate.description === "string") requestBody.description = eventTemplate.description;
+      if (typeof eventTemplate.category === "string") requestBody.category = eventTemplate.category;
+      if (typeof eventTemplate.accessType === "string") requestBody.accessType = eventTemplate.accessType;
+      if (Array.isArray(eventTemplate.languages)) requestBody.languages = eventTemplate.languages;
+      if (Array.isArray(eventTemplate.platforms)) requestBody.platforms = eventTemplate.platforms;
+      if (Array.isArray(eventTemplate.tags)) requestBody.tags = eventTemplate.tags;
+      if (Array.isArray(eventTemplate.roleIds)) requestBody.roleIds = eventTemplate.roleIds;
+      if (eventTemplate.imageId !== undefined) requestBody.imageId = eventTemplate.imageId;
+    }
+    if (recurrence) {
+      requestBody.recurrence = normalizeRecurrence(recurrence);
+    }
+
+    debugApiCall("updateGroupCalendarEvent (series)", { groupId, seriesId, body: requestBody });
+    try {
+      await vrchat.updateGroupCalendarEvent({
+        throwOnError: true,
+        path: { groupId, calendarId: seriesId },
+        body: requestBody
+      });
+    } catch (parseErr) {
+      // VRChat returns 200 OK with empty body for series updates, which trips up the SDK's JSON parser.
+      // Suppress that specific case but rethrow real errors.
+      if (parseErr?.message !== "Unexpected end of JSON input") {
+        throw parseErr;
+      }
+    }
+
+    // Update local metadata
+    if (!series[groupId]) series[groupId] = {};
+    const existing = series[groupId][seriesId] || {};
+    series[groupId][seriesId] = {
+      ...existing,
+      label: typeof label === "string" ? label : (existing.label || "Untitled Series"),
+      groupId,
+      seriesId,
+      lastSyncedAt: new Date().toISOString(),
+      recurrence: recurrence ? normalizeRecurrence(recurrence) : existing.recurrence,
+      eventTemplate: eventTemplate
+        ? normalizeSeriesEventTemplate({ ...existing.eventTemplate, ...eventTemplate })
+        : existing.eventTemplate
+    };
+    saveSeries(series);
+
+    return { ok: true };
+  } catch (err) {
+    debugApiResponse("updateGroupCalendarEvent (series)", null, err);
+    return {
+      ok: false,
+      error: {
+        status: err?.response?.status || null,
+        message: err?.message || "Could not update series."
+      }
+    };
+  }
+});
+
+ipcMain.handle("series:delete", async (_, payload) => {
+  try {
+    const { groupId, seriesId } = payload || {};
+    if (!groupId || !seriesId) {
+      throw new Error("Missing series payload fields.");
+    }
+    await ensureUser();
+    await ensureCalendarPermission(groupId);
+
+    debugApiCall("deleteGroupCalendarEvent (series)", { groupId, seriesId });
+    await vrchat.deleteGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId, calendarId: seriesId }
+    });
+    debugApiResponse("deleteGroupCalendarEvent (series)", { ok: true });
+
+    if (series[groupId]?.[seriesId]) {
+      delete series[groupId][seriesId];
+      saveSeries(series);
+    }
+
+    return { ok: true };
+  } catch (err) {
+    debugApiResponse("deleteGroupCalendarEvent (series)", null, err);
+    return {
+      ok: false,
+      error: {
+        status: err?.response?.status || null,
+        message: err?.message || "Could not delete series."
+      }
+    };
+  }
+});
+
+ipcMain.handle("series:checkModifications", async (_, payload) => {
+  try {
+    const { groupId, seriesId } = payload || {};
+    if (!groupId || !seriesId) {
+      throw new Error("Missing series payload fields.");
+    }
+    await ensureUser();
+    await ensureCalendarPermission(groupId);
+
+    const response = await requestGet(
+      "getGroupCalendarEvents",
+      { path: { groupId }, query: { n: 100 } },
+      () => vrchat.getGroupCalendarEvents({
+        path: { groupId },
+        query: { n: 100 }
+      })
+    );
+    const results = getCalendarEventList(response.data);
+    const modified = results.filter(e =>
+      getEventField(e, "seriesId") === seriesId &&
+      Boolean(getEventField(e, "occurrenceModified"))
+    );
+    return {
+      ok: true,
+      count: modified.length,
+      occurrences: modified.map(e => ({
+        id: getEventId(e),
+        title: getEventField(e, "title") || "",
+        startsAtUtc: parseEventDateValue(getEventStartValue(e))?.toUTC().toISO() || null
+      }))
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      error: {
+        status: err?.response?.status || null,
+        message: err?.message || "Could not check modifications."
+      }
+    };
+  }
+});
+
+ipcMain.handle("series:reconcile", async (_, payload) => {
+  const { groupId } = payload || {};
+  if (!groupId || !series[groupId]) {
+    return { ok: true, orphaned: [] };
+  }
+  await ensureUser();
+  await ensureCalendarPermission(groupId);
+
+  const orphaned = [];
+  const localIds = Object.keys(series[groupId]);
+  for (const seriesId of localIds) {
+    try {
+      await vrchat.getGroupCalendarEvent({
+        throwOnError: true,
+        path: { groupId, calendarId: seriesId }
+      });
+      // Update lastSyncedAt on success
+      if (series[groupId][seriesId]) {
+        series[groupId][seriesId].lastSyncedAt = new Date().toISOString();
+      }
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        orphaned.push(seriesId);
+      }
+    }
+  }
+  if (orphaned.length) {
+    saveSeries(series);
+  }
+  return { ok: true, orphaned };
+});
+
 ipcMain.handle("dates:options", async (_, payload) => {
   const { patterns, monthsAhead, timezone } = payload || {};
   return generateDateOptionsFromPatterns(patterns || [], monthsAhead || 6, timezone || "UTC");
@@ -2225,7 +2568,8 @@ ipcMain.handle("events:listGroup", async (_, payload) => {
       "deletedAt", "category", "accessType", "featured", "isDraft", "imageId", "imageUrl",
       "languages", "platforms", "roleIds", "tags", "type", "ownerId",
       "interestedUserCount", "userInterest", "hostEarlyJoinMinutes",
-      "guestEarlyJoinMinutes", "closeInstanceAfterEndMinutes", "usesInstanceOverflow"
+      "guestEarlyJoinMinutes", "closeInstanceAfterEndMinutes", "usesInstanceOverflow",
+      "durationInMs", "occurrenceKind", "recurrence", "seriesId", "occurrenceModified"
     ]);
     const sampleEvent = rawResults[0];
     const allFields = Object.keys(sampleEvent);
@@ -2848,11 +3192,194 @@ ipcMain.handle("automation:getRestorableCount", async (_, payload) => {
   return automationEngine.getRestorableCount(groupId, profileKey);
 });
 
+// --- TEMPORARY: Series API test harness (remove before release) ---
+
+ipcMain.handle("test:createSeries", async (_, payload) => {
+  const { groupId } = payload || {};
+  if (!groupId) throw new Error("Missing groupId");
+  await ensureUser();
+  await ensureCalendarPermission(groupId);
+
+  const now = new Date();
+  const startsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 1 week from now
+  const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000); // 2 hours
+
+  const requestBody = {
+    title: "EC Series Test",
+    description: "Testing series creation via API — safe to delete",
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+    category: "hangout",
+    sendCreationNotification: false,
+    accessType: "group",
+    languages: ["eng"],
+    platforms: ["standalonewindows", "android"],
+    tags: [],
+    isDraft: false,
+    parentId: null,
+    roleIds: [],
+    // Series-specific fields (not in SDK types yet)
+    occurrenceKind: "series",
+    recurrence: {
+      frequency: "weekly",
+      interval: 1,
+      timezone: "America/Chicago",
+      daysOfWeek: ["WE"],
+      end: {
+        type: "afterOccurrences",
+        count: 4
+      }
+    }
+  };
+
+  debugLog("test:createSeries", "Request body:", requestBody);
+  try {
+    const response = await vrchat.createGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId },
+      body: requestBody
+    });
+    debugLog("test:createSeries", "Response:", JSON.stringify(response.data, null, 2));
+    return { ok: true, data: response.data };
+  } catch (err) {
+    debugLog("test:createSeries", "Error:", err?.response?.status, err?.response?.data || err?.message);
+    return { ok: false, status: err?.response?.status, error: err?.response?.data || err?.message };
+  }
+});
+
+ipcMain.handle("test:fetchEvent", async (_, payload) => {
+  const { groupId, calendarId } = payload || {};
+  if (!groupId || !calendarId) throw new Error("Missing groupId or calendarId");
+  await ensureUser();
+
+  debugLog("test:fetchEvent", "Fetching:", { groupId, calendarId });
+  try {
+    const response = await vrchat.getGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId, calendarId }
+    });
+    debugLog("test:fetchEvent", "Response:", JSON.stringify(response.data, null, 2));
+    return { ok: true, data: response.data };
+  } catch (err) {
+    debugLog("test:fetchEvent", "Error:", err?.response?.status, err?.response?.data || err?.message);
+    return { ok: false, status: err?.response?.status, error: err?.response?.data || err?.message };
+  }
+});
+
+ipcMain.handle("test:deleteSeries", async (_, payload) => {
+  const { groupId, calendarId } = payload || {};
+  if (!groupId || !calendarId) throw new Error("Missing groupId or calendarId");
+  await ensureUser();
+  await ensureCalendarPermission(groupId);
+
+  debugLog("test:deleteSeries", "Deleting:", { groupId, calendarId });
+  try {
+    const response = await vrchat.deleteGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId, calendarId }
+    });
+    debugLog("test:deleteSeries", "Response:", JSON.stringify(response.data, null, 2));
+    return { ok: true, data: response.data };
+  } catch (err) {
+    debugLog("test:deleteSeries", "Error:", err?.response?.status, err?.response?.data || err?.message);
+    return { ok: false, status: err?.response?.status, error: err?.response?.data || err?.message };
+  }
+});
+
+ipcMain.handle("test:updateSeries", async (_, payload) => {
+  const { groupId, calendarId, recurrence, fields = {} } = payload || {};
+  if (!groupId || !calendarId) throw new Error("Missing groupId or calendarId");
+  await ensureUser();
+  await ensureCalendarPermission(groupId);
+
+  const requestBody = { ...fields };
+  if (recurrence !== undefined) requestBody.recurrence = recurrence;
+
+  debugLog("test:updateSeries", "Request body:", requestBody);
+  try {
+    const response = await vrchat.updateGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId, calendarId },
+      body: requestBody
+    });
+    debugLog("test:updateSeries", "Response:", JSON.stringify(response.data, null, 2));
+    return { ok: true, data: response.data };
+  } catch (err) {
+    debugLog("test:updateSeries", "Error:", err?.response?.status, err?.response?.data || err?.message);
+    return { ok: false, status: err?.response?.status, error: err?.response?.data || err?.message };
+  }
+});
+
+ipcMain.handle("test:updateOccurrence", async (_, payload) => {
+  const { groupId, calendarId, fields = {} } = payload || {};
+  if (!groupId || !calendarId) throw new Error("Missing groupId or calendarId");
+  await ensureUser();
+  await ensureCalendarPermission(groupId);
+
+  debugLog("test:updateOccurrence", "Request body:", fields);
+  try {
+    const response = await vrchat.updateGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId, calendarId },
+      body: fields
+    });
+    debugLog("test:updateOccurrence", "Response:", JSON.stringify(response.data, null, 2));
+    return { ok: true, data: response.data };
+  } catch (err) {
+    debugLog("test:updateOccurrence", "Error:", err?.response?.status, err?.response?.data || err?.message);
+    return { ok: false, status: err?.response?.status, error: err?.response?.data || err?.message };
+  }
+});
+
+ipcMain.handle("test:createWithParentId", async (_, payload) => {
+  const { groupId, parentId } = payload || {};
+  if (!groupId || !parentId) throw new Error("Missing groupId or parentId");
+  await ensureUser();
+  await ensureCalendarPermission(groupId);
+
+  const now = new Date();
+  const startsAt = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 2 weeks
+  const endsAt = new Date(startsAt.getTime() + 2 * 60 * 60 * 1000);
+
+  const requestBody = {
+    title: "EC ParentId Test",
+    description: "Testing if parentId links a new event to an existing series",
+    startsAt: startsAt.toISOString(),
+    endsAt: endsAt.toISOString(),
+    category: "hangout",
+    sendCreationNotification: false,
+    accessType: "group",
+    languages: ["eng"],
+    platforms: ["standalonewindows", "android"],
+    tags: [],
+    isDraft: false,
+    parentId,
+    roleIds: []
+  };
+
+  debugLog("test:createWithParentId", "Request body:", requestBody);
+  try {
+    const response = await vrchat.createGroupCalendarEvent({
+      throwOnError: true,
+      path: { groupId },
+      body: requestBody
+    });
+    debugLog("test:createWithParentId", "Response:", JSON.stringify(response.data, null, 2));
+    return { ok: true, data: response.data };
+  } catch (err) {
+    debugLog("test:createWithParentId", "Error:", err?.response?.status, err?.response?.data || err?.message);
+    return { ok: false, status: err?.response?.status, error: err?.response?.data || err?.message };
+  }
+});
+
+// --- END TEMPORARY ---
+
 app.whenReady().then(() => {
   initDebugLog();
   initializePaths();
   maybeImportProfiles();
   profiles = loadProfiles();
+  series = loadSeries();
   const startHidden = shouldStartHiddenAtLogin();
   createWindow({ startHidden });
   if (IS_DEV) {

@@ -111,7 +111,23 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   },
   onCalendarAutoSaved: callback => {
     ipcRenderer.on("calendar:autoSaved", (_, data) => callback(data));
-  }
+  },
+
+  // Series (VRChat native recurring events)
+  seriesList: payload => ipcRenderer.invoke("series:list", payload),
+  seriesCreate: payload => ipcRenderer.invoke("series:create", payload),
+  seriesUpdate: payload => ipcRenderer.invoke("series:update", payload),
+  seriesDelete: payload => ipcRenderer.invoke("series:delete", payload),
+  seriesCheckModifications: payload => ipcRenderer.invoke("series:checkModifications", payload),
+  seriesReconcile: payload => ipcRenderer.invoke("series:reconcile", payload),
+
+  // TEMPORARY: Series API test harness (remove before release)
+  testCreateSeries: payload => ipcRenderer.invoke("test:createSeries", payload),
+  testFetchEvent: payload => ipcRenderer.invoke("test:fetchEvent", payload),
+  testDeleteSeries: payload => ipcRenderer.invoke("test:deleteSeries", payload),
+  testUpdateSeries: payload => ipcRenderer.invoke("test:updateSeries", payload),
+  testUpdateOccurrence: payload => ipcRenderer.invoke("test:updateOccurrence", payload),
+  testCreateWithParentId: payload => ipcRenderer.invoke("test:createWithParentId", payload)
 });
 
 contextBridge.exposeInMainWorld("windowControls", {
