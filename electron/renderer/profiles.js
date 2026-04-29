@@ -653,13 +653,13 @@ export function validateProfileBasics() {
   const missing = [];
 
   if (!displayName) {
-    missing.push("Profile name");
+    missing.push(t("profiles.displayName") || "Schedule name");
   }
   if (!eventName) {
-    missing.push("Event name");
+    missing.push(t("common.fields.eventName") || "Event name");
   }
   if (!description) {
-    missing.push("Description");
+    missing.push(t("common.fields.description") || "Description");
   }
 
   if (missing.length) {
@@ -673,6 +673,7 @@ export function validateProfileBasics() {
 // Handle profile wizard step change
 export function handleProfileWizardStepChange({ current, next }) {
   if (next <= current) {
+    syncStep3Mode(next);
     return true;
   }
 
@@ -694,7 +695,33 @@ export function handleProfileWizardStepChange({ current, next }) {
     }
   }
 
+  // When entering step 3 (index 2), ensure the chooser/mode is visible per editingType
+  if (next === 2) {
+    syncStep3Mode(next);
+  }
+
   return true;
+}
+
+// Toggle visibility of step 3 chooser + mode containers based on state.schedules.editingType
+function syncStep3Mode(stepIndex) {
+  if (stepIndex !== 2) return;
+  const editingType = state.schedules?.editingType || null;
+  if (dom.scheduleTypeChooser) {
+    dom.scheduleTypeChooser.classList.toggle("is-hidden", editingType !== null);
+  }
+  if (dom.scheduleModeTemplate) {
+    dom.scheduleModeTemplate.classList.toggle("is-hidden", editingType !== "template");
+  }
+  if (dom.scheduleModeSeries) {
+    dom.scheduleModeSeries.classList.toggle("is-hidden", editingType !== "series");
+  }
+  if (dom.scheduleTypeTemplateCard) {
+    dom.scheduleTypeTemplateCard.classList.toggle("is-active", editingType === "template");
+  }
+  if (dom.scheduleTypeSeriesCard) {
+    dom.scheduleTypeSeriesCard.classList.toggle("is-active", editingType === "series");
+  }
 }
 
 // Handle profile group change

@@ -324,29 +324,13 @@ export const dom = {
   scheduleGroupHint: document.getElementById("schedule-group-hint"),
   // Schedule type filter chips
   scheduleFilterChips: document.getElementById("schedule-filter-chips"),
-  // Schedule type picker modal
-  scheduleTypeOverlay: document.getElementById("schedule-type-overlay"),
-  scheduleTypeTemplateBtn: document.getElementById("schedule-type-template"),
-  scheduleTypeSeriesBtn: document.getElementById("schedule-type-series"),
-  scheduleTypeCancelBtn: document.getElementById("schedule-type-cancel"),
-  // Series editor
-  seriesEditor: document.getElementById("series-editor"),
-  seriesLabel: document.getElementById("series-label"),
-  seriesTitle: document.getElementById("series-title"),
-  seriesCategory: document.getElementById("series-category"),
-  seriesDescription: document.getElementById("series-description"),
-  seriesImageId: document.getElementById("series-image-id"),
-  seriesImagePicker: document.getElementById("series-image-picker"),
-  seriesAccess: document.getElementById("series-access"),
-  seriesRoleRestrictions: document.getElementById("series-role-restrictions"),
-  seriesRoleList: document.getElementById("series-role-list"),
-  seriesLanguageFilter: document.getElementById("series-language-filter"),
-  seriesLanguageList: document.getElementById("series-language-list"),
-  seriesLanguageHint: document.getElementById("series-language-hint"),
-  seriesPlatformList: document.getElementById("series-platform-list"),
-  seriesTagsInput: document.getElementById("series-tags-input"),
-  seriesTagsChips: document.getElementById("series-tags-chips"),
-  seriesTags: document.getElementById("series-tags"),
+  // Step 3 type chooser cards + mode containers
+  scheduleTypeChooser: document.getElementById("schedule-type-chooser"),
+  scheduleTypeTemplateCard: document.getElementById("schedule-type-template-card"),
+  scheduleTypeSeriesCard: document.getElementById("schedule-type-series-card"),
+  scheduleModeTemplate: document.getElementById("schedule-mode-template"),
+  scheduleModeSeries: document.getElementById("schedule-mode-series"),
+  // Series-specific recurrence inputs (in step 3)
   seriesDuration: document.getElementById("series-duration"),
   seriesDurationPreview: document.getElementById("series-duration-preview"),
   seriesStartDate: document.getElementById("series-start-date"),
@@ -360,9 +344,7 @@ export const dom = {
   seriesEndAfterDate: document.getElementById("series-end-after-date"),
   seriesEndCount: document.getElementById("series-end-count"),
   seriesEndDate: document.getElementById("series-end-date"),
-  seriesModificationWarning: document.getElementById("series-modification-warning"),
-  seriesCancel: document.getElementById("series-cancel"),
-  seriesSave: document.getElementById("series-save")
+  seriesModificationWarning: document.getElementById("series-modification-warning")
 };
 
 export const state = {
@@ -379,15 +361,10 @@ export const state = {
   profiles: {},
   series: {},
   schedules: {
-    filterType: "all",      // "all" | "templates" | "series"
-    selectedType: null,     // "template" | "series" — kind of currently selected entry
-    editingSeriesId: null,  // when editing an existing series
-    seriesForm: {
-      languages: [],
-      platforms: [],
-      roleIds: [],
-      tagInput: null
-    }
+    filterType: "all",       // "all" | "templates" | "series" — list filter
+    selectedType: null,      // "template" | "series" — what's currently selected in the dropdown
+    editingType: null,       // "template" | "series" | null — current wizard mode
+    editingSeriesId: null    // when editing an existing series
   },
   event: {
     languages: [],

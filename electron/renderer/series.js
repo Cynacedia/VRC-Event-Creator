@@ -1,30 +1,17 @@
 import { dom, state } from "./state.js";
-import { showToast, renderSelect, renderChecklist } from "./ui.js";
-import { buildTimezones, ensureTimezoneOption, enforceTagsInput, sanitizeText, formatDuration, parseDurationInput, formatDurationPreview, enforceGroupAccess } from "./utils.js";
-import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, TAG_LIMIT, EVENT_NAME_LIMIT, EVENT_DESCRIPTION_LIMIT } from "./config.js";
-import { t, getLanguageDisplayName } from "./i18n/index.js";
-import { fetchGroupRoles, renderRoleList } from "./roles.js";
+import { showToast } from "./ui.js";
+import { renderSelect } from "./ui.js";
+import { buildTimezones, ensureTimezoneOption, sanitizeText, formatDuration, parseDurationInput, formatDurationPreview } from "./utils.js";
+import { EVENT_NAME_LIMIT, EVENT_DESCRIPTION_LIMIT } from "./config.js";
+import { t } from "./i18n/index.js";
 
 let _seriesApi = null;
-let roleFetchToken = 0;
 
 export function initSeriesModule(api) {
   _seriesApi = api;
 }
 
-// --- Helpers for dropdown population ---
-
-export function populateSeriesCategoryDropdown() {
-  if (!dom.seriesCategory) return;
-  renderSelect(dom.seriesCategory, CATEGORIES.map(c => ({ label: t(c.labelKey) || c.label, value: c.value })));
-  dom.seriesCategory.value = "hangout";
-}
-
-export function populateSeriesAccessDropdown() {
-  if (!dom.seriesAccess) return;
-  renderSelect(dom.seriesAccess, ACCESS_TYPES.map(a => ({ label: t(a.labelKey) || a.label, value: a.value })));
-  dom.seriesAccess.value = "public";
-}
+// --- Dropdown population ---
 
 export function populateSeriesTimezoneDropdown() {
   if (!dom.seriesTimezone) return;
@@ -34,7 +21,7 @@ export function populateSeriesTimezoneDropdown() {
   dom.seriesTimezone.value = systemTz;
 }
 
-// --- IPC + state ---
+// --- IPC ---
 
 export async function loadSeriesForGroup(groupId) {
   if (!_seriesApi || !groupId) return {};
@@ -49,41 +36,26 @@ export async function loadSeriesForGroup(groupId) {
   }
 }
 
-// --- Editor state management ---
+// --- Series step 3 form helpers ---
 
-export function resetSeriesEditor() {
-  state.schedules.editingSeriesId = null;
-  if (dom.seriesLabel) dom.seriesLabel.value = "";
-  if (dom.seriesTitle) dom.seriesTitle.value = "";
-  if (dom.seriesDescription) dom.seriesDescription.value = "";
-  if (dom.seriesCategory) dom.seriesCategory.value = "hangout";
-  if (dom.seriesImageId) dom.seriesImageId.value = "";
-  if (dom.seriesAccess) dom.seriesAccess.value = "public";
-  if (dom.seriesTags) dom.seriesTags.value = "";
-  if (state.schedules.seriesForm.tagInput) state.schedules.seriesForm.tagInput.clear();
-  state.schedules.seriesForm.languages = ["eng"];
-  state.schedules.seriesForm.platforms = ["standalonewindows", "android"];
-  state.schedules.seriesForm.roleIds = [];
-  if (dom.seriesDuration) {
-    dom.seriesDuration.value = formatDuration(120);
-    updateSeriesDurationPreview();
-  }
-  // Default start: tomorrow at the next round hour, in user's local timezone
+/** Reset only the series-specific recurrence inputs (step 3 series mode). */
+export function resetSeriesRecurrenceForm() {
+  // Default first occurrence: tomorrow at 8 PM
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  tomorrow.setHours(20, 0, 0, 0);
   if (dom.seriesStartDate) {
     const yyyy = tomorrow.getFullYear();
     const mm = String(tomorrow.getMonth() + 1).padStart(2, "0");
     const dd = String(tomorrow.getDate()).padStart(2, "0");
     dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
   }
-  if (dom.seriesStartTime) {
-    dom.seriesStartTime.value = "20:00";
+  if (dom.seriesStartTime) dom.seriesStartTime.value = "20:00";
+  if (dom.seriesDuration) {
+    dom.seriesDuration.value = formatDuration(120);
+    updateSeriesDurationPreview();
   }
   if (dom.seriesFrequency) dom.seriesFrequency.value = "weekly";
   if (dom.seriesInterval) dom.seriesInterval.value = "1";
-  // Clear day-of-week checkboxes
   document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]').forEach(cb => {
     cb.checked = false;
   });
@@ -95,37 +67,27 @@ export function resetSeriesEditor() {
     dom.seriesModificationWarning.classList.add("is-hidden");
     dom.seriesModificationWarning.textContent = "";
   }
-  renderSeriesLanguageList();
-  renderSeriesPlatformList();
-  updateSeriesFrequencyVisibility();
   populateSeriesTimezoneDropdown();
-  populateSeriesCategoryDropdown();
-  populateSeriesAccessDropdown();
+  updateSeriesFrequencyVisibility();
 }
 
-export function applySeriesToEditor(seriesData) {
+/** Apply an existing series's recurrence rule and event template to the wizard. */
+export function applySeriesToWizard(seriesData) {
   if (!seriesData) return;
+  state.schedules.editingType = "series";
   state.schedules.editingSeriesId = seriesData.seriesId;
-  if (dom.seriesLabel) dom.seriesLabel.value = seriesData.label || "";
+
+  // Step 2: schedule basics — fill the wizard's existing inputs from eventTemplate
   const tpl = seriesData.eventTemplate || {};
-  if (dom.seriesTitle) dom.seriesTitle.value = tpl.title || "";
-  if (dom.seriesDescription) dom.seriesDescription.value = tpl.description || "";
-  populateSeriesCategoryDropdown();
-  if (dom.seriesCategory) dom.seriesCategory.value = tpl.category || "hangout";
-  if (dom.seriesImageId) dom.seriesImageId.value = tpl.imageId || "";
-  populateSeriesAccessDropdown();
-  if (dom.seriesAccess) dom.seriesAccess.value = tpl.accessType || "public";
-  state.schedules.seriesForm.languages = Array.isArray(tpl.languages) ? [...tpl.languages] : ["eng"];
-  state.schedules.seriesForm.platforms = Array.isArray(tpl.platforms) ? [...tpl.platforms] : ["standalonewindows", "android"];
-  state.schedules.seriesForm.roleIds = Array.isArray(tpl.roleIds) ? [...tpl.roleIds] : [];
-  if (state.schedules.seriesForm.tagInput) {
-    state.schedules.seriesForm.tagInput.setTags(Array.isArray(tpl.tags) ? tpl.tags : []);
-  }
-  if (dom.seriesDuration) {
-    dom.seriesDuration.value = formatDuration(tpl.duration || 120);
-    updateSeriesDurationPreview();
-  }
-  // Recurrence
+  if (dom.profileDisplayName) dom.profileDisplayName.value = seriesData.label || "";
+  if (dom.profileName) dom.profileName.value = tpl.title || "";
+  if (dom.profileDescription) dom.profileDescription.value = tpl.description || "";
+  if (dom.profileCategory) dom.profileCategory.value = tpl.category || "hangout";
+  if (dom.profileImageId) dom.profileImageId.value = tpl.imageId || "";
+  if (dom.profileSendNotification) dom.profileSendNotification.checked = Boolean(tpl.sendCreationNotification);
+  if (dom.profileAccess) dom.profileAccess.value = tpl.accessType || "public";
+
+  // Step 3: recurrence — fill series-specific inputs
   const rec = seriesData.recurrence || { frequency: "weekly", interval: 1 };
   populateSeriesTimezoneDropdown();
   if (dom.seriesTimezone && rec.timezone) {
@@ -134,11 +96,9 @@ export function applySeriesToEditor(seriesData) {
   }
   if (dom.seriesFrequency) dom.seriesFrequency.value = rec.frequency || "weekly";
   if (dom.seriesInterval) dom.seriesInterval.value = String(rec.interval || 1);
-  // Days of week
   document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]').forEach(cb => {
     cb.checked = Array.isArray(rec.daysOfWeek) && rec.daysOfWeek.includes(cb.dataset.day);
   });
-  // End condition
   const end = rec.end || { type: "afterOccurrences", count: 10 };
   if (end.type === "afterDate") {
     if (dom.seriesEndAfterDate) dom.seriesEndAfterDate.checked = true;
@@ -149,45 +109,51 @@ export function applySeriesToEditor(seriesData) {
     if (dom.seriesEndAfterDate) dom.seriesEndAfterDate.checked = false;
     if (dom.seriesEndCount) dom.seriesEndCount.value = String(end.count || 10);
   }
-  // Note: no startsAt is stored in our local series.json — we'd need to query VRChat for the first occurrence.
-  // For now, leave the date inputs blank; the user can adjust if they want to update timing.
+  if (dom.seriesDuration) {
+    dom.seriesDuration.value = formatDuration(tpl.duration || 120);
+    updateSeriesDurationPreview();
+  }
+  // Note: We don't have the original startsAt stored locally. Leave date/time blank
+  // (user will see the wizard's date/time fields and can adjust if they want to update timing).
   if (dom.seriesStartDate) dom.seriesStartDate.value = "";
   if (dom.seriesStartTime) dom.seriesStartTime.value = "";
   if (dom.seriesModificationWarning) {
     dom.seriesModificationWarning.classList.add("is-hidden");
     dom.seriesModificationWarning.textContent = "";
   }
-  renderSeriesLanguageList();
-  renderSeriesPlatformList();
   updateSeriesFrequencyVisibility();
 }
 
-export function readSeriesEditor() {
-  const label = sanitizeText(dom.seriesLabel?.value || "", { maxLength: 100, trim: true });
-  const title = sanitizeText(dom.seriesTitle?.value || "", { maxLength: EVENT_NAME_LIMIT, trim: true });
-  const description = sanitizeText(dom.seriesDescription?.value || "", {
+/** Read the wizard form into a series payload. */
+export function readSeriesFromWizard() {
+  const label = sanitizeText(dom.profileDisplayName?.value || "", { maxLength: 100, trim: true });
+  const title = sanitizeText(dom.profileName?.value || "", { maxLength: EVENT_NAME_LIMIT, trim: true });
+  const description = sanitizeText(dom.profileDescription?.value || "", {
     maxLength: EVENT_DESCRIPTION_LIMIT,
     allowNewlines: true,
     trim: true
   });
-  const tags = state.schedules.seriesForm.tagInput?.getTags() || [];
+  // Tags from existing wizard tag input
+  let tags = [];
+  if (state.profile?.tagInput?.getTags) {
+    tags = state.profile.tagInput.getTags();
+  }
   const eventTemplate = {
     title,
     description,
-    category: dom.seriesCategory?.value || "hangout",
-    accessType: dom.seriesAccess?.value || "public",
-    languages: state.schedules.seriesForm.languages.slice(),
-    platforms: state.schedules.seriesForm.platforms.slice(),
+    category: dom.profileCategory?.value || "hangout",
+    accessType: dom.profileAccess?.value || "public",
+    languages: Array.isArray(state.profile?.languages) ? state.profile.languages.slice() : [],
+    platforms: Array.isArray(state.profile?.platforms) ? state.profile.platforms.slice() : [],
     tags,
-    imageId: dom.seriesImageId?.value.trim() || null,
-    roleIds: dom.seriesAccess?.value === "group"
-      ? state.schedules.seriesForm.roleIds.filter(id => typeof id === "string" && id.trim())
+    imageId: dom.profileImageId?.value.trim() || null,
+    roleIds: dom.profileAccess?.value === "group" && Array.isArray(state.profile?.roleIds)
+      ? state.profile.roleIds.filter(id => typeof id === "string" && id.trim())
       : [],
     duration: parseDurationInput(dom.seriesDuration?.value || "00:02:00"),
-    sendCreationNotification: false
+    sendCreationNotification: Boolean(dom.profileSendNotification?.checked)
   };
 
-  // Recurrence
   const frequency = dom.seriesFrequency?.value || "weekly";
   const interval = Math.max(1, Math.min(366, parseInt(dom.seriesInterval?.value || "1", 10) || 1));
   const timezone = dom.seriesTimezone?.value || "UTC";
@@ -213,14 +179,9 @@ export function readSeriesEditor() {
   let startsAtUtc = null;
   let endsAtUtc = null;
   if (startDate) {
-    // Construct a Date in the user's selected timezone, then convert to UTC ISO
-    // Use Luxon-style approach: build a string without offset, parse as local in chosen tz
     const localStr = `${startDate}T${startTime}:00`;
     try {
       const localDate = new Date(localStr);
-      // Note: we can't easily target a specific IANA tz without Luxon here.
-      // For now, treat the input as the user's local timezone (browser).
-      // VRChat's recurrence object carries its own timezone, so the rule is correct.
       startsAtUtc = localDate.toISOString();
       const durationMs = (eventTemplate.duration || 120) * 60 * 1000;
       endsAtUtc = new Date(localDate.getTime() + durationMs).toISOString();
@@ -230,58 +191,6 @@ export function readSeriesEditor() {
   }
 
   return { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc };
-}
-
-// --- Render multi-selects ---
-
-export function renderSeriesLanguageList() {
-  if (!dom.seriesLanguageList) return;
-  renderChecklist(dom.seriesLanguageList, LANGUAGES, state.schedules.seriesForm.languages, {
-    max: 3,
-    filterText: dom.seriesLanguageFilter?.value,
-    getLabel: item => getLanguageDisplayName(item.value, item.label),
-    onChange: next => {
-      state.schedules.seriesForm.languages = next;
-      renderSeriesLanguageList();
-      if (dom.seriesLanguageHint) {
-        dom.seriesLanguageHint.textContent = t("common.fields.languagesHint", { count: next.length });
-      }
-    }
-  });
-}
-
-export function renderSeriesPlatformList() {
-  if (!dom.seriesPlatformList) return;
-  renderChecklist(dom.seriesPlatformList, PLATFORMS, state.schedules.seriesForm.platforms, {
-    onChange: next => {
-      state.schedules.seriesForm.platforms = next;
-      renderSeriesPlatformList();
-    }
-  });
-}
-
-export async function renderSeriesRoleRestrictions(api) {
-  if (!dom.seriesRoleRestrictions || !dom.seriesRoleList) return;
-  const groupId = dom.profileGroup?.value;
-  const isGroupAccess = dom.seriesAccess?.value === "group";
-  const shouldShow = Boolean(groupId) && isGroupAccess;
-  dom.seriesRoleRestrictions.classList.toggle("is-hidden", !shouldShow);
-  if (!shouldShow) {
-    dom.seriesRoleList.innerHTML = "";
-    return;
-  }
-  const requestId = ++roleFetchToken;
-  dom.seriesRoleList.innerHTML = `<div class="hint">${t("common.loading")}</div>`;
-  try {
-    const roles = await fetchGroupRoles(api, groupId);
-    if (requestId !== roleFetchToken) return;
-    renderRoleList(dom.seriesRoleList, roles, state.schedules.seriesForm.roleIds, next => {
-      state.schedules.seriesForm.roleIds = next;
-    });
-  } catch (err) {
-    if (requestId !== roleFetchToken) return;
-    dom.seriesRoleList.innerHTML = `<div class="hint">${t("common.errors.generic")}</div>`;
-  }
 }
 
 // --- Visibility helpers ---
@@ -299,17 +208,25 @@ export function updateSeriesDurationPreview() {
   dom.seriesDurationPreview.textContent = formatDurationPreview(minutes);
 }
 
-export function showSeriesEditor() {
-  if (dom.seriesEditor) dom.seriesEditor.classList.remove("is-hidden");
-  // Hide the wizard
-  const wizard = document.getElementById("profile-wizard");
-  if (wizard) wizard.classList.add("is-hidden");
-}
-
-export function hideSeriesEditor() {
-  if (dom.seriesEditor) dom.seriesEditor.classList.add("is-hidden");
-  const wizard = document.getElementById("profile-wizard");
-  if (wizard) wizard.classList.remove("is-hidden");
+/** Show/hide the type chooser and the appropriate mode container in step 3. */
+export function showScheduleMode(mode) {
+  // mode: "template" | "series" | null
+  if (dom.scheduleTypeChooser) {
+    dom.scheduleTypeChooser.classList.toggle("is-hidden", mode !== null);
+  }
+  if (dom.scheduleModeTemplate) {
+    dom.scheduleModeTemplate.classList.toggle("is-hidden", mode !== "template");
+  }
+  if (dom.scheduleModeSeries) {
+    dom.scheduleModeSeries.classList.toggle("is-hidden", mode !== "series");
+  }
+  // Visual selection state on the chooser cards
+  if (dom.scheduleTypeTemplateCard) {
+    dom.scheduleTypeTemplateCard.classList.toggle("is-active", mode === "template");
+  }
+  if (dom.scheduleTypeSeriesCard) {
+    dom.scheduleTypeSeriesCard.classList.toggle("is-active", mode === "series");
+  }
 }
 
 // --- Action handlers ---
@@ -320,7 +237,7 @@ export async function handleSeriesCreate(api) {
     showToast(t("series.errors.noGroup") || "Select a group first.", true);
     return;
   }
-  const { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc } = readSeriesEditor();
+  const { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc } = readSeriesFromWizard();
   if (!label) {
     showToast(t("series.errors.noLabel") || "Series label is required.", true);
     return;
@@ -353,15 +270,15 @@ export async function handleSeriesCreate(api) {
 
   if (!result?.ok) {
     showToast(result?.error?.message || t("series.errors.createFailed") || "Could not create series.", true);
-    return;
+    return { success: false };
   }
 
-  showToast(t("series.created") || `Series "${label}" created.`);
+  showToast((t("series.created") || "Series \"{label}\" created.").replace("{label}", label));
   await loadSeriesForGroup(groupId);
-  hideSeriesEditor();
-  resetSeriesEditor();
-  // Trigger a refresh of the schedule list
+  state.schedules.editingType = null;
+  state.schedules.editingSeriesId = null;
   document.dispatchEvent(new CustomEvent("schedules:refresh"));
+  return { success: true };
 }
 
 export async function handleSeriesUpdate(api) {
@@ -369,15 +286,14 @@ export async function handleSeriesUpdate(api) {
   const seriesId = state.schedules.editingSeriesId;
   if (!groupId || !seriesId) {
     showToast(t("series.errors.noSeries") || "No series selected.", true);
-    return;
+    return { success: false };
   }
-  const { label, eventTemplate, recurrence } = readSeriesEditor();
+  const { label, eventTemplate, recurrence } = readSeriesFromWizard();
   if (!label) {
     showToast(t("series.errors.noLabel") || "Series label is required.", true);
-    return;
+    return { success: false };
   }
 
-  // Detect if the recurrence rule is changing (warn about wiping modifications)
   const existing = state.series[groupId]?.[seriesId];
   const existingRec = existing?.recurrence || {};
   const recurrenceChanged = JSON.stringify(existingRec) !== JSON.stringify(recurrence);
@@ -387,7 +303,7 @@ export async function handleSeriesUpdate(api) {
     if (check?.ok && check.count > 0) {
       const msg = (t("series.warnings.recurrenceUpdate") || "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?")
         .replace("{count}", String(check.count));
-      if (!confirm(msg)) return;
+      if (!confirm(msg)) return { success: false };
     }
   }
 
@@ -401,33 +317,36 @@ export async function handleSeriesUpdate(api) {
 
   if (!result?.ok) {
     showToast(result?.error?.message || t("series.errors.updateFailed") || "Could not update series.", true);
-    return;
+    return { success: false };
   }
 
-  showToast(t("series.updated") || `Series "${label}" updated.`);
+  showToast((t("series.updated") || "Series \"{label}\" updated.").replace("{label}", label));
   await loadSeriesForGroup(groupId);
-  hideSeriesEditor();
-  resetSeriesEditor();
+  state.schedules.editingType = null;
+  state.schedules.editingSeriesId = null;
   document.dispatchEvent(new CustomEvent("schedules:refresh"));
+  return { success: true };
 }
 
 export async function handleSeriesDelete(api, seriesId) {
   const groupId = dom.profileGroup?.value;
-  if (!groupId || !seriesId) return;
+  if (!groupId || !seriesId) return { success: false };
   const seriesData = state.series[groupId]?.[seriesId];
   const label = seriesData?.label || "this series";
-  const msg = (t("series.confirmDelete") || `Delete "{label}"? This will remove the series and all its occurrences from VRChat.`).replace("{label}", label);
-  if (!confirm(msg)) return;
+  const msg = (t("series.confirmDelete") || "Delete \"{label}\"? This will remove the series and all its occurrences from VRChat.").replace("{label}", label);
+  if (!confirm(msg)) return { success: false, cancelled: true };
 
   const result = await api.seriesDelete({ groupId, seriesId });
   if (!result?.ok) {
     showToast(result?.error?.message || t("series.errors.deleteFailed") || "Could not delete series.", true);
-    return;
+    return { success: false };
   }
-  showToast(t("series.deleted") || `Series "${label}" deleted.`);
+  showToast((t("series.deleted") || "Series \"{label}\" deleted.").replace("{label}", label));
   await loadSeriesForGroup(groupId);
-  hideSeriesEditor();
+  state.schedules.editingType = null;
+  state.schedules.editingSeriesId = null;
   document.dispatchEvent(new CustomEvent("schedules:refresh"));
+  return { success: true };
 }
 
 // --- Display helpers ---
@@ -445,7 +364,7 @@ export function recurrenceToHumanString(recurrence) {
     yearly: interval === 1 ? "Yearly" : `Every ${interval} years`
   }[freq] || freq;
 
-  let parts = [freqLabel];
+  const parts = [freqLabel];
 
   if (freq === "weekly" && Array.isArray(recurrence.daysOfWeek) && recurrence.daysOfWeek.length) {
     const days = recurrence.daysOfWeek.map(d => dayNames[d] || d).join(", ");

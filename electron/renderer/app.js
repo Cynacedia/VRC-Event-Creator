@@ -14,20 +14,14 @@ import { initDemoControls } from "./demo.js";
 import {
   initSeriesModule,
   loadSeriesForGroup,
-  resetSeriesEditor,
-  applySeriesToEditor,
-  showSeriesEditor,
-  hideSeriesEditor,
+  resetSeriesRecurrenceForm,
+  applySeriesToWizard,
+  showScheduleMode,
   handleSeriesCreate,
   handleSeriesUpdate,
   handleSeriesDelete,
-  renderSeriesLanguageList,
-  renderSeriesPlatformList,
-  renderSeriesRoleRestrictions,
   updateSeriesFrequencyVisibility,
   updateSeriesDurationPreview,
-  populateSeriesCategoryDropdown,
-  populateSeriesAccessDropdown,
   populateSeriesTimezoneDropdown
 } from "./series.js";
 
@@ -1542,34 +1536,19 @@ import {
         });
       }
 
-      // Schedule type picker modal
-      if (dom.scheduleTypeOverlay) {
-        dom.scheduleTypeTemplateBtn?.addEventListener("click", () => {
-          dom.scheduleTypeOverlay.classList.add("is-hidden");
-          hideSeriesEditor();
-          const r = handleProfileNew();
-          if (!r.success && r.message) showToast(r.message, true);
+      // Step 3 type chooser cards — set editingType and swap mode
+      if (dom.scheduleTypeTemplateCard) {
+        dom.scheduleTypeTemplateCard.addEventListener("click", () => {
+          state.schedules.editingType = "template";
+          state.schedules.editingSeriesId = null;
+          showScheduleMode("template");
         });
-        dom.scheduleTypeSeriesBtn?.addEventListener("click", () => {
-          if (!dom.profileGroup?.value) {
-            showToast(t("schedules.errors.noGroup") || "Select a group first.", true);
-            return;
-          }
-          dom.scheduleTypeOverlay.classList.add("is-hidden");
-          resetSeriesEditor();
-          showSeriesEditor();
-          renderSeriesLanguageList();
-          renderSeriesPlatformList();
-          renderSeriesRoleRestrictions(api);
-        });
-        dom.scheduleTypeCancelBtn?.addEventListener("click", () => {
-          dom.scheduleTypeOverlay.classList.add("is-hidden");
-        });
-        // Click outside to close
-        dom.scheduleTypeOverlay.addEventListener("click", (event) => {
-          if (event.target === dom.scheduleTypeOverlay) {
-            dom.scheduleTypeOverlay.classList.add("is-hidden");
-          }
+      }
+      if (dom.scheduleTypeSeriesCard) {
+        dom.scheduleTypeSeriesCard.addEventListener("click", () => {
+          state.schedules.editingType = "series";
+          resetSeriesRecurrenceForm();
+          showScheduleMode("series");
         });
       }
 
@@ -1580,33 +1559,34 @@ import {
           await loadSeriesForGroup(groupId);
         }
         renderProfileList(api);
+        // Reset wizard editing state when switching groups
+        state.schedules.editingType = null;
+        state.schedules.editingSeriesId = null;
+        showScheduleMode(null);
       });
       dom.profileExisting.addEventListener("change", () => {
         const selected = dom.profileExisting.value;
         if (selected.startsWith("series::")) {
           state.schedules.selectedType = "series";
-          // Hide series editor until they click Edit
-          hideSeriesEditor();
-          updateProfileActionButtons();
         } else if (selected) {
           state.schedules.selectedType = "template";
-          hideSeriesEditor();
           handleProfileSelection(api);
         } else {
           state.schedules.selectedType = null;
-          hideSeriesEditor();
-          updateProfileActionButtons();
         }
+        updateProfileActionButtons();
       });
       dom.profileNew.addEventListener("click", () => {
         if (!dom.profileGroup?.value) {
           showToast(t("schedules.errors.noGroup") || "Select a group first.", true);
           return;
         }
-        // Open the type picker modal
-        if (dom.scheduleTypeOverlay) {
-          dom.scheduleTypeOverlay.classList.remove("is-hidden");
-        }
+        // Reset editing state — type will be picked in step 3
+        state.schedules.editingType = null;
+        state.schedules.editingSeriesId = null;
+        showScheduleMode(null);
+        const r = handleProfileNew();
+        if (!r.success && r.message) showToast(r.message, true);
       });
       dom.profileEdit.addEventListener("click", () => {
         const selected = dom.profileExisting?.value || "";
@@ -1618,13 +1598,18 @@ import {
             showToast(t("series.errors.notFound") || "Series not found.", true);
             return;
           }
-          showSeriesEditor();
-          applySeriesToEditor(seriesData);
-          renderSeriesLanguageList();
-          renderSeriesPlatformList();
-          renderSeriesRoleRestrictions(api);
+          // Set up wizard for editing this series
+          applySeriesToWizard(seriesData);
+          showScheduleMode("series");
+          // Advance the wizard to step 2 (basics) for the user
+          const w0 = getProfileWizard();
+          if (w0?.goTo) w0.goTo(2);
           return;
         }
+        // Template edit — existing flow
+        state.schedules.editingType = "template";
+        state.schedules.editingSeriesId = null;
+        showScheduleMode("template");
         const r = handleProfileEdit();
         if (!r.success && r.message) showToast(r.message, true);
       });
@@ -1640,35 +1625,14 @@ import {
       else if (!r.cancelled) showToast(r.message, true);
     });
 
-    // Series editor save/cancel handlers
-    if (dom.seriesSave) {
-      dom.seriesSave.addEventListener("click", async () => {
-        if (state.schedules.editingSeriesId) {
-          await handleSeriesUpdate(api);
-        } else {
-          await handleSeriesCreate(api);
-        }
-      });
-    }
-    if (dom.seriesCancel) {
-      dom.seriesCancel.addEventListener("click", () => {
-        hideSeriesEditor();
-        resetSeriesEditor();
-        if (dom.profileExisting) dom.profileExisting.value = "";
-        updateProfileActionButtons();
-      });
-    }
     // Refresh schedule list event (dispatched after series CRUD)
     document.addEventListener("schedules:refresh", () => {
       renderProfileList(api);
     });
 
-    // Series form: live updates
+    // Series recurrence form: live updates (in step 3 series mode)
     if (dom.seriesFrequency) {
       dom.seriesFrequency.addEventListener("change", () => updateSeriesFrequencyVisibility());
-    }
-    if (dom.seriesAccess) {
-      dom.seriesAccess.addEventListener("change", () => renderSeriesRoleRestrictions(api));
     }
     if (dom.seriesDuration) {
       dom.seriesDuration.addEventListener("input", () => {
@@ -1680,22 +1644,42 @@ import {
         updateSeriesDurationPreview();
       });
     }
-    if (dom.seriesLanguageFilter) {
-      dom.seriesLanguageFilter.addEventListener("input", renderSeriesLanguageList);
-    }
-    if (dom.seriesImagePicker) {
-      dom.seriesImagePicker.addEventListener("click", () => openGalleryPicker(dom.seriesImageId));
-    }
-    // Tag input for series
-    if (dom.seriesTags && dom.seriesTagsChips && !state.schedules.seriesForm.tagInput) {
-      state.schedules.seriesForm.tagInput = createTagInput({
-        inputEl: dom.seriesTags,
-        chipContainer: dom.seriesTagsChips,
-        wrapperEl: dom.seriesTagsInput,
-        maxTags: TAG_LIMIT
+      // Save dispatches based on editingType
+      dom.profileSave.addEventListener("click", async () => {
+        if (state.schedules.editingType === "series") {
+          const result = state.schedules.editingSeriesId
+            ? await handleSeriesUpdate(api)
+            : await handleSeriesCreate(api);
+          if (result?.success) {
+            await refreshData();
+            renderProfileList(api);
+            // Reset wizard editing state after series save
+            state.schedules.editingType = null;
+            state.schedules.editingSeriesId = null;
+            showScheduleMode(null);
+            // Return to step 1 to show the new entry in the dropdown
+            const wizard = state.profile?.wizard;
+            if (wizard?.goTo) wizard.goTo(1);
+          }
+          return;
+        }
+        // Template save — existing flow
+        const r = await handleProfileSave(api);
+        if (r.success) {
+          showToast(r.message);
+          await refreshData();
+          renderProfileList(api);
+          dom.profileExisting.value = `${r.groupId}::${r.profileKey}`;
+          applyProfileToForm(r.groupId, r.profileKey);
+          updateProfileActionButtons();
+          renderProfileLanguageList();
+          renderProfilePlatformList();
+          renderPatternList();
+          await renderProfileRoleRestrictions(api);
+        } else {
+          showToast(r.message, true);
+        }
       });
-    }
-      dom.profileSave.addEventListener("click", async () => { const r = await handleProfileSave(api); if (r.success) { showToast(r.message); await refreshData(); renderProfileList(api); dom.profileExisting.value = `${r.groupId}::${r.profileKey}`; applyProfileToForm(r.groupId, r.profileKey); updateProfileActionButtons(); renderProfileLanguageList(); renderProfilePlatformList(); renderPatternList(); await renderProfileRoleRestrictions(api); } else showToast(r.message, true); });
       dom.profileLanguageFilter.addEventListener("input", renderProfileLanguageList);
       dom.profileAccess.addEventListener("change", () => handleProfileAccessChange(api));
     if (dom.profileDuration) {
