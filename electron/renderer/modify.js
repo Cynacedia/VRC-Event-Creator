@@ -558,6 +558,45 @@ function getMergedEvents() {
   return [...realEvents, ...filteredOptimistic, ...pendingEvents].sort((a, b) => a.sortTime - b.sortTime);
 }
 
+function populateSeriesFilterOptions(groupId, events) {
+  if (!dom.modifySeriesFilter || !dom.modifySeriesFilterField) return;
+  // Collect unique seriesIds present in current events
+  const seriesIds = new Set();
+  (events || []).forEach(event => {
+    if (event.seriesId) seriesIds.add(event.seriesId);
+  });
+  // Hide the filter entirely if there are no series occurrences in this view
+  if (seriesIds.size === 0) {
+    dom.modifySeriesFilterField.classList.add("is-hidden");
+    return;
+  }
+  dom.modifySeriesFilterField.classList.remove("is-hidden");
+
+  const previousValue = dom.modifySeriesFilter.value;
+  const seriesMap = state.series?.[groupId] || {};
+  // Rebuild options
+  dom.modifySeriesFilter.innerHTML = "";
+  const allOpt = document.createElement("option");
+  allOpt.value = "all";
+  allOpt.textContent = t("modify.filter.all") || "All events";
+  dom.modifySeriesFilter.appendChild(allOpt);
+  const standaloneOpt = document.createElement("option");
+  standaloneOpt.value = "standalone";
+  standaloneOpt.textContent = t("modify.filter.standalone") || "Standalone only";
+  dom.modifySeriesFilter.appendChild(standaloneOpt);
+  // Per-series entries (use label from series.json if available, else fallback)
+  Array.from(seriesIds).sort().forEach(seriesId => {
+    const opt = document.createElement("option");
+    opt.value = seriesId;
+    const label = seriesMap[seriesId]?.label;
+    opt.textContent = label || `${t("modify.filter.unknownSeries") || "Series"} (${seriesId.slice(0, 8)})`;
+    dom.modifySeriesFilter.appendChild(opt);
+  });
+  // Restore previous selection if still valid
+  const validValues = new Set(["all", "standalone", ...seriesIds]);
+  dom.modifySeriesFilter.value = validValues.has(previousValue) ? previousValue : "all";
+}
+
 function renderModifyEventGrid() {
   if (!dom.modifyEventGrid) {
     return;
@@ -571,7 +610,15 @@ function renderModifyEventGrid() {
     return;
   }
 
-  const mergedEvents = getMergedEvents();
+  const allMergedEvents = getMergedEvents();
+  // Apply series filter (UI dropdown — "all", "standalone", or a specific seriesId)
+  const filterValue = dom.modifySeriesFilter?.value || "all";
+  const mergedEvents = allMergedEvents.filter(event => {
+    if (filterValue === "all") return true;
+    if (filterValue === "standalone") return !event.seriesId;
+    // Specific series ID
+    return event.seriesId === filterValue;
+  });
 
   if (!mergedEvents.length) {
     const empty = document.createElement("div");
@@ -632,6 +679,25 @@ function renderPublishedCard(event) {
   title.className = "event-title";
   title.textContent = event.title || t("modify.untitled");
 
+  // Series and modified badges
+  const badgeRow = document.createElement("div");
+  badgeRow.className = "event-badge-row";
+  if (event.seriesId) {
+    const seriesData = state.series?.[event.groupId]?.[event.seriesId];
+    const label = seriesData?.label || t("modify.badge.unknownSeries") || "Series";
+    const seriesBadge = document.createElement("span");
+    seriesBadge.className = "event-series-badge";
+    seriesBadge.textContent = `↻ ${label}`;
+    seriesBadge.title = label;
+    badgeRow.appendChild(seriesBadge);
+  }
+  if (event.occurrenceModified) {
+    const modBadge = document.createElement("span");
+    modBadge.className = "event-modified-badge";
+    modBadge.textContent = t("modify.badge.modified") || "Modified";
+    badgeRow.appendChild(modBadge);
+  }
+
   const date = document.createElement("div");
   date.className = "event-date";
   // Published events: show local time, on hover show with timezone code
@@ -663,6 +729,9 @@ function renderPublishedCard(event) {
   card.appendChild(deleteBtn);
   card.appendChild(thumb);
   card.appendChild(title);
+  if (badgeRow.children.length > 0) {
+    card.appendChild(badgeRow);
+  }
   card.appendChild(date);
   card.addEventListener("click", () => openModifyModal(event));
   card.addEventListener("keydown", evt => {
@@ -1721,6 +1790,9 @@ async function performRefresh(api, options = {}) {
 
     state.modify.events = filteredEvents;
 
+    // Populate the series filter dropdown based on series visible in current events
+    populateSeriesFilterOptions(groupId, filteredEvents);
+
     // Process pending events with resolved details
     const pendingEvents = pendingResult?.events || [];
 
@@ -1799,17 +1871,29 @@ export function initModifyEvents(api) {
   }
 
   dom.modifyRefresh.addEventListener("click", () => { void handleRefreshClick(); });
-  dom.modifyGroup.addEventListener("change", () => {
+  dom.modifyGroup.addEventListener("change", async () => {
     // Clear backoff and tombstones when switching groups
     clearRefreshBackoff();
     state.modify.deletedTombstones.clear();
     state.modify.lastRefreshTime = 0;
     state.modify.optimisticEvents.clear();
+    // Load series metadata for the new group so badge labels appear correctly
+    const newGroupId = dom.modifyGroup.value;
+    if (newGroupId && modifyApi?.seriesList) {
+      try {
+        state.series[newGroupId] = await modifyApi.seriesList({ groupId: newGroupId });
+      } catch (err) { /* ignore */ }
+    }
     void refreshModifyEvents(modifyApi);
   });
   if (dom.modifyShowPending) {
     dom.modifyShowPending.addEventListener("change", () => {
       state.modify.showPending = dom.modifyShowPending.checked;
+      renderModifyEventGrid();
+    });
+  }
+  if (dom.modifySeriesFilter) {
+    dom.modifySeriesFilter.addEventListener("change", () => {
       renderModifyEventGrid();
     });
   }

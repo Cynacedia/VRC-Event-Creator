@@ -445,6 +445,16 @@ export const en = {
     subtitle: "Edit or delete upcoming group events.",
     groupLabel: "Group",
     showPending: "Show Pending",
+    filter: {
+      bySeries: "Filter",
+      all: "All events",
+      standalone: "Standalone only",
+      unknownSeries: "Series"
+    },
+    badge: {
+      modified: "Modified",
+      unknownSeries: "Series"
+    },
     countEmpty: "Upcoming events unavailable.",
     countGroupFallback: "This group",
     countStatus: "Upcoming events for {group}: {count}.",

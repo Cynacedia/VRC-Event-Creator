@@ -303,6 +303,13 @@
                   <label for="modify-group" data-i18n="modify.groupLabel">Group</label>
                   <select id="modify-group"></select>
                 </div>
+                <div class="field is-hidden" id="modify-series-filter-field">
+                  <label for="modify-series-filter" data-i18n="modify.filter.bySeries">Filter</label>
+                  <select id="modify-series-filter">
+                    <option value="all" data-i18n="modify.filter.all">All events</option>
+                    <option value="standalone" data-i18n="modify.filter.standalone">Standalone only</option>
+                  </select>
+                </div>
                 <div class="modify-actions">
                   <label class="toggle-row compact-toggle">
                     <input id="modify-show-pending" type="checkbox" checked />
