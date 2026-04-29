@@ -2,7 +2,7 @@
 
 All notable changes to VRChat Event Creator will be documented in this file.
 
-## [Unreleased]
+## [1.2.0] - 2026-04-29
 
 ### Added
 - **Calendar Integration** — Generate .ics calendar invite files with configurable reminders when VRChat events are created
