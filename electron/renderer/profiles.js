@@ -533,10 +533,11 @@ export function updateProfileActionButtons() {
   }
 }
 
-// Render profile list for a selected group
+// Render schedule list (templates + series) for a selected group
 export function renderProfileList(api) {
   const groupId = dom.profileGroup.value;
   const currentValue = dom.profileExisting.value;
+  const filterType = state.schedules?.filterType || "all";
 
   if (!groupId) {
     dom.profileExisting.innerHTML = "";
@@ -551,10 +552,28 @@ export function renderProfileList(api) {
 
   const groupData = state.profiles?.[groupId];
   const profiles = groupData?.profiles || {};
-  const entries = Object.keys(profiles).map(profileKey => ({
-    label: getProfileLabel(profileKey, profiles[profileKey]),
-    value: `${groupId}::${profileKey}`
-  }));
+  const seriesMap = state.series?.[groupId] || {};
+
+  const entries = [];
+  // Templates first
+  if (filterType === "all" || filterType === "templates") {
+    Object.keys(profiles).forEach(profileKey => {
+      entries.push({
+        label: `[T] ${getProfileLabel(profileKey, profiles[profileKey])}`,
+        value: `${groupId}::${profileKey}`
+      });
+    });
+  }
+  // Then series
+  if (filterType === "all" || filterType === "series") {
+    Object.keys(seriesMap).forEach(seriesId => {
+      const s = seriesMap[seriesId];
+      entries.push({
+        label: `[S] ${s.label || "Untitled Series"}`,
+        value: `series::${seriesId}`
+      });
+    });
+  }
 
   dom.profileExisting.innerHTML = "";
   const placeholderOption = document.createElement("option");

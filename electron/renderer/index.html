@@ -318,8 +318,29 @@
 
           <section class="view is-hidden" id="view-profiles">
             <div class="view-header">
-              <h2 data-i18n="profiles.title">Manage Profiles</h2>
-              <p data-i18n="profiles.subtitle">Create reusable templates per group.</p>
+              <h2 data-i18n="schedules.title">Manage Schedules</h2>
+              <p data-i18n="schedules.subtitle">Templates for announcement-driven scheduling and native VRChat recurring series.</p>
+            </div>
+
+            <!-- Schedule type picker modal -->
+            <div class="modal-overlay is-hidden" id="schedule-type-overlay">
+              <div class="modal">
+                <h3 data-i18n="schedules.new.pickType">What kind of schedule?</h3>
+                <p class="hint" data-i18n="schedules.new.pickTypeHint">Choose how this schedule will produce events.</p>
+                <div class="schedule-type-options">
+                  <button id="schedule-type-template" class="schedule-type-card" type="button">
+                    <strong data-i18n="schedules.types.template">Template</strong>
+                    <span data-i18n="schedules.types.templateHint">EC posts events on a schedule with Discord/webhook/ICS announcements. Per-event editing supported.</span>
+                  </button>
+                  <button id="schedule-type-series" class="schedule-type-card" type="button">
+                    <strong data-i18n="schedules.types.series">Series</strong>
+                    <span data-i18n="schedules.types.seriesHint">Native VRChat recurring series. Server-side, set-and-forget. No announcements.</span>
+                  </button>
+                </div>
+                <div class="modal-actions">
+                  <button id="schedule-type-cancel" class="ghost" type="button" data-i18n="common.cancel">Cancel</button>
+                </div>
+              </div>
             </div>
 
             <div class="wizard" id="profile-wizard">
@@ -345,13 +366,21 @@
               <div class="wizard-body">
                 <div class="wizard-step" data-step="1">
                   <div class="card">
-                    <h3 data-i18n="profiles.section.selection">Profile Selection</h3>
+                    <h3 data-i18n="schedules.section.selection">Schedule Selection</h3>
                     <div class="field">
                       <label for="profile-group" data-i18n="profiles.labels.group">Group</label>
                       <select id="profile-group"></select>
                     </div>
                     <div class="field">
-                      <label for="profile-existing" data-i18n="profiles.labels.profile">Profile</label>
+                      <label data-i18n="schedules.filter.label">Show</label>
+                      <div class="schedule-filter-chips" id="schedule-filter-chips">
+                        <button class="chip is-active" data-filter="all" type="button" data-i18n="schedules.filter.all">All</button>
+                        <button class="chip" data-filter="templates" type="button" data-i18n="schedules.filter.templates">Templates</button>
+                        <button class="chip" data-filter="series" type="button" data-i18n="schedules.filter.series">Series</button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label for="profile-existing" data-i18n="schedules.labels.schedule">Schedule</label>
                       <div class="profile-select-row">
                         <button id="profile-new" class="ghost" type="button" data-i18n="profiles.buttons.new">New</button>
                         <select id="profile-existing"></select>
@@ -646,6 +675,160 @@
                 <div class="wizard-nav-actions">
                   <button id="profile-save" class="primary" type="button" data-i18n="common.save">Save</button>
                   <button id="profile-next" class="ghost" type="button" data-i18n="wizard.next">Next</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Series editor (shown when creating/editing a native series) -->
+            <div class="series-editor is-hidden" id="series-editor">
+              <div class="card">
+                <h3 data-i18n="series.section.identity">Series Identification</h3>
+                <div class="field">
+                  <label for="series-label" data-i18n="series.labels.label">Series Label (for your reference)</label>
+                  <input id="series-label" type="text" placeholder="e.g. Weekly Karaoke Night" data-i18n-placeholder="series.labels.labelPlaceholder" />
+                  <p class="hint" data-i18n="series.labels.labelHint">This label is only shown in EC, not posted to VRChat.</p>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 data-i18n="series.section.eventDetails">Event Details</h3>
+                <div class="grid two">
+                  <div class="field">
+                    <label for="series-title" data-i18n="common.fields.eventName">Event Name</label>
+                    <input id="series-title" type="text" maxlength="64" />
+                  </div>
+                  <div class="field">
+                    <label for="series-category" data-i18n="common.fields.category">Category</label>
+                    <select id="series-category"></select>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="series-description" data-i18n="common.fields.description">Description</label>
+                  <textarea id="series-description" rows="4" maxlength="1024"></textarea>
+                </div>
+                <div class="grid two">
+                  <div class="field">
+                    <label for="series-image-id" data-i18n="common.fields.imageId">Image ID (optional)</label>
+                    <div class="inline-row">
+                      <input id="series-image-id" type="text" placeholder="ex. file_xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" data-i18n-placeholder="common.fields.imageIdPlaceholder" />
+                      <button id="series-image-picker" class="ghost compact-button" type="button" data-i18n="gallery.chooseButton">Select</button>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="series-access" data-i18n="common.fields.accessType">Access Type</label>
+                    <select id="series-access"></select>
+                  </div>
+                </div>
+                <div class="role-restrictions is-hidden" id="series-role-restrictions">
+                  <div class="role-restrictions-header">
+                    <div>
+                      <div class="role-restrictions-title" data-i18n="events.roleRestrictions.title">Role Restrictions</div>
+                      <p class="hint" data-i18n="events.roleRestrictions.hint">Optional - If enabled, only the selected group roles may join.</p>
+                    </div>
+                  </div>
+                  <div class="role-restrictions-list" id="series-role-list"></div>
+                </div>
+                <div class="grid two">
+                  <div class="field">
+                    <label data-i18n="common.fields.languages">Languages (max 3)</label>
+                    <input id="series-language-filter" type="search" placeholder="Filter languages..." data-i18n-placeholder="common.fields.filterLanguages" />
+                    <div class="multi-list" id="series-language-list"></div>
+                    <div class="hint" id="series-language-hint">0 selected</div>
+                  </div>
+                  <div class="field">
+                    <label data-i18n="common.fields.platforms">Platforms</label>
+                    <div class="multi-list" id="series-platform-list"></div>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="series-tags" data-i18n="common.fields.tags">Tags (max 5)</label>
+                  <div class="tag-input" id="series-tags-input">
+                    <div class="tag-chips" id="series-tags-chips"></div>
+                    <input id="series-tags" type="text" />
+                  </div>
+                </div>
+                <div class="grid two">
+                  <div class="field">
+                    <label for="series-duration" data-i18n="common.fields.duration">Duration (DD:HH:MM)</label>
+                    <input id="series-duration" type="text" placeholder="00:02:00" />
+                    <div class="hint" id="series-duration-preview"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <h3 data-i18n="series.section.recurrence">Recurrence</h3>
+                <div class="grid two">
+                  <div class="field">
+                    <label for="series-start-date" data-i18n="series.labels.startDate">First Occurrence Date</label>
+                    <input id="series-start-date" type="date" />
+                  </div>
+                  <div class="field">
+                    <label for="series-start-time" data-i18n="series.labels.startTime">Start Time</label>
+                    <input id="series-start-time" type="time" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="series-timezone" data-i18n="common.fields.timezone">Timezone</label>
+                  <select id="series-timezone"></select>
+                </div>
+                <div class="grid two">
+                  <div class="field">
+                    <label for="series-frequency" data-i18n="series.labels.frequency">Frequency</label>
+                    <select id="series-frequency">
+                      <option value="daily" data-i18n="series.frequency.daily">Daily</option>
+                      <option value="weekly" data-i18n="series.frequency.weekly" selected>Weekly</option>
+                      <option value="monthly" data-i18n="series.frequency.monthly">Monthly</option>
+                      <option value="yearly" data-i18n="series.frequency.yearly">Yearly</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="series-interval" data-i18n="series.labels.interval">Repeat every</label>
+                    <input id="series-interval" type="number" min="1" max="366" value="1" />
+                    <p class="hint" id="series-interval-hint" data-i18n="series.labels.intervalHint">e.g. every 1 week, every 2 months</p>
+                  </div>
+                </div>
+                <div class="field is-hidden" id="series-days-of-week-field">
+                  <label data-i18n="series.labels.daysOfWeek">Repeats on</label>
+                  <div class="series-dow-row">
+                    <label class="toggle"><input type="checkbox" data-day="MO" /><span data-i18n="series.days.mo">Mon</span></label>
+                    <label class="toggle"><input type="checkbox" data-day="TU" /><span data-i18n="series.days.tu">Tue</span></label>
+                    <label class="toggle"><input type="checkbox" data-day="WE" /><span data-i18n="series.days.we">Wed</span></label>
+                    <label class="toggle"><input type="checkbox" data-day="TH" /><span data-i18n="series.days.th">Thu</span></label>
+                    <label class="toggle"><input type="checkbox" data-day="FR" /><span data-i18n="series.days.fr">Fri</span></label>
+                    <label class="toggle"><input type="checkbox" data-day="SA" /><span data-i18n="series.days.sa">Sat</span></label>
+                    <label class="toggle"><input type="checkbox" data-day="SU" /><span data-i18n="series.days.su">Sun</span></label>
+                  </div>
+                </div>
+                <div class="field">
+                  <label data-i18n="series.labels.endCondition">Ends</label>
+                  <div class="series-end-row">
+                    <label class="toggle">
+                      <input type="radio" name="series-end-type" value="afterOccurrences" id="series-end-after-occurrences" checked />
+                      <span data-i18n="series.end.afterOccurrences">After</span>
+                    </label>
+                    <input id="series-end-count" type="number" min="1" max="366" value="10" />
+                    <span data-i18n="series.end.occurrencesLabel">occurrences</span>
+                  </div>
+                  <div class="series-end-row">
+                    <label class="toggle">
+                      <input type="radio" name="series-end-type" value="afterDate" id="series-end-after-date" />
+                      <span data-i18n="series.end.afterDate">On date</span>
+                    </label>
+                    <input id="series-end-date" type="date" />
+                  </div>
+                </div>
+              </div>
+
+              <div class="card action-card">
+                <div>
+                  <h3 data-i18n="series.section.ready">Ready to save?</h3>
+                  <p data-i18n="series.section.readyHint">VRChat will pre-generate all occurrences server-side. You can modify individual occurrences later from the Modify Events tab.</p>
+                  <p class="hint is-hidden" id="series-modification-warning"></p>
+                </div>
+                <div class="series-actions">
+                  <button id="series-cancel" class="ghost" type="button" data-i18n="common.cancel">Cancel</button>
+                  <button id="series-save" class="primary" type="button" data-i18n="series.buttons.save">Save Series</button>
                 </div>
               </div>
             </div>

@@ -5,7 +5,101 @@ export const en = {
     create: "Create Event",
     modify: "Modify Events",
     profiles: "Manage Templates",
+    schedules: "Manage Schedules",
     settings: "Settings"
+  },
+  schedules: {
+    title: "Manage Schedules",
+    subtitle: "Templates for announcement-driven scheduling and native VRChat recurring series.",
+    section: {
+      selection: "Schedule Selection"
+    },
+    labels: {
+      schedule: "Schedule"
+    },
+    filter: {
+      label: "Show",
+      all: "All",
+      templates: "Templates",
+      series: "Series"
+    },
+    types: {
+      template: "Template",
+      templateHint: "EC posts events on a schedule with Discord, webhook, and ICS announcements. Per-event editing supported.",
+      series: "Series",
+      seriesHint: "Native VRChat recurring series. Server-side, set-and-forget. No announcements."
+    },
+    new: {
+      pickType: "What kind of schedule?",
+      pickTypeHint: "Choose how this schedule will produce events."
+    },
+    errors: {
+      noGroup: "Select a group first."
+    }
+  },
+  series: {
+    section: {
+      identity: "Series Identification",
+      eventDetails: "Event Details",
+      recurrence: "Recurrence",
+      ready: "Ready to save?",
+      readyHint: "VRChat will pre-generate all occurrences server-side. You can modify individual occurrences later from the Modify Events tab."
+    },
+    labels: {
+      label: "Series Label (for your reference)",
+      labelPlaceholder: "e.g. Weekly Karaoke Night",
+      labelHint: "This label is only shown in EC, not posted to VRChat.",
+      startDate: "First Occurrence Date",
+      startTime: "Start Time",
+      frequency: "Frequency",
+      interval: "Repeat every",
+      intervalHint: "e.g. every 1 week, every 2 months",
+      daysOfWeek: "Repeats on",
+      endCondition: "Ends"
+    },
+    frequency: {
+      daily: "Daily",
+      weekly: "Weekly",
+      monthly: "Monthly",
+      yearly: "Yearly"
+    },
+    days: {
+      mo: "Mon",
+      tu: "Tue",
+      we: "Wed",
+      th: "Thu",
+      fr: "Fri",
+      sa: "Sat",
+      su: "Sun"
+    },
+    end: {
+      afterOccurrences: "After",
+      afterDate: "On date",
+      occurrencesLabel: "occurrences"
+    },
+    buttons: {
+      save: "Save Series"
+    },
+    created: "Series \"{label}\" created.",
+    updated: "Series \"{label}\" updated.",
+    deleted: "Series \"{label}\" deleted.",
+    confirmDelete: "Delete \"{label}\"? This will remove the series and all its occurrences from VRChat.",
+    warnings: {
+      recurrenceUpdate: "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?"
+    },
+    errors: {
+      noGroup: "Select a group first.",
+      noLabel: "Series label is required.",
+      noTitle: "Event name is required.",
+      noStartDate: "First occurrence date and time are required.",
+      noDaysOfWeek: "Select at least one day of the week.",
+      noEndDate: "Set an end date.",
+      notFound: "Series not found.",
+      createFailed: "Could not create series.",
+      updateFailed: "Could not update series.",
+      deleteFailed: "Could not delete series.",
+      noSeries: "No series selected."
+    }
   },
   auth: {
     title: "Access Node",

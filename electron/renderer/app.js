@@ -11,6 +11,25 @@ import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handl
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
 import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview, updateModifyCalendarRemindersVisibility, updateModifyWebhookVisibility } from "./modify.js";
 import { initDemoControls } from "./demo.js";
+import {
+  initSeriesModule,
+  loadSeriesForGroup,
+  resetSeriesEditor,
+  applySeriesToEditor,
+  showSeriesEditor,
+  hideSeriesEditor,
+  handleSeriesCreate,
+  handleSeriesUpdate,
+  handleSeriesDelete,
+  renderSeriesLanguageList,
+  renderSeriesPlatformList,
+  renderSeriesRoleRestrictions,
+  updateSeriesFrequencyVisibility,
+  updateSeriesDurationPreview,
+  populateSeriesCategoryDropdown,
+  populateSeriesAccessDropdown,
+  populateSeriesTimezoneDropdown
+} from "./series.js";
 
 (() => {
   const api = window.vrcEvent;
@@ -216,6 +235,11 @@ import { initDemoControls } from "./demo.js";
       state.groups = await api.getGroups();
       state.profiles = await api.getProfiles();
       state.kitGroupIds = await api.eckitGetKitGroupIds().catch(() => []);
+      // Load series for currently-selected groups
+      const profileGroupId = dom.profileGroup?.value;
+      if (profileGroupId) {
+        await loadSeriesForGroup(profileGroupId);
+      }
       renderGroupSelects({ preserveSelection });
       enforceGroupAccess(dom.eventAccess, dom.eventGroup.value);
       enforceGroupAccess(dom.profileAccess, dom.profileGroup.value);
@@ -1502,11 +1526,175 @@ import { initDemoControls } from "./demo.js";
     if (dom.modifyEventImagePicker) {
       dom.modifyEventImagePicker.addEventListener("click", () => openGalleryPicker(dom.modifyEventImageId));
     }
-      dom.profileGroup.addEventListener("change", () => { handleProfileGroupChange(api); renderProfileList(api); });
-      dom.profileExisting.addEventListener("change", () => handleProfileSelection(api));
-      dom.profileNew.addEventListener("click", () => { const r = handleProfileNew(); if (!r.success && r.message) showToast(r.message, true); });
-      dom.profileEdit.addEventListener("click", () => { const r = handleProfileEdit(); if (!r.success && r.message) showToast(r.message, true); });
-    dom.profileDelete.addEventListener("click", async () => { const r = await handleProfileDelete(api); if (r.success) { showToast(r.message); await refreshData(); resetProfileForm(); renderProfileLanguageList(); renderProfilePlatformList(); renderPatternList(); void renderProfileRoleRestrictions(api); } else if (!r.cancelled) showToast(r.message, true); });
+      // Init series module
+      initSeriesModule(api);
+
+      // Schedule type filter chips
+      if (dom.scheduleFilterChips) {
+        dom.scheduleFilterChips.addEventListener("click", (event) => {
+          const btn = event.target.closest("button[data-filter]");
+          if (!btn) return;
+          state.schedules.filterType = btn.dataset.filter || "all";
+          dom.scheduleFilterChips.querySelectorAll("button").forEach(b => {
+            b.classList.toggle("is-active", b === btn);
+          });
+          renderProfileList(api);
+        });
+      }
+
+      // Schedule type picker modal
+      if (dom.scheduleTypeOverlay) {
+        dom.scheduleTypeTemplateBtn?.addEventListener("click", () => {
+          dom.scheduleTypeOverlay.classList.add("is-hidden");
+          hideSeriesEditor();
+          const r = handleProfileNew();
+          if (!r.success && r.message) showToast(r.message, true);
+        });
+        dom.scheduleTypeSeriesBtn?.addEventListener("click", () => {
+          if (!dom.profileGroup?.value) {
+            showToast(t("schedules.errors.noGroup") || "Select a group first.", true);
+            return;
+          }
+          dom.scheduleTypeOverlay.classList.add("is-hidden");
+          resetSeriesEditor();
+          showSeriesEditor();
+          renderSeriesLanguageList();
+          renderSeriesPlatformList();
+          renderSeriesRoleRestrictions(api);
+        });
+        dom.scheduleTypeCancelBtn?.addEventListener("click", () => {
+          dom.scheduleTypeOverlay.classList.add("is-hidden");
+        });
+        // Click outside to close
+        dom.scheduleTypeOverlay.addEventListener("click", (event) => {
+          if (event.target === dom.scheduleTypeOverlay) {
+            dom.scheduleTypeOverlay.classList.add("is-hidden");
+          }
+        });
+      }
+
+      dom.profileGroup.addEventListener("change", async () => {
+        handleProfileGroupChange(api);
+        const groupId = dom.profileGroup.value;
+        if (groupId) {
+          await loadSeriesForGroup(groupId);
+        }
+        renderProfileList(api);
+      });
+      dom.profileExisting.addEventListener("change", () => {
+        const selected = dom.profileExisting.value;
+        if (selected.startsWith("series::")) {
+          state.schedules.selectedType = "series";
+          // Hide series editor until they click Edit
+          hideSeriesEditor();
+          updateProfileActionButtons();
+        } else if (selected) {
+          state.schedules.selectedType = "template";
+          hideSeriesEditor();
+          handleProfileSelection(api);
+        } else {
+          state.schedules.selectedType = null;
+          hideSeriesEditor();
+          updateProfileActionButtons();
+        }
+      });
+      dom.profileNew.addEventListener("click", () => {
+        if (!dom.profileGroup?.value) {
+          showToast(t("schedules.errors.noGroup") || "Select a group first.", true);
+          return;
+        }
+        // Open the type picker modal
+        if (dom.scheduleTypeOverlay) {
+          dom.scheduleTypeOverlay.classList.remove("is-hidden");
+        }
+      });
+      dom.profileEdit.addEventListener("click", () => {
+        const selected = dom.profileExisting?.value || "";
+        if (selected.startsWith("series::")) {
+          const seriesId = selected.slice("series::".length);
+          const groupId = dom.profileGroup?.value;
+          const seriesData = state.series?.[groupId]?.[seriesId];
+          if (!seriesData) {
+            showToast(t("series.errors.notFound") || "Series not found.", true);
+            return;
+          }
+          showSeriesEditor();
+          applySeriesToEditor(seriesData);
+          renderSeriesLanguageList();
+          renderSeriesPlatformList();
+          renderSeriesRoleRestrictions(api);
+          return;
+        }
+        const r = handleProfileEdit();
+        if (!r.success && r.message) showToast(r.message, true);
+      });
+    dom.profileDelete.addEventListener("click", async () => {
+      const selected = dom.profileExisting?.value || "";
+      if (selected.startsWith("series::")) {
+        const seriesId = selected.slice("series::".length);
+        await handleSeriesDelete(api, seriesId);
+        return;
+      }
+      const r = await handleProfileDelete(api);
+      if (r.success) { showToast(r.message); await refreshData(); resetProfileForm(); renderProfileLanguageList(); renderProfilePlatformList(); renderPatternList(); void renderProfileRoleRestrictions(api); }
+      else if (!r.cancelled) showToast(r.message, true);
+    });
+
+    // Series editor save/cancel handlers
+    if (dom.seriesSave) {
+      dom.seriesSave.addEventListener("click", async () => {
+        if (state.schedules.editingSeriesId) {
+          await handleSeriesUpdate(api);
+        } else {
+          await handleSeriesCreate(api);
+        }
+      });
+    }
+    if (dom.seriesCancel) {
+      dom.seriesCancel.addEventListener("click", () => {
+        hideSeriesEditor();
+        resetSeriesEditor();
+        if (dom.profileExisting) dom.profileExisting.value = "";
+        updateProfileActionButtons();
+      });
+    }
+    // Refresh schedule list event (dispatched after series CRUD)
+    document.addEventListener("schedules:refresh", () => {
+      renderProfileList(api);
+    });
+
+    // Series form: live updates
+    if (dom.seriesFrequency) {
+      dom.seriesFrequency.addEventListener("change", () => updateSeriesFrequencyVisibility());
+    }
+    if (dom.seriesAccess) {
+      dom.seriesAccess.addEventListener("change", () => renderSeriesRoleRestrictions(api));
+    }
+    if (dom.seriesDuration) {
+      dom.seriesDuration.addEventListener("input", () => {
+        dom.seriesDuration.value = sanitizeDurationInputValue(dom.seriesDuration.value);
+        updateSeriesDurationPreview();
+      });
+      dom.seriesDuration.addEventListener("blur", () => {
+        normalizeDurationInput(dom.seriesDuration, 120);
+        updateSeriesDurationPreview();
+      });
+    }
+    if (dom.seriesLanguageFilter) {
+      dom.seriesLanguageFilter.addEventListener("input", renderSeriesLanguageList);
+    }
+    if (dom.seriesImagePicker) {
+      dom.seriesImagePicker.addEventListener("click", () => openGalleryPicker(dom.seriesImageId));
+    }
+    // Tag input for series
+    if (dom.seriesTags && dom.seriesTagsChips && !state.schedules.seriesForm.tagInput) {
+      state.schedules.seriesForm.tagInput = createTagInput({
+        inputEl: dom.seriesTags,
+        chipContainer: dom.seriesTagsChips,
+        wrapperEl: dom.seriesTagsInput,
+        maxTags: TAG_LIMIT
+      });
+    }
       dom.profileSave.addEventListener("click", async () => { const r = await handleProfileSave(api); if (r.success) { showToast(r.message); await refreshData(); renderProfileList(api); dom.profileExisting.value = `${r.groupId}::${r.profileKey}`; applyProfileToForm(r.groupId, r.profileKey); updateProfileActionButtons(); renderProfileLanguageList(); renderProfilePlatformList(); renderPatternList(); await renderProfileRoleRestrictions(api); } else showToast(r.message, true); });
       dom.profileLanguageFilter.addEventListener("input", renderProfileLanguageList);
       dom.profileAccess.addEventListener("change", () => handleProfileAccessChange(api));
