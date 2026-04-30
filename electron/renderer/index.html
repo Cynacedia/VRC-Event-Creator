@@ -441,43 +441,6 @@
                         <span data-i18n="profiles.sendNotificationDefault">Send Notification by default</span>
                       </label>
                     </div>
-                    <div class="field is-hidden" id="calendar-sync-field">
-                      <label class="toggle">
-                        <input id="calendar-sync-check" type="checkbox" />
-                        <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
-                      </label>
-                    </div>
-                    <div class="field is-hidden" id="discord-sync-field">
-                      <label class="toggle">
-                        <input id="discord-sync-check" type="checkbox" checked />
-                        <span data-i18n="settings.discord.eventLabel">Create Discord Event</span>
-                      </label>
-                    </div>
-                    <div class="field is-hidden" id="webhook-post-field">
-                      <label class="toggle">
-                        <input id="webhook-post-check" type="checkbox" />
-                        <span data-i18n="settings.webhook.postLabel">Post Discord Webhook</span>
-                      </label>
-                    </div>
-                    <div class="field is-hidden" id="profile-webhook-message-field">
-                      <label class="toggle">
-                        <input id="profile-webhook-message-enabled" type="checkbox" />
-                        <span data-i18n="settings.eckit.attachMessage">Attach Custom Webhook Message</span>
-                      </label>
-                    </div>
-                  </div>
-                  <div class="card is-hidden" id="profile-webhook-message-card">
-                    <h3 data-i18n="settings.eckit.messageTitle">Custom Webhook Message</h3>
-                    <div class="field">
-                      <textarea id="profile-webhook-message" rows="3" maxlength="2000" placeholder="Write a custom message to include with the webhook post..." data-i18n-placeholder="settings.eckit.messagePlaceholder"></textarea>
-                    </div>
-                    <div class="field">
-                      <label data-i18n="settings.eckit.attachImage">Attach Image</label>
-                      <div class="input-with-button">
-                        <input id="profile-webhook-image-path" type="text" readonly placeholder="No image selected" data-i18n-placeholder="settings.eckit.noImage" />
-                        <button id="profile-webhook-image-btn" class="ghost compact-button" type="button" data-i18n="settings.eckit.selectImage">Select</button>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -773,6 +736,49 @@
                         <input id="profile-group-fair" type="checkbox" />
                         <span data-i18n="common.groupFairEvent">Include in Group Fair</span>
                       </label>
+                    </div>
+                  </div>
+
+                  <!-- Announcements card (template-only flags + custom message) -->
+                  <div class="card" id="profile-announcements-card">
+                    <h3 data-i18n="schedules.announcements.title">Announcements</h3>
+                    <p class="hint" id="profile-announcements-hint" data-i18n="schedules.announcements.hint">Toggle the actions to perform when this schedule posts an event.</p>
+                    <div class="field is-hidden" id="calendar-sync-field">
+                      <label class="toggle">
+                        <input id="calendar-sync-check" type="checkbox" />
+                        <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
+                      </label>
+                    </div>
+                    <div class="field is-hidden" id="discord-sync-field">
+                      <label class="toggle">
+                        <input id="discord-sync-check" type="checkbox" checked />
+                        <span data-i18n="settings.discord.eventLabel">Create Discord Event</span>
+                      </label>
+                    </div>
+                    <div class="field is-hidden" id="webhook-post-field">
+                      <label class="toggle">
+                        <input id="webhook-post-check" type="checkbox" />
+                        <span data-i18n="settings.webhook.postLabel">Post Discord Webhook</span>
+                      </label>
+                    </div>
+                    <div class="field is-hidden" id="profile-webhook-message-field">
+                      <label class="toggle">
+                        <input id="profile-webhook-message-enabled" type="checkbox" />
+                        <span data-i18n="settings.eckit.attachMessage">Attach Custom Webhook Message</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="card is-hidden" id="profile-webhook-message-card">
+                    <h3 data-i18n="settings.eckit.messageTitle">Custom Webhook Message</h3>
+                    <div class="field">
+                      <textarea id="profile-webhook-message" rows="3" maxlength="2000" placeholder="Write a custom message to include with the webhook post..." data-i18n-placeholder="settings.eckit.messagePlaceholder"></textarea>
+                    </div>
+                    <div class="field">
+                      <label data-i18n="settings.eckit.attachImage">Attach Image</label>
+                      <div class="input-with-button">
+                        <input id="profile-webhook-image-path" type="text" readonly placeholder="No image selected" data-i18n-placeholder="settings.eckit.noImage" />
+                        <button id="profile-webhook-image-btn" class="ghost compact-button" type="button" data-i18n="settings.eckit.selectImage">Select</button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -1878,7 +1878,7 @@ import {
       nextButton: dom.eventNext,
       beforeStepChange: handleEventWizardStepChange
     }));
-    setProfileWizard(setupWizard({ wizardId: "profile-wizard", stepsId: "profile-steps", backButton: dom.profileBack, nextButton: dom.profileNext, beforeStepChange: handleProfileWizardStepChange }));
+    setProfileWizard(setupWizard({ wizardId: "profile-wizard", stepsId: "profile-steps", backButton: dom.profileBack, nextButton: dom.profileNext, saveButton: dom.profileSave, beforeStepChange: handleProfileWizardStepChange }));
     api.onTwoFactorRequired(() => { dom.twoFactorOverlay.classList.remove("is-hidden"); dom.twoFactorCode.focus(); });
     const info = await api.getAppInfo();
     if (info) {

@@ -11,6 +11,15 @@ export const en = {
   schedules: {
     title: "Manage Schedules",
     subtitle: "Templates for announcement-driven scheduling and native VRChat recurring series.",
+    saveButton: {
+      template: "Save Template",
+      seriesCreate: "Create Series",
+      seriesUpdate: "Update Series"
+    },
+    announcements: {
+      title: "Announcements",
+      hint: "Toggle the actions to perform when this schedule posts an event."
+    },
     section: {
       selection: "Schedule Selection",
       scheduleHeading: "Schedule"

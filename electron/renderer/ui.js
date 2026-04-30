@@ -228,7 +228,7 @@ export function renderChecklist(container, items, selected, options = {}) {
 // Wizard
 // ============================================================================
 
-export function setupWizard({ wizardId, stepsId, backButton, nextButton, beforeStepChange }) {
+export function setupWizard({ wizardId, stepsId, backButton, nextButton, saveButton, beforeStepChange }) {
   const wizard = document.getElementById(wizardId);
   if (!wizard) {
     return null;
@@ -255,6 +255,11 @@ export function setupWizard({ wizardId, stepsId, backButton, nextButton, beforeS
       const isLast = current >= stepPanels.length - 1;
       nextButton.disabled = isLast;
       nextButton.classList.toggle("is-hidden", isLast);
+    }
+    // Save button visible only on the final step
+    if (saveButton) {
+      const isLast = current >= stepPanels.length - 1;
+      saveButton.classList.toggle("is-hidden", !isLast);
     }
   };
   const goTo = index => {

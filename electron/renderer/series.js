@@ -278,6 +278,26 @@ export function updateSeriesDurationPreview() {
   dom.seriesDurationPreview.textContent = formatDurationPreview(dom.seriesDuration.value);
 }
 
+/** Update the wizard's Save button label based on editingType + editingSeriesId. */
+export function updateSaveButtonLabel() {
+  const btn = document.getElementById("profile-save");
+  if (!btn) return;
+  const type = state.schedules?.editingType || "template";
+  let key = "schedules.saveButton.template";
+  let fallback = "Save Template";
+  if (type === "series") {
+    if (state.schedules?.editingSeriesId) {
+      key = "schedules.saveButton.seriesUpdate";
+      fallback = "Update Series";
+    } else {
+      key = "schedules.saveButton.seriesCreate";
+      fallback = "Create Series";
+    }
+  }
+  btn.textContent = t(key) || fallback;
+  btn.dataset.i18n = key;
+}
+
 /** Show the appropriate mode container in step 3. Defaults to template if mode is null.
  *  When editing an existing schedule, the type is locked — toggle gets disabled. */
 export function showScheduleMode(mode, options = {}) {
@@ -309,6 +329,8 @@ export function showScheduleMode(mode, options = {}) {
   if (dom.scheduleModeBlurbSeries) {
     dom.scheduleModeBlurbSeries.classList.toggle("is-hidden", effectiveMode !== "series");
   }
+  // Sync Save button label with the current mode
+  updateSaveButtonLabel();
 }
 
 // --- Action handlers ---
