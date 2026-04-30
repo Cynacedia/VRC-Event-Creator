@@ -471,8 +471,8 @@
                         </p>
                       </div>
                       <div class="schedule-type-toggle" role="group" aria-label="Schedule type">
-                        <button id="schedule-type-template-btn" class="schedule-toggle-btn" type="button" data-type="template" data-i18n="schedules.types.template">Template</button>
-                        <button id="schedule-type-series-btn" class="schedule-toggle-btn" type="button" data-type="series" data-i18n="schedules.types.series">Series</button>
+                        <button id="schedule-type-template-btn" class="schedule-toggle-btn" type="button" data-type="template" data-i18n="schedules.types.templateButton">Template</button>
+                        <button id="schedule-type-series-btn" class="schedule-toggle-btn" type="button" data-type="series" data-i18n="schedules.types.seriesButton">Series</button>
                       </div>
                     </div>
                     <div class="schedule-mode-info is-hidden" id="schedule-mode-info">
@@ -678,22 +678,46 @@
 
                       <div class="field">
                         <label for="series-end-type" data-i18n="series.labels.endCondition">Ends</label>
-                        <select id="series-end-type">
-                          <option value="never" selected data-i18n="series.end.never">Never</option>
-                          <option value="afterOccurrences" data-i18n="series.end.afterOccurrencesLabel">After N occurrences</option>
-                          <option value="afterDate" data-i18n="series.end.afterDateLabel">On a specific date</option>
-                        </select>
-                        <div class="series-end-row is-hidden" id="series-end-occurrences-row">
-                          <input id="series-end-count" type="number" min="1" max="366" value="10" />
-                          <span data-i18n="series.end.occurrencesLabel">occurrences</span>
-                        </div>
-                        <div class="series-end-row is-hidden" id="series-end-date-row">
-                          <input id="series-end-date" type="date" />
+                        <div class="series-end-inline">
+                          <select id="series-end-type" class="series-end-select">
+                            <option value="never" selected data-i18n="series.end.never">Never</option>
+                            <option value="afterOccurrences" data-i18n="series.end.afterOccurrencesLabel">After N occurrences</option>
+                            <option value="afterDate" data-i18n="series.end.afterDateLabel">On a specific date</option>
+                          </select>
+                          <span class="series-end-row is-hidden" id="series-end-occurrences-row">
+                            <input id="series-end-count" type="number" min="1" max="366" value="10" />
+                            <span data-i18n="series.end.occurrencesLabel">occurrences</span>
+                          </span>
+                          <span class="series-end-row is-hidden" id="series-end-date-row">
+                            <input id="series-end-date" type="date" />
+                          </span>
                         </div>
                       </div>
                       <p class="hint is-hidden" id="series-modification-warning"></p>
                     </div>
                   </div><!-- /schedule-mode-series -->
+
+                  <!-- Calendar invite toggle + reminders (shared by both modes — schedule-related) -->
+                  <div class="card is-hidden" id="profile-calendar-invite-card">
+                    <h3 data-i18n="settings.calendar.inviteTitle">Calendar Invite</h3>
+                    <div class="field" id="calendar-sync-field">
+                      <label class="toggle">
+                        <input id="calendar-sync-check" type="checkbox" />
+                        <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
+                      </label>
+                    </div>
+                    <div class="is-hidden" id="profile-calendar-reminders-card">
+                      <div class="field">
+                        <label class="toggle">
+                          <input id="profile-calendar-reminders-enabled" type="checkbox" />
+                          <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
+                        </label>
+                      </div>
+                      <div id="profile-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
+                      <button id="profile-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
+                      <p class="hint is-hidden" id="profile-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div class="wizard-step is-hidden" data-step="4">
@@ -739,16 +763,10 @@
                     </div>
                   </div>
 
-                  <!-- Announcements card (template-only flags + custom message) -->
+                  <!-- Announcements card (announcement actions when posting an event/series) -->
                   <div class="card" id="profile-announcements-card">
                     <h3 data-i18n="schedules.announcements.title">Announcements</h3>
                     <p class="hint" id="profile-announcements-hint" data-i18n="schedules.announcements.hint">Toggle the actions to perform when this schedule posts an event.</p>
-                    <div class="field is-hidden" id="calendar-sync-field">
-                      <label class="toggle">
-                        <input id="calendar-sync-check" type="checkbox" />
-                        <span data-i18n="settings.calendar.createInvite">Create .ics Calendar Invite</span>
-                      </label>
-                    </div>
                     <div class="field is-hidden" id="discord-sync-field">
                       <label class="toggle">
                         <input id="discord-sync-check" type="checkbox" checked />
@@ -767,19 +785,6 @@
                         <span data-i18n="settings.eckit.attachMessage">Attach Custom Webhook Message</span>
                       </label>
                     </div>
-                  </div>
-                  <!-- Calendar reminders (visible when Create .ics is enabled — applies to both templates and series via .ics VALARM blocks) -->
-                  <div class="card is-hidden" id="profile-calendar-reminders-card">
-                    <h3 data-i18n="settings.calendar.remindersTitle">.ics Calendar Reminders</h3>
-                    <div class="field">
-                      <label class="toggle">
-                        <input id="profile-calendar-reminders-enabled" type="checkbox" />
-                        <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
-                      </label>
-                    </div>
-                    <div id="profile-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
-                    <button id="profile-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
-                    <p class="hint is-hidden" id="profile-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
                   </div>
 
                   <div class="card is-hidden" id="profile-webhook-message-card">

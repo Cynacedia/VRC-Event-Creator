@@ -1369,7 +1369,11 @@ export function updateDiscordVisibility({ expandPanel } = {}) {
  * Called when calendarEnabled setting changes, or when profile calendar sync toggles change. */
 export function updateCalendarVisibility() {
   const calendarEnabled = state.settings?.calendarEnabled === true;
-  // Profile calendar reminders card: visible if calendar enabled AND calendarSync checked
+  // Calendar Invite card (step 3): visible when the calendar feature is enabled in settings
+  if (dom.profileCalendarInviteCard) {
+    dom.profileCalendarInviteCard.classList.toggle("is-hidden", !calendarEnabled);
+  }
+  // Reminders subsection: visible when the Create .ics toggle is checked
   if (dom.profileCalendarRemindersCard) {
     const calendarSyncOn = calendarEnabled && dom.calendarSyncCheck?.checked === true;
     dom.profileCalendarRemindersCard.classList.toggle("is-hidden", !calendarSyncOn);

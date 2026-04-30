@@ -256,6 +256,7 @@ export const dom = {
   calendarSyncField: document.getElementById("calendar-sync-field"),
   calendarSyncCheck: document.getElementById("calendar-sync-check"),
   // Profile calendar reminders (Schedule step)
+  profileCalendarInviteCard: document.getElementById("profile-calendar-invite-card"),
   profileCalendarRemindersCard: document.getElementById("profile-calendar-reminders-card"),
   profileCalendarRemindersEnabled: document.getElementById("profile-calendar-reminders-enabled"),
   profileCalendarRemindersList: document.getElementById("profile-calendar-reminders-list"),

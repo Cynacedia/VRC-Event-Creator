@@ -57,8 +57,10 @@ export const en = {
     },
     types: {
       template: "Templates",
+      templateButton: "Template",
       templateHint: "Reusable autofill for repeated events. Each event posts as a standalone, modifiable occurrence and can announce itself via Discord events, webhooks, and calendar invites. Optional automation and pattern-based scheduling.",
       series: "Series",
+      seriesButton: "Series",
       seriesHint: "Native VRChat recurring series. The server pre-generates all occurrences from a recurrence rule. No app or scheduling required, but no announcements either."
     },
     empty: {

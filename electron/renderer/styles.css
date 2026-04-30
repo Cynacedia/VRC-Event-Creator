@@ -3015,11 +3015,14 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .schedule-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
+}
+
+.schedule-header-row > div:first-child {
+  min-width: 0; /* allow text to wrap inside the first column */
 }
 
 .schedule-header-row h3 {
@@ -3028,6 +3031,12 @@ input[type="color"]::-moz-color-swatch {
 
 .schedule-header-row .hint {
   margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .schedule-header-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 .schedule-type-toggle {
@@ -3145,11 +3154,22 @@ input[type="color"]::-moz-color-swatch {
   gap: 12px;
 }
 
-.series-end-row {
+.series-end-inline {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.series-end-select {
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.series-end-row {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
 }
 
 .series-end-row input[type="number"],
