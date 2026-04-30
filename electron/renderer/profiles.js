@@ -681,9 +681,11 @@ export function handleProfileWizardStepChange({ current, next }) {
     if (!dom.profileGroup.value) {
       return { allowed: false, message: "Select a group first." };
     }
-    if (!getProfileEditConfirmed()) {
+    // If a schedule is selected, treat as edit (don't reset the form).
+    // Otherwise, reset for "New" flow.
+    const selected = dom.profileExisting?.value || "";
+    if (!selected) {
       resetProfileForm();
-      dom.profileExisting.value = "";
       updateProfileActionButtons();
     }
   }

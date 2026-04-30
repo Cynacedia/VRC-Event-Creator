@@ -1594,37 +1594,51 @@ import {
         state.schedules.editingSeriesId = null;
         showScheduleMode(null, { lock: false });
       });
-      dom.profileExisting.addEventListener("change", () => {
+      dom.profileExisting.addEventListener("change", async () => {
         const selected = dom.profileExisting.value;
         if (selected.startsWith("series::")) {
           // Series selected — populate the wizard for editing so step buttons work directly
           const seriesId = selected.slice("series::".length);
           const groupId = dom.profileGroup?.value;
-          const seriesData = state.series?.[groupId]?.[seriesId];
           state.schedules.selectedType = "series";
+          state.schedules.editingType = "series";
+          state.schedules.editingSeriesId = seriesId;
+          // Lazy-load series data if missing (covers stale-state scenarios)
+          let seriesData = state.series?.[groupId]?.[seriesId];
+          if (!seriesData) {
+            try {
+              const list = await api.seriesList({ groupId });
+              if (list) {
+                state.series[groupId] = list;
+                seriesData = list[seriesId];
+              }
+            } catch (err) { /* ignore */ }
+          }
+          // Always set edit-confirmed for series so wizard transitions work
+          setProfileEditConfirmed(true);
+          showScheduleMode("series", { lock: true });
           if (seriesData) {
             applySeriesToWizard(seriesData);
-            showScheduleMode("series", { lock: true });
-            setProfileEditConfirmed(true);
-            // Async-inspect occurrences: lock recurrence fields if started + backfill missing dates
-            setRecurrenceFieldsLocked(false);
-            inspectSeriesOccurrences(api, groupId, seriesId).then(info => {
-              if (info.started === true) setRecurrenceFieldsLocked(true);
-              // Backfill date/time fields if local metadata didn't have them
-              if (!seriesData.firstOccurrenceUtc && info.earliestStart && dom.seriesStartDate?.value === "") {
-                const localDate = new Date(info.earliestStart);
-                if (!Number.isNaN(localDate.getTime())) {
-                  const yyyy = localDate.getFullYear();
-                  const mm = String(localDate.getMonth() + 1).padStart(2, "0");
-                  const dd = String(localDate.getDate()).padStart(2, "0");
-                  const hh = String(localDate.getHours()).padStart(2, "0");
-                  const mi = String(localDate.getMinutes()).padStart(2, "0");
-                  if (dom.seriesStartDate) dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
-                  if (dom.seriesStartTime) dom.seriesStartTime.value = `${hh}:${mi}`;
-                }
-              }
-            }).catch(() => {});
           }
+          // Async-inspect occurrences: lock recurrence fields if started + backfill missing dates
+          setRecurrenceFieldsLocked(false);
+          inspectSeriesOccurrences(api, groupId, seriesId).then(info => {
+            if (info.started === true) setRecurrenceFieldsLocked(true);
+            if ((!seriesData?.firstOccurrenceUtc) && info.earliestStart && dom.seriesStartDate?.value === "") {
+              const localDate = new Date(info.earliestStart);
+              if (!Number.isNaN(localDate.getTime())) {
+                const yyyy = localDate.getFullYear();
+                const mm = String(localDate.getMonth() + 1).padStart(2, "0");
+                const dd = String(localDate.getDate()).padStart(2, "0");
+                const hh = String(localDate.getHours()).padStart(2, "0");
+                const mi = String(localDate.getMinutes()).padStart(2, "0");
+                if (dom.seriesStartDate) dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
+                if (dom.seriesStartTime) dom.seriesStartTime.value = `${hh}:${mi}`;
+              }
+            }
+          }).catch(() => {});
+          updateProfileActionButtons();
+          return;
         } else if (selected) {
           // Template selected — handleProfileSelection loads the data; mark as edit
           state.schedules.selectedType = "template";

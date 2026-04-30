@@ -43,7 +43,7 @@ export const en = {
         bullet1: "VRChat pre-generates all occurrences server-side from a recurrence rule.",
         bullet2: "Set-and-forget — no app required after creation.",
         bullet3: "Limitations: no per-event announcements; the recurrence rule cannot be changed without regenerating all occurrences (modifications are lost).",
-        bullet4: "Best for stable, repeating events that don't need announcements (weekly meetups, office hours)."
+        bullet4: "Best for stable, repeating events that don't need announcements."
       }
     },
     labels: {
