@@ -86,6 +86,67 @@ export function setFootMeta(message) {
   dom.footMeta.textContent = message;
 }
 
+/**
+ * Show a stylized in-app confirmation dialog. Returns a Promise that resolves to
+ * true if the user clicks the confirm button, false on cancel/dismiss.
+ * @param {object} options
+ * @param {string} options.message - Body text (required)
+ * @param {string} [options.title] - Optional heading
+ * @param {string} [options.confirmLabel] - Text for the confirm button
+ * @param {string} [options.cancelLabel] - Text for the cancel button
+ * @param {boolean} [options.danger] - Style the confirm button as destructive
+ * @returns {Promise<boolean>}
+ */
+export function showConfirmModal(options = {}) {
+  return new Promise(resolve => {
+    const { message = "", title, confirmLabel = "OK", cancelLabel = "Cancel", danger = false } = options;
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    if (title) {
+      const h = document.createElement("h3");
+      h.textContent = title;
+      modal.appendChild(h);
+    }
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.style.whiteSpace = "pre-line";
+    p.textContent = message;
+    modal.appendChild(p);
+    const actions = document.createElement("div");
+    actions.className = "modal-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "ghost";
+    cancel.textContent = cancelLabel;
+    const confirm = document.createElement("button");
+    confirm.type = "button";
+    confirm.className = danger ? "danger" : "primary";
+    confirm.textContent = confirmLabel;
+    actions.appendChild(cancel);
+    actions.appendChild(confirm);
+    modal.appendChild(actions);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const close = (result) => {
+      overlay.remove();
+      document.removeEventListener("keydown", onKey);
+      resolve(result);
+    };
+    const onKey = (e) => {
+      if (e.key === "Escape") close(false);
+      else if (e.key === "Enter") close(true);
+    };
+    cancel.addEventListener("click", () => close(false));
+    confirm.addEventListener("click", () => close(true));
+    overlay.addEventListener("click", e => { if (e.target === overlay) close(false); });
+    document.addEventListener("keydown", onKey);
+    confirm.focus();
+  });
+}
+
 export function showToast(message, isError = false, options = {}) {
   let duration = 3000;
   if (typeof options === "number") {

@@ -1,6 +1,5 @@
 import { dom, state } from "./state.js";
-import { showToast } from "./ui.js";
-import { renderSelect } from "./ui.js";
+import { showToast, renderSelect, showConfirmModal } from "./ui.js";
 import { buildTimezones, ensureTimezoneOption, sanitizeText, formatDuration, parseDurationInput, formatDurationPreview } from "./utils.js";
 import { EVENT_NAME_LIMIT, EVENT_DESCRIPTION_LIMIT } from "./config.js";
 import { t } from "./i18n/index.js";
@@ -438,7 +437,14 @@ export async function handleSeriesUpdate(api) {
     if (check?.ok && check.count > 0) {
       const msg = (t("series.warnings.recurrenceUpdate") || "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?")
         .replace("{count}", String(check.count));
-      if (!confirm(msg)) return { success: false };
+      const confirmed = await showConfirmModal({
+        title: t("series.warnings.recurrenceUpdateTitle") || "Update will discard modifications",
+        message: msg,
+        confirmLabel: t("series.warnings.confirmUpdate") || "Update Series",
+        cancelLabel: t("common.cancel") || "Cancel",
+        danger: true
+      });
+      if (!confirmed) return { success: false };
     }
   }
 
@@ -472,7 +478,14 @@ export async function handleSeriesDelete(api, seriesId) {
   const seriesData = state.series[groupId]?.[seriesId];
   const label = seriesData?.label || "this series";
   const msg = (t("series.confirmDelete") || "Delete \"{label}\"? This will remove the series and all its occurrences from VRChat.").replace("{label}", label);
-  if (!confirm(msg)) return { success: false, cancelled: true };
+  const confirmed = await showConfirmModal({
+    title: t("series.confirmDeleteTitle") || "Delete series?",
+    message: msg,
+    confirmLabel: t("common.delete") || "Delete",
+    cancelLabel: t("common.cancel") || "Cancel",
+    danger: true
+  });
+  if (!confirmed) return { success: false, cancelled: true };
 
   const result = await api.seriesDelete({ groupId, seriesId });
   if (!result?.ok) {

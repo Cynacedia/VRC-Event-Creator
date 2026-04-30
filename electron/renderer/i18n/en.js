@@ -134,8 +134,11 @@ export const en = {
     updated: "Series \"{label}\" updated.",
     deleted: "Series \"{label}\" deleted.",
     confirmDelete: "Delete \"{label}\"? This will remove the series and all its occurrences from VRChat.",
+    confirmDeleteTitle: "Delete series?",
     warnings: {
-      recurrenceUpdate: "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?"
+      recurrenceUpdate: "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?",
+      recurrenceUpdateTitle: "Update will discard modifications",
+      confirmUpdate: "Update Series"
     },
     errors: {
       noGroup: "Select a group first.",
@@ -658,7 +661,7 @@ export const en = {
       ordinal4: "4th"
     },
     automation: {
-      title: "Automation (Experimental)",
+      title: "Automation",
       description: "Automatically post events based on your patterns. Events will appear as \"Pending\" in Modify Events.",
       enableLabel: "Enable Automation",
       timingLabel: "Scheduling Rule",

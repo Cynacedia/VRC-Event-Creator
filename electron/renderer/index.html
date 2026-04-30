@@ -543,21 +543,8 @@
                     </div>
                   </div>
 
-                  <div class="card is-hidden" id="profile-calendar-reminders-card">
-                    <h3 data-i18n="settings.calendar.remindersTitle">.ics Calendar Reminders</h3>
-                    <div class="field">
-                      <label class="toggle">
-                        <input id="profile-calendar-reminders-enabled" type="checkbox" />
-                        <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
-                      </label>
-                    </div>
-                    <div id="profile-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
-                    <button id="profile-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
-                    <p class="hint is-hidden" id="profile-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
-                  </div>
-
                   <div class="card" id="automation-card">
-                    <h3 data-i18n="profiles.automation.title">Automation (Experimental)</h3>
+                    <h3 data-i18n="profiles.automation.title">Automation</h3>
                     <p class="hint" data-i18n="profiles.automation.description">Automatically post events based on your patterns. Events will appear as "Pending" in Modify Events.</p>
 
                     <div class="field">
@@ -781,6 +768,20 @@
                       </label>
                     </div>
                   </div>
+                  <!-- Calendar reminders (visible when Create .ics is enabled — applies to both templates and series via .ics VALARM blocks) -->
+                  <div class="card is-hidden" id="profile-calendar-reminders-card">
+                    <h3 data-i18n="settings.calendar.remindersTitle">.ics Calendar Reminders</h3>
+                    <div class="field">
+                      <label class="toggle">
+                        <input id="profile-calendar-reminders-enabled" type="checkbox" />
+                        <span data-i18n="settings.calendar.enableReminders">Enable .ics Calendar Reminders</span>
+                      </label>
+                    </div>
+                    <div id="profile-calendar-reminders-list" class="calendar-reminders-list is-hidden"></div>
+                    <button id="profile-calendar-reminder-add" class="ghost compact-button is-hidden" type="button" data-i18n="settings.calendar.addReminder">Add Reminder</button>
+                    <p class="hint is-hidden" id="profile-calendar-reminders-hint" data-i18n="settings.calendar.remindersHint">Some calendar apps may only use the first reminder.</p>
+                  </div>
+
                   <div class="card is-hidden" id="profile-webhook-message-card">
                     <h3 data-i18n="settings.eckit.messageTitle">Custom Webhook Message</h3>
                     <div class="field">

@@ -3032,35 +3032,37 @@ input[type="color"]::-moz-color-swatch {
 
 .schedule-type-toggle {
   display: inline-flex;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 3px;
+  background: var(--bg-deep);
   flex-shrink: 0;
+  position: relative;
 }
 
 .schedule-toggle-btn {
-  padding: 8px 16px;
-  background: var(--bg-deep);
-  border: none;
+  padding: 6px 18px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
   color: var(--text-muted);
   cursor: pointer;
   font-size: var(--text-12);
   letter-spacing: 1px;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
+  font-weight: 500;
 }
 
-.schedule-toggle-btn:hover {
-  background: var(--accent-soft);
+.schedule-toggle-btn:hover:not(.is-active):not(:disabled) {
   color: var(--text);
 }
 
 .schedule-toggle-btn.is-active {
   background: var(--accent);
   color: var(--accent-contrast);
-}
-
-.schedule-toggle-btn:not(:last-child) {
-  border-right: 1px solid var(--border);
+  border-color: var(--accent);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  font-weight: 700;
 }
 
 .schedule-toggle-btn.is-locked {

@@ -1679,15 +1679,19 @@ import {
             ? await handleSeriesUpdate(api)
             : await handleSeriesCreate(api);
           if (result?.success) {
-            await refreshData();
+            await refreshData({ preserveSelection: true });
             renderProfileList(api);
             // Reset wizard editing state and unlock toggle after series save
             state.schedules.editingType = null;
             state.schedules.editingSeriesId = null;
             showScheduleMode(null, { lock: false });
-            // Return to step 1 to show the new entry in the dropdown
+            // Reset form fields so the next New click starts fresh, but keep the group
+            resetProfileForm();
+            if (dom.profileExisting) dom.profileExisting.value = "";
+            updateProfileActionButtons();
+            // Return to step 1 (Selection) so user can pick another or create a new one
             const wizard = getProfileWizard();
-            if (wizard?.goTo) wizard.goTo(1);
+            if (wizard?.goTo) wizard.goTo(0);
           }
           return;
         }
@@ -1695,15 +1699,18 @@ import {
         const r = await handleProfileSave(api);
         if (r.success) {
           showToast(r.message);
-          await refreshData();
+          await refreshData({ preserveSelection: true });
           renderProfileList(api);
-          dom.profileExisting.value = `${r.groupId}::${r.profileKey}`;
-          applyProfileToForm(r.groupId, r.profileKey);
+          // Reset form fields and return to step 1 so user can pick another or create new
+          resetProfileForm();
+          if (dom.profileExisting) dom.profileExisting.value = "";
           updateProfileActionButtons();
           renderProfileLanguageList();
           renderProfilePlatformList();
           renderPatternList();
           await renderProfileRoleRestrictions(api);
+          const wizard = getProfileWizard();
+          if (wizard?.goTo) wizard.goTo(0);
         } else {
           showToast(r.message, true);
         }
