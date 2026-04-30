@@ -4,6 +4,7 @@ import { dom, state, setProfileEditConfirmed, getProfileEditConfirmed, getProfil
 import { t } from "./i18n/index.js";
 import { enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput, parseDurationInput, formatDurationPreview, enforceGroupAccess } from "./utils.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
+import { applySeriesToWizard, showScheduleMode } from "./series.js";
 
 let roleFetchToken = 0;
 let _discordApi = null;
@@ -685,20 +686,20 @@ export function handleProfileWizardStepChange({ current, next }) {
     // Otherwise, reset for "New" flow.
     const selected = dom.profileExisting?.value || "";
     if (selected) {
-      // Re-apply the saved data so the form has current values regardless of how
-      // the user got here (initial selection, navigating back-and-forth, etc).
+      // Re-apply the saved data synchronously so validation that runs after this
+      // block has the right form values to check.
       const groupId = dom.profileGroup.value;
+      console.debug("[wizard] step1→forward with selection:", selected, "editingType:", state.schedules?.editingType);
       if (selected.startsWith("series::")) {
         const seriesId = selected.slice("series::".length);
         const seriesData = state.series?.[groupId]?.[seriesId];
         state.schedules.editingType = "series";
         state.schedules.editingSeriesId = seriesId;
         if (seriesData) {
-          // Apply lazily via dynamic import to avoid circular dependency
-          import("./series.js").then(m => {
-            m.applySeriesToWizard(seriesData);
-            m.showScheduleMode("series", { lock: true });
-          }).catch(() => {});
+          applySeriesToWizard(seriesData);
+          showScheduleMode("series", { lock: true });
+        } else {
+          console.warn("[wizard] series data missing for", groupId, seriesId, "have:", Object.keys(state.series?.[groupId] || {}));
         }
       } else {
         // Template — load via existing helper
@@ -708,6 +709,7 @@ export function handleProfileWizardStepChange({ current, next }) {
           state.schedules.editingType = "template";
           state.schedules.editingSeriesId = null;
           applyProfileToForm(groupId, profileKey);
+          showScheduleMode("template", { lock: true });
         }
       }
       setProfileEditConfirmed(true);
