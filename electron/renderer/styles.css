@@ -3172,6 +3172,15 @@ input[type="color"]::-moz-color-swatch {
   gap: 8px;
 }
 
+/* Discord field overrides (CSP-compliant — replaces inline styles) */
+.discord-field-fixed {
+  flex: 0 0 auto;
+}
+.eckit-embed-color-hex {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Locked recurrence fields (after series start) — visible but read-only */
 #schedule-mode-series input:disabled,
 #schedule-mode-series select:disabled {

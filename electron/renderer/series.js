@@ -330,6 +330,10 @@ export function updateSaveButtonLabel() {
  * occurrence begins." Fields stay visible but become read-only with a hint.
  */
 export function setRecurrenceFieldsLocked(locked) {
+  // VRChat locks date / time / frequency / interval / day-of-week after the first
+  // occurrence starts, but the END condition (afterOccurrences / afterDate) IS
+  // editable post-start (verified via API testing 2026-04-30). So we keep
+  // seriesEndType / seriesEndCount / seriesEndDate UNLOCKED here.
   const fields = [
     dom.seriesStartDate,
     dom.seriesStartTime,
@@ -337,9 +341,6 @@ export function setRecurrenceFieldsLocked(locked) {
     dom.seriesFrequency,
     dom.seriesInterval,
     dom.seriesIntervalUnit,
-    dom.seriesEndType,
-    dom.seriesEndCount,
-    dom.seriesEndDate,
     ...document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]')
   ];
   fields.forEach(el => {
@@ -363,7 +364,7 @@ export function setRecurrenceFieldsLocked(locked) {
         hint.className = "hint warning";
         hint.dataset.i18n = "series.lockedHint";
         hint.textContent = t("series.lockedHint")
-          || "This series has already started. The schedule (date, time, recurrence) is locked. To reschedule, delete the series and create a new one.";
+          || "This series has already started. Date, time, and the repeat rule are locked — but you can still adjust when it ends. To reschedule, delete the series and create a new one.";
         // Insert as the first child of the card
         card.insertBefore(hint, card.firstChild);
       }

@@ -129,7 +129,7 @@ export const en = {
       occurrencesLabel: "occurrences"
     },
     disclaimer: "A series can only be rescheduled before its first occurrence begins. Once it starts, you must delete it to change the date or time. Events can be scheduled up to one year ahead. Maximum event length is 31 days.",
-    lockedHint: "This series has already started. The schedule (date, time, recurrence) is locked. To reschedule, delete the series and create a new one.",
+    lockedHint: "This series has already started. Date, time, and the repeat rule are locked — but you can still adjust when it ends. To reschedule, delete the series and create a new one.",
     buttons: {
       save: "Save Series"
     },
@@ -330,6 +330,7 @@ export const en = {
       title: "Calendar Integration",
       description: "Generate .ics calendar files with reminders, auto-saved locally or attached to webhook posts.",
       enable: "Enable calendar file generation",
+      inviteTitle: "Calendar Invite",
       createInvite: "Create .ics Calendar Invite",
       remindersTitle: ".ics Calendar Reminders",
       enableReminders: "Enable .ics Calendar Reminders",
