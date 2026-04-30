@@ -278,22 +278,29 @@ export function updateSeriesDurationPreview() {
   dom.seriesDurationPreview.textContent = formatDurationPreview(dom.seriesDuration.value);
 }
 
-/** Show the appropriate mode container in step 3. Defaults to template if mode is null. */
-export function showScheduleMode(mode) {
+/** Show the appropriate mode container in step 3. Defaults to template if mode is null.
+ *  When editing an existing schedule, the type is locked — toggle gets disabled. */
+export function showScheduleMode(mode, options = {}) {
   // mode: "template" | "series" | null — null defaults to template (the existing flow)
+  // options.lock: when true, disables the type toggle (used when editing existing schedules)
   const effectiveMode = mode || "template";
+  const locked = Boolean(options.lock);
   if (dom.scheduleModeTemplate) {
     dom.scheduleModeTemplate.classList.toggle("is-hidden", effectiveMode !== "template");
   }
   if (dom.scheduleModeSeries) {
     dom.scheduleModeSeries.classList.toggle("is-hidden", effectiveMode !== "series");
   }
-  // Toggle button active state
+  // Toggle button active + disabled state
   if (dom.scheduleTypeTemplateBtn) {
     dom.scheduleTypeTemplateBtn.classList.toggle("is-active", effectiveMode === "template");
+    dom.scheduleTypeTemplateBtn.disabled = locked;
+    dom.scheduleTypeTemplateBtn.classList.toggle("is-locked", locked);
   }
   if (dom.scheduleTypeSeriesBtn) {
     dom.scheduleTypeSeriesBtn.classList.toggle("is-active", effectiveMode === "series");
+    dom.scheduleTypeSeriesBtn.disabled = locked;
+    dom.scheduleTypeSeriesBtn.classList.toggle("is-locked", locked);
   }
   // Header blurb visibility
   if (dom.scheduleModeBlurbTemplate) {

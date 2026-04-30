@@ -1582,10 +1582,10 @@ import {
           await loadSeriesForGroup(groupId);
         }
         renderProfileList(api);
-        // Reset wizard editing state when switching groups
+        // Reset wizard editing state and unlock toggle when switching groups
         state.schedules.editingType = null;
         state.schedules.editingSeriesId = null;
-        showScheduleMode(null);
+        showScheduleMode(null, { lock: false });
       });
       dom.profileExisting.addEventListener("change", () => {
         const selected = dom.profileExisting.value;
@@ -1604,10 +1604,10 @@ import {
           showToast(t("schedules.errors.noGroup") || "Select a group first.", true);
           return;
         }
-        // Reset editing state — type will be picked in step 3
+        // Reset editing state — type will be picked in step 3 (toggle stays unlocked)
         state.schedules.editingType = null;
         state.schedules.editingSeriesId = null;
-        showScheduleMode(null);
+        showScheduleMode(null, { lock: false });
         const r = handleProfileNew();
         if (!r.success && r.message) showToast(r.message, true);
       });
@@ -1621,18 +1621,18 @@ import {
             showToast(t("series.errors.notFound") || "Series not found.", true);
             return;
           }
-          // Set up wizard for editing this series
+          // Set up wizard for editing this series — lock the type toggle
           applySeriesToWizard(seriesData);
-          showScheduleMode("series");
+          showScheduleMode("series", { lock: true });
           // Advance the wizard to step 2 (basics) for the user
           const w0 = getProfileWizard();
           if (w0?.goTo) w0.goTo(2);
           return;
         }
-        // Template edit — existing flow
+        // Template edit — existing flow, locked to template
         state.schedules.editingType = "template";
         state.schedules.editingSeriesId = null;
-        showScheduleMode("template");
+        showScheduleMode("template", { lock: true });
         const r = handleProfileEdit();
         if (!r.success && r.message) showToast(r.message, true);
       });
@@ -1676,12 +1676,12 @@ import {
           if (result?.success) {
             await refreshData();
             renderProfileList(api);
-            // Reset wizard editing state after series save
+            // Reset wizard editing state and unlock toggle after series save
             state.schedules.editingType = null;
             state.schedules.editingSeriesId = null;
-            showScheduleMode(null);
+            showScheduleMode(null, { lock: false });
             // Return to step 1 to show the new entry in the dropdown
-            const wizard = state.profile?.wizard;
+            const wizard = getProfileWizard();
             if (wizard?.goTo) wizard.goTo(1);
           }
           return;

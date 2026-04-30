@@ -3063,6 +3063,15 @@ input[type="color"]::-moz-color-swatch {
   border-right: 1px solid var(--border);
 }
 
+.schedule-toggle-btn.is-locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.schedule-toggle-btn.is-locked:not(.is-active) {
+  display: none;
+}
+
 .link-button {
   background: none;
   border: none;
