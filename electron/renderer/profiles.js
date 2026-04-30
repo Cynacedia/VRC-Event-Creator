@@ -681,10 +681,37 @@ export function handleProfileWizardStepChange({ current, next }) {
     if (!dom.profileGroup.value) {
       return { allowed: false, message: "Select a group first." };
     }
-    // If a schedule is selected, treat as edit (don't reset the form).
+    // If a schedule is selected, treat as edit (re-apply data for safety).
     // Otherwise, reset for "New" flow.
     const selected = dom.profileExisting?.value || "";
-    if (!selected) {
+    if (selected) {
+      // Re-apply the saved data so the form has current values regardless of how
+      // the user got here (initial selection, navigating back-and-forth, etc).
+      const groupId = dom.profileGroup.value;
+      if (selected.startsWith("series::")) {
+        const seriesId = selected.slice("series::".length);
+        const seriesData = state.series?.[groupId]?.[seriesId];
+        state.schedules.editingType = "series";
+        state.schedules.editingSeriesId = seriesId;
+        if (seriesData) {
+          // Apply lazily via dynamic import to avoid circular dependency
+          import("./series.js").then(m => {
+            m.applySeriesToWizard(seriesData);
+            m.showScheduleMode("series", { lock: true });
+          }).catch(() => {});
+        }
+      } else {
+        // Template — load via existing helper
+        const parts = selected.split("::");
+        const profileKey = parts.slice(1).join("::");
+        if (groupId && profileKey) {
+          state.schedules.editingType = "template";
+          state.schedules.editingSeriesId = null;
+          applyProfileToForm(groupId, profileKey);
+        }
+      }
+      setProfileEditConfirmed(true);
+    } else {
       resetProfileForm();
       updateProfileActionButtons();
     }
