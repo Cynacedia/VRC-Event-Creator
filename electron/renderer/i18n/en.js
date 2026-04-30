@@ -18,7 +18,8 @@ export const en = {
     },
     announcements: {
       title: "Announcements",
-      hint: "Toggle the actions to perform when this schedule posts an event."
+      hint: "Toggle the actions to perform when this schedule posts an event.",
+      hintSeries: "Toggle the actions to perform when this series is created or modified."
     },
     section: {
       selection: "Schedule Selection",

@@ -238,7 +238,22 @@ export function readSeriesFromWizard() {
     }
   }
 
-  return { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc };
+  // Read the announcements card flags (in step 4)
+  const announcements = {
+    calendarCreate: Boolean(document.getElementById("calendar-sync-check")?.checked),
+    discordSync: Boolean(document.getElementById("discord-sync-check")?.checked),
+    webhookPost: Boolean(document.getElementById("webhook-post-check")?.checked),
+    customMessage: null
+  };
+  const customEnabled = document.getElementById("profile-webhook-message-enabled")?.checked;
+  if (customEnabled) {
+    announcements.customMessage = {
+      text: document.getElementById("profile-webhook-message")?.value || "",
+      imagePath: document.getElementById("profile-webhook-image-path")?.value || ""
+    };
+  }
+
+  return { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc, announcements };
 }
 
 // --- Visibility helpers ---
@@ -331,6 +346,18 @@ export function showScheduleMode(mode, options = {}) {
   }
   // Sync Save button label with the current mode
   updateSaveButtonLabel();
+  // Adapt the Announcements hint to the schedule type
+  const announcementsHint = document.getElementById("profile-announcements-hint");
+  if (announcementsHint) {
+    const key = effectiveMode === "series"
+      ? "schedules.announcements.hintSeries"
+      : "schedules.announcements.hint";
+    const fallback = effectiveMode === "series"
+      ? "Toggle the actions to perform when this series is created or modified."
+      : "Toggle the actions to perform when this schedule posts an event.";
+    announcementsHint.textContent = t(key) || fallback;
+    announcementsHint.dataset.i18n = key;
+  }
 }
 
 // --- Action handlers ---
@@ -341,7 +368,7 @@ export async function handleSeriesCreate(api) {
     showToast(t("series.errors.noGroup") || "Select a group first.", true);
     return;
   }
-  const { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc } = readSeriesFromWizard();
+  const { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc, announcements } = readSeriesFromWizard();
   if (!label) {
     showToast(t("series.errors.noLabel") || "Series label is required.", true);
     return;
@@ -354,7 +381,10 @@ export async function handleSeriesCreate(api) {
     showToast(t("series.errors.noStartDate") || "First occurrence date and time are required.", true);
     return;
   }
-  if (recurrence.frequency === "weekly" && (!recurrence.daysOfWeek || !recurrence.daysOfWeek.length)) {
+  // For Custom + weekly unit, require at least one day of the week
+  const uiFreq = dom.seriesFrequency?.value;
+  const unit = dom.seriesIntervalUnit?.value;
+  if (uiFreq === "custom" && unit === "weekly" && (!recurrence.daysOfWeek || !recurrence.daysOfWeek.length)) {
     showToast(t("series.errors.noDaysOfWeek") || "Select at least one day of the week.", true);
     return;
   }
@@ -369,7 +399,8 @@ export async function handleSeriesCreate(api) {
     eventTemplate,
     recurrence,
     startsAtUtc,
-    endsAtUtc
+    endsAtUtc,
+    announcements
   });
 
   if (!result?.ok) {
@@ -392,7 +423,7 @@ export async function handleSeriesUpdate(api) {
     showToast(t("series.errors.noSeries") || "No series selected.", true);
     return { success: false };
   }
-  const { label, eventTemplate, recurrence } = readSeriesFromWizard();
+  const { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc, announcements } = readSeriesFromWizard();
   if (!label) {
     showToast(t("series.errors.noLabel") || "Series label is required.", true);
     return { success: false };
@@ -416,7 +447,10 @@ export async function handleSeriesUpdate(api) {
     seriesId,
     label,
     eventTemplate,
-    recurrence: recurrenceChanged ? recurrence : undefined
+    recurrence: recurrenceChanged ? recurrence : undefined,
+    startsAtUtc,
+    endsAtUtc,
+    announcements
   });
 
   if (!result?.ok) {

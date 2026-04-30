@@ -12,6 +12,7 @@ const automationEngine = require("./core/automation-engine");
 const discord = require("./core/discord");
 const ics = require("./core/ics");
 const webhook = require("./core/webhook");
+const { recurrenceToRRule } = require("./core/rrule");
 const debugModule = require("./core/debug-log");
 const galleryCacheModule = require("./core/gallery-cache");
 const themeStoreModule = require("./core/theme-store");
@@ -649,6 +650,175 @@ function tryIcsAutoSave(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) 
     }
   } catch (err) {
     debugLog("calendar", "ICS auto-save failed:", err.message);
+  }
+}
+
+/**
+ * Format a recurrence object as a human-readable string for announcement messages.
+ * E.g. "Weekly on Wednesdays, ends after 10 occurrences"
+ */
+function recurrenceToHumanString(recurrence) {
+  if (!recurrence) return "";
+  const dayNames = { MO: "Mon", TU: "Tue", WE: "Wed", TH: "Thu", FR: "Fri", SA: "Sat", SU: "Sun" };
+  const interval = recurrence.interval || 1;
+  const freq = recurrence.frequency || "weekly";
+  const freqLabel = {
+    daily: interval === 1 ? "Daily" : `Every ${interval} days`,
+    weekly: interval === 1 ? "Weekly" : `Every ${interval} weeks`,
+    monthly: interval === 1 ? "Monthly" : `Every ${interval} months`,
+    yearly: interval === 1 ? "Yearly" : `Every ${interval} years`
+  }[freq] || freq;
+  const parts = [freqLabel];
+  if (Array.isArray(recurrence.daysOfWeek) && recurrence.daysOfWeek.length) {
+    const days = recurrence.daysOfWeek.map(d => dayNames[d] || d).join(", ");
+    parts.push(`on ${days}`);
+  }
+  if (recurrence.end) {
+    if (recurrence.end.type === "afterOccurrences") {
+      parts.push(`for ${recurrence.end.count} occurrences`);
+    } else if (recurrence.end.type === "afterDate") {
+      parts.push(`until ${(recurrence.end.date || "").slice(0, 10)}`);
+    }
+  }
+  return parts.join(" ");
+}
+
+/**
+ * Run announcement actions for a series creation/update.
+ * - Generates a single .ics with RRULE if calendarCreate is enabled
+ * - Posts a webhook announcement (with optional .ics attachment) if webhookPost is enabled
+ * Discord recurring event creation is deferred (more complex API surface).
+ *
+ * @param {string} groupId
+ * @param {object} seriesData - { seriesId, label, recurrence, eventTemplate, ... }
+ * @param {string} startsAtUtc - first occurrence start
+ * @param {string} endsAtUtc - first occurrence end
+ * @param {object} announcementFlags - { calendarCreate, webhookPost, customMessage }
+ * @param {string} verb - "created" | "updated"
+ */
+function trySeriesAnnouncements(groupId, seriesData, startsAtUtc, endsAtUtc, announcementFlags, verb) {
+  const groupData = profiles[groupId];
+  if (!groupData) return;
+  const { calendarCreate, webhookPost, customMessage } = announcementFlags || {};
+
+  const tpl = seriesData.eventTemplate || {};
+  const label = seriesData.label || tpl.title || "Series";
+  const humanRule = recurrenceToHumanString(seriesData.recurrence);
+
+  // Generate ICS with RRULE if calendar is enabled
+  let icsContent = null;
+  let icsFilename = null;
+  if (calendarCreate && settings.calendarEnabled) {
+    const rrule = recurrenceToRRule(seriesData.recurrence);
+    const startMs = new Date(startsAtUtc).getTime();
+    const uid = `${groupId}-series-${seriesData.seriesId}-${startMs}@vrceventcreator`;
+    icsContent = ics.generateIcsString({
+      title: tpl.title || label,
+      description: tpl.description || "",
+      startTime: startsAtUtc,
+      endTime: endsAtUtc,
+      location: "VRChat",
+      uid,
+      sequence: 0,
+      reminders: [],
+      rrule
+    });
+    const safeTitle = (tpl.title || label).replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+    icsFilename = `${safeTitle} - Series.ics`;
+
+    // Auto-save the .ics to disk
+    try {
+      if (!settings.calendarSaveDir) {
+        const docsDir = app.getPath("documents");
+        settings.calendarSaveDir = path.join(docsDir, "VRC Event Creator .ics");
+        saveSettings(settings);
+      }
+      const safeGroupName = (groupData.groupName || "Unknown Group").replace(/[^a-zA-Z0-9_ -]/g, "").trim() || "Group";
+      const groupDir = path.join(settings.calendarSaveDir, safeGroupName);
+      fs.mkdirSync(groupDir, { recursive: true });
+      const savePath = path.join(groupDir, icsFilename);
+      fs.writeFileSync(savePath, icsContent, "utf8");
+      debugLog("series", "Series ICS saved:", savePath);
+      if (mainWindow) {
+        mainWindow.webContents.send("calendar:autoSaved", {
+          eventTitle: `${label} (series)`,
+          filePath: savePath
+        });
+      }
+    } catch (err) {
+      debugLog("series", "Series ICS save failed:", err.message);
+    }
+  }
+
+  // Post webhook announcement if enabled
+  if (webhookPost) {
+    const webhookUrl = decryptToken(groupData.webhookUrl);
+    if (!webhookUrl) return;
+
+    const defaultAvatarUrl = `https://raw.githubusercontent.com/${UPDATE_REPO_OWNER}/${UPDATE_REPO_NAME}/main/electron/app.png`;
+    const hasGroupKit = eckit.hasKit(groupId);
+    const kitAvatarUrl = hasGroupKit && groupData.webhookAvatarUrl ? groupData.webhookAvatarUrl : defaultAvatarUrl;
+    const kitWebhookName = hasGroupKit && groupData.webhookDisplayName ? groupData.webhookDisplayName : undefined;
+
+    const startUnix = Math.floor(new Date(startsAtUtc).getTime() / 1000);
+    const endUnix = Math.floor(new Date(endsAtUtc).getTime() / 1000);
+    const embedColor = hasGroupKit && groupData.webhookEmbedColor
+      ? parseInt(groupData.webhookEmbedColor.replace("#", ""), 16) || 0x1FC3AD
+      : 0x1FC3AD;
+
+    const titlePrefix = verb === "updated" ? "Updated:" : "New:";
+    const embed = {
+      title: `${titlePrefix} ${tpl.title || label}`,
+      description: truncateText(tpl.description || "", 300),
+      color: embedColor,
+      fields: [
+        { name: "🔁", value: humanRule || "Recurring", inline: false },
+        { name: "📆", value: `<t:${startUnix}:D>`, inline: true },
+        { name: "🕐", value: `<t:${startUnix}:t> — <t:${endUnix}:t>`, inline: true },
+        { name: "👥", value: groupData.groupName || "VRChat Group", inline: true }
+      ]
+    };
+
+    // Resolve event image + group icon
+    const customImagePath = hasGroupKit && customMessage?.imagePath ? customMessage.imagePath : "";
+    const customImagePromise = customImagePath
+      ? fs.promises.readFile(customImagePath).catch(() => null)
+      : Promise.resolve(null);
+    const imagePromise = customImagePath
+      ? customImagePromise
+      : (tpl.imageId ? getImageBufferForWebhook(tpl.imageId).catch(() => null) : Promise.resolve(null));
+    const iconId = groupData.groupIconId || groupIconCache.get(groupId) || "";
+    const iconPromise = iconId
+      ? getImageBufferForWebhook(iconId).catch(() => null)
+      : Promise.resolve(null);
+
+    const userMessage = hasGroupKit && customMessage?.text ? customMessage.text : "";
+
+    Promise.all([imagePromise, iconPromise]).then(([imageBuffer, iconBuffer]) => {
+      if (imageBuffer) embed.image = { url: "attachment://banner.png" };
+      if (iconBuffer) embed.thumbnail = { url: "attachment://icon.png" };
+      return webhook.sendWebhook({
+        webhookUrl,
+        icsContent,
+        filename: icsFilename,
+        content: userMessage || undefined,
+        embed,
+        imageBuffer,
+        imageFilename: imageBuffer ? "banner.png" : null,
+        iconBuffer,
+        iconFilename: iconBuffer ? "icon.png" : null,
+        avatarUrl: kitAvatarUrl,
+        webhookName: kitWebhookName
+      });
+    }).then(result => {
+      if (!result?.ok) {
+        debugLog("series", "Series webhook failed:", result?.error);
+      } else {
+        debugLog("series", `Series webhook sent (${verb}):`, label);
+      }
+    }).catch(err => {
+      debugLog("series", "Series webhook error:", err.message);
+    });
   }
 }
 
@@ -2173,7 +2343,7 @@ ipcMain.handle("series:list", async (_, payload) => {
 
 ipcMain.handle("series:create", async (_, payload) => {
   try {
-    const { groupId, label, eventTemplate, recurrence, startsAtUtc, endsAtUtc } = payload || {};
+    const { groupId, label, eventTemplate, recurrence, startsAtUtc, endsAtUtc, announcements } = payload || {};
     if (!groupId || !eventTemplate || !recurrence || !startsAtUtc || !endsAtUtc) {
       throw new Error("Missing series payload fields.");
     }
@@ -2214,7 +2384,7 @@ ipcMain.handle("series:create", async (_, payload) => {
     }
 
     if (!series[groupId]) series[groupId] = {};
-    series[groupId][seriesId] = {
+    const stored = {
       label: label || eventTemplate.title || "Untitled Series",
       groupId,
       seriesId,
@@ -2223,7 +2393,17 @@ ipcMain.handle("series:create", async (_, payload) => {
       recurrence: normalizeRecurrence(recurrence),
       eventTemplate: normalizeSeriesEventTemplate(eventTemplate)
     };
+    series[groupId][seriesId] = stored;
     saveSeries(series);
+
+    // Fire announcement actions (webhook, ICS) — fire and forget
+    if (announcements) {
+      try {
+        trySeriesAnnouncements(groupId, stored, startsAtUtc, endsAtUtc, announcements, "created");
+      } catch (annErr) {
+        debugLog("series", "Series announcement error:", annErr.message);
+      }
+    }
 
     return { ok: true, seriesId, data: response.data };
   } catch (err) {
@@ -2240,7 +2420,7 @@ ipcMain.handle("series:create", async (_, payload) => {
 
 ipcMain.handle("series:update", async (_, payload) => {
   try {
-    const { groupId, seriesId, eventTemplate, recurrence, label } = payload || {};
+    const { groupId, seriesId, eventTemplate, recurrence, label, startsAtUtc, endsAtUtc, announcements } = payload || {};
     if (!groupId || !seriesId) {
       throw new Error("Missing series payload fields.");
     }
@@ -2282,7 +2462,7 @@ ipcMain.handle("series:update", async (_, payload) => {
     // Update local metadata
     if (!series[groupId]) series[groupId] = {};
     const existing = series[groupId][seriesId] || {};
-    series[groupId][seriesId] = {
+    const stored = {
       ...existing,
       label: typeof label === "string" ? label : (existing.label || "Untitled Series"),
       groupId,
@@ -2293,7 +2473,17 @@ ipcMain.handle("series:update", async (_, payload) => {
         ? normalizeSeriesEventTemplate({ ...existing.eventTemplate, ...eventTemplate })
         : existing.eventTemplate
     };
+    series[groupId][seriesId] = stored;
     saveSeries(series);
+
+    // Fire announcement actions when explicitly requested (and we have start/end times for ICS)
+    if (announcements && startsAtUtc && endsAtUtc) {
+      try {
+        trySeriesAnnouncements(groupId, stored, startsAtUtc, endsAtUtc, announcements, "updated");
+      } catch (annErr) {
+        debugLog("series", "Series announcement error:", annErr.message);
+      }
+    }
 
     return { ok: true };
   } catch (err) {
