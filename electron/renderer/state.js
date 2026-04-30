@@ -111,7 +111,7 @@ export const dom = {
   eventWarnConflicts: document.getElementById("event-warn-conflicts"),
   modifyGroup: document.getElementById("modify-group"),
   modifyRefresh: document.getElementById("modify-refresh"),
-  modifyShowPending: document.getElementById("modify-show-pending"),
+  modifyShowPending: null, // legacy — replaced by modifyFilterPending
   modifyEventGrid: document.getElementById("modify-event-grid"),
   modifyCount: document.getElementById("modify-count"),
   modifyOverlay: document.getElementById("modify-overlay"),
@@ -318,8 +318,15 @@ export const dom = {
   modifyWebhookImagePath: document.getElementById("modify-webhook-image-path"),
   modifyWebhookImageBtn: document.getElementById("modify-webhook-image-btn"),
   // Modify Events series filter
-  modifySeriesFilterField: document.getElementById("modify-series-filter-field"),
-  modifySeriesFilter: document.getElementById("modify-series-filter"),
+  // Modify view filters
+  modifyTimeRange: document.getElementById("modify-time-range"),
+  modifyFiltersBtn: document.getElementById("modify-filters-btn"),
+  modifyFiltersPanel: document.getElementById("modify-filters-panel"),
+  modifyFilterPending: document.getElementById("modify-filter-pending"),
+  modifyFilterStandalone: document.getElementById("modify-filter-standalone"),
+  modifyFilterModified: document.getElementById("modify-filter-modified"),
+  modifyFilterSeriesGroup: document.getElementById("modify-filter-series-group"),
+  modifyFilterSeriesList: document.getElementById("modify-filter-series-list"),
   // Schedule selection helpers
   scheduleGroupHint: document.getElementById("schedule-group-hint"),
   // Schedule type filter chips
@@ -410,9 +417,16 @@ export const state = {
     refreshBackoffUntil: 0,
     refreshBackoffIndex: 0,
     lastRefreshTime: 0,
-    showPending: true,
+    showPending: true,                   // legacy — kept for backward refs, mirrors filters.pending
     missedCount: 0,
-    selectedImageUrl: ""
+    selectedImageUrl: "",
+    filters: {
+      pending: true,
+      standalone: true,
+      modified: true,
+      series: {}                         // keyed by seriesId, true=visible
+    },
+    timeRangeDays: 30                    // default 1 month
   },
   profile: {
     mode: "create",

@@ -303,19 +303,33 @@
                   <label for="modify-group" data-i18n="modify.groupLabel">Group</label>
                   <select id="modify-group"></select>
                 </div>
-                <div class="field is-hidden" id="modify-series-filter-field">
-                  <label for="modify-series-filter" data-i18n="modify.filter.bySeries">Filter</label>
-                  <select id="modify-series-filter">
-                    <option value="all" data-i18n="modify.filter.all">All events</option>
-                    <option value="standalone" data-i18n="modify.filter.standalone">Standalone only</option>
+                <div class="field">
+                  <label for="modify-time-range" data-i18n="modify.timeRange.label">Time Range</label>
+                  <select id="modify-time-range">
+                    <option value="7" data-i18n="modify.timeRange.1week">1 week</option>
+                    <option value="14" data-i18n="modify.timeRange.2weeks">2 weeks</option>
+                    <option value="30" selected data-i18n="modify.timeRange.1month">1 month</option>
+                    <option value="90" data-i18n="modify.timeRange.3months">3 months</option>
+                    <option value="180" data-i18n="modify.timeRange.6months">6 months</option>
+                    <option value="365" data-i18n="modify.timeRange.1year">1 year</option>
                   </select>
                 </div>
                 <div class="modify-actions">
-                  <label class="toggle-row compact-toggle">
-                    <input id="modify-show-pending" type="checkbox" checked />
-                    <span data-i18n="modify.showPending">Show Pending</span>
-                  </label>
+                  <button class="ghost compact-button" id="modify-filters-btn" type="button" data-i18n="modify.filtersButton">Filters</button>
                   <button class="ghost compact-button" id="modify-refresh" type="button" data-i18n="common.refresh">Refresh</button>
+                </div>
+              </div>
+              <!-- Filters panel (toggled by Filters button) -->
+              <div class="modify-filters-panel is-hidden" id="modify-filters-panel">
+                <div class="modify-filter-group">
+                  <h4 data-i18n="modify.filters.heading">Show</h4>
+                  <label class="toggle"><input type="checkbox" id="modify-filter-pending" checked /><span data-i18n="modify.filters.pending">Pending events</span></label>
+                  <label class="toggle"><input type="checkbox" id="modify-filter-standalone" checked /><span data-i18n="modify.filters.standalone">Standalone events</span></label>
+                  <label class="toggle"><input type="checkbox" id="modify-filter-modified" checked /><span data-i18n="modify.filters.modified">Modified occurrences</span></label>
+                </div>
+                <div class="modify-filter-group is-hidden" id="modify-filter-series-group">
+                  <h4 data-i18n="modify.filters.seriesHeading">Series</h4>
+                  <div id="modify-filter-series-list"></div>
                 </div>
               </div>
               <p class="hint" id="modify-count" data-i18n="modify.countEmpty">Upcoming events unavailable.</p>

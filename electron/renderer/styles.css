@@ -3161,6 +3161,44 @@ input[type="color"]::-moz-color-swatch {
   align-items: center;
 }
 
+/* Modify Events filters panel */
+.modify-filters-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.modify-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 200px;
+}
+
+.modify-filter-group h4 {
+  margin: 0 0 4px;
+  font-size: var(--text-12);
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.modify-filter-group .toggle {
+  font-size: var(--text-13);
+}
+
+#modify-filter-series-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
 /* Series occurrence badges in Modify Events */
 .event-badge-row {
   display: flex;

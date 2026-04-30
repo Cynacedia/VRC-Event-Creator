@@ -545,7 +545,7 @@ function getMergedEvents() {
     return !slotKey || !realSlots.has(slotKey);
   });
 
-  const pendingEvents = state.modify.showPending
+  const pendingEvents = state.modify.filters?.pending
     ? state.modify.pendingEvents
       .filter(p => !state.modify.optimisticEvents.has(p.id))
       .map(p => ({
@@ -559,42 +559,53 @@ function getMergedEvents() {
 }
 
 function populateSeriesFilterOptions(groupId, events) {
-  if (!dom.modifySeriesFilter || !dom.modifySeriesFilterField) return;
+  if (!dom.modifyFilterSeriesGroup || !dom.modifyFilterSeriesList) return;
   // Collect unique seriesIds present in current events
   const seriesIds = new Set();
   (events || []).forEach(event => {
     if (event.seriesId) seriesIds.add(event.seriesId);
   });
-  // Hide the filter entirely if there are no series occurrences in this view
+  // Hide the series filter group entirely if there are no series occurrences
   if (seriesIds.size === 0) {
-    dom.modifySeriesFilterField.classList.add("is-hidden");
+    dom.modifyFilterSeriesGroup.classList.add("is-hidden");
     return;
   }
-  dom.modifySeriesFilterField.classList.remove("is-hidden");
+  dom.modifyFilterSeriesGroup.classList.remove("is-hidden");
 
-  const previousValue = dom.modifySeriesFilter.value;
   const seriesMap = state.series?.[groupId] || {};
-  // Rebuild options
-  dom.modifySeriesFilter.innerHTML = "";
-  const allOpt = document.createElement("option");
-  allOpt.value = "all";
-  allOpt.textContent = t("modify.filter.all") || "All events";
-  dom.modifySeriesFilter.appendChild(allOpt);
-  const standaloneOpt = document.createElement("option");
-  standaloneOpt.value = "standalone";
-  standaloneOpt.textContent = t("modify.filter.standalone") || "Standalone only";
-  dom.modifySeriesFilter.appendChild(standaloneOpt);
-  // Per-series entries (use label from series.json if available, else fallback)
-  Array.from(seriesIds).sort().forEach(seriesId => {
-    const opt = document.createElement("option");
-    opt.value = seriesId;
-    const label = seriesMap[seriesId]?.label;
-    opt.textContent = label || `${t("modify.filter.unknownSeries") || "Series"} (${seriesId.slice(0, 8)})`;
-    dom.modifySeriesFilter.appendChild(opt);
+  // Initialize filter state for any new seriesIds (default visible)
+  if (!state.modify.filters.series) state.modify.filters.series = {};
+  seriesIds.forEach(sid => {
+    if (state.modify.filters.series[sid] === undefined) {
+      state.modify.filters.series[sid] = true;
+    }
   });
-  // Restore previous selection if still valid
-  const validValues = new Set(["all", "standalone", ...seriesIds]);
-  dom.modifySeriesFilter.value = validValues.has(previousValue) ? previousValue : "all";
+  // Drop entries for series no longer present
+  Object.keys(state.modify.filters.series).forEach(sid => {
+    if (!seriesIds.has(sid)) delete state.modify.filters.series[sid];
+  });
+
+  // Rebuild the checkbox list
+  dom.modifyFilterSeriesList.innerHTML = "";
+  Array.from(seriesIds).sort().forEach(seriesId => {
+    const label = seriesMap[seriesId]?.label
+      || `${t("modify.filters.unknownSeries") || "Series"} (${seriesId.slice(0, 8)})`;
+    const wrapper = document.createElement("label");
+    wrapper.className = "toggle";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.dataset.seriesId = seriesId;
+    input.checked = state.modify.filters.series[seriesId] !== false;
+    input.addEventListener("change", () => {
+      state.modify.filters.series[seriesId] = input.checked;
+      renderModifyEventGrid();
+    });
+    const span = document.createElement("span");
+    span.textContent = label;
+    wrapper.appendChild(input);
+    wrapper.appendChild(span);
+    dom.modifyFilterSeriesList.appendChild(wrapper);
+  });
 }
 
 function renderModifyEventGrid() {
@@ -611,14 +622,35 @@ function renderModifyEventGrid() {
   }
 
   const allMergedEvents = getMergedEvents();
-  // Apply series filter (UI dropdown — "all", "standalone", or a specific seriesId)
-  const filterValue = dom.modifySeriesFilter?.value || "all";
+  const filters = state.modify.filters || {};
+  const seriesFilter = filters.series || {};
+  // Time range cutoff: only events starting within timeRangeDays from now
+  const rangeDays = Number.isFinite(state.modify.timeRangeDays) ? state.modify.timeRangeDays : 30;
+  const cutoffMs = Date.now() + rangeDays * 24 * 60 * 60 * 1000;
+
+  let hiddenByRange = 0;
   const mergedEvents = allMergedEvents.filter(event => {
-    if (filterValue === "all") return true;
-    if (filterValue === "standalone") return !event.seriesId;
-    // Specific series ID
-    return event.seriesId === filterValue;
+    // Time range
+    const startMs = event.sortTime || (event.startsAtUtc ? Date.parse(event.startsAtUtc) : null);
+    if (startMs && startMs > cutoffMs) {
+      hiddenByRange++;
+      return false;
+    }
+    // Pending toggle (also captured by getMergedEvents but kept here for clarity)
+    if (event.isPending && filters.pending === false) return false;
+    // Series occurrence: hide if its series is unchecked
+    if (event.seriesId) {
+      if (seriesFilter[event.seriesId] === false) return false;
+      // Modified occurrences: filter only if filter is unchecked
+      if (event.occurrenceModified && filters.modified === false) return false;
+      return true;
+    }
+    // Standalone (non-pending, non-series)
+    if (!event.isPending && filters.standalone === false) return false;
+    return true;
   });
+  // Stash the count of events hidden by the range filter so the count line can mention it
+  state.modify._hiddenByRange = hiddenByRange;
 
   if (!mergedEvents.length) {
     const empty = document.createElement("div");
@@ -1886,14 +1918,37 @@ export function initModifyEvents(api) {
     }
     void refreshModifyEvents(modifyApi);
   });
-  if (dom.modifyShowPending) {
-    dom.modifyShowPending.addEventListener("change", () => {
-      state.modify.showPending = dom.modifyShowPending.checked;
+  // Time range dropdown
+  if (dom.modifyTimeRange) {
+    dom.modifyTimeRange.addEventListener("change", () => {
+      const days = parseInt(dom.modifyTimeRange.value, 10);
+      state.modify.timeRangeDays = Number.isFinite(days) ? days : 30;
       renderModifyEventGrid();
     });
   }
-  if (dom.modifySeriesFilter) {
-    dom.modifySeriesFilter.addEventListener("change", () => {
+  // Filters button toggles the panel
+  if (dom.modifyFiltersBtn && dom.modifyFiltersPanel) {
+    dom.modifyFiltersBtn.addEventListener("click", () => {
+      dom.modifyFiltersPanel.classList.toggle("is-hidden");
+    });
+  }
+  // Filter checkboxes
+  if (dom.modifyFilterPending) {
+    dom.modifyFilterPending.addEventListener("change", () => {
+      state.modify.filters.pending = dom.modifyFilterPending.checked;
+      state.modify.showPending = dom.modifyFilterPending.checked; // keep legacy in sync
+      renderModifyEventGrid();
+    });
+  }
+  if (dom.modifyFilterStandalone) {
+    dom.modifyFilterStandalone.addEventListener("change", () => {
+      state.modify.filters.standalone = dom.modifyFilterStandalone.checked;
+      renderModifyEventGrid();
+    });
+  }
+  if (dom.modifyFilterModified) {
+    dom.modifyFilterModified.addEventListener("change", () => {
+      state.modify.filters.modified = dom.modifyFilterModified.checked;
       renderModifyEventGrid();
     });
   }

@@ -501,6 +501,24 @@ export const en = {
       standalone: "Standalone only",
       unknownSeries: "Series"
     },
+    filtersButton: "Filters",
+    timeRange: {
+      label: "Time Range",
+      "1week": "1 week",
+      "2weeks": "2 weeks",
+      "1month": "1 month",
+      "3months": "3 months",
+      "6months": "6 months",
+      "1year": "1 year"
+    },
+    filters: {
+      heading: "Show",
+      pending: "Pending events",
+      standalone: "Standalone events",
+      modified: "Modified occurrences",
+      seriesHeading: "Series",
+      unknownSeries: "Series"
+    },
     badge: {
       modified: "Modified",
       unknownSeries: "Series"
