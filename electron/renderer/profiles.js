@@ -671,9 +671,17 @@ export function validateProfileBasics() {
   return { valid: true };
 }
 
+// Helper that mirrors a renderer log line to both console AND the persistent debug log file
+function _wlog(message) {
+  console.log("[wizard]", message);
+  if (window.vrcEvent?.debugLog) {
+    window.vrcEvent.debugLog({ context: "wizard", message: typeof message === "string" ? message : JSON.stringify(message) }).catch(() => {});
+  }
+}
+
 // Handle profile wizard step change
 export function handleProfileWizardStepChange({ current, next }) {
-  console.log("[wizard] step change", { current, next, selected: dom.profileExisting?.value, editConfirmed: getProfileEditConfirmed() });
+  _wlog(`step change current=${current} next=${next} selected=${dom.profileExisting?.value || ""} editConfirmed=${getProfileEditConfirmed()}`);
   if (next <= current) {
     syncStep3Mode(next);
     return true;
@@ -681,31 +689,26 @@ export function handleProfileWizardStepChange({ current, next }) {
 
   if (current === 0 && next > 0) {
     if (!dom.profileGroup.value) {
-      console.log("[wizard] blocked: no group");
+      _wlog("blocked: no group");
       return { allowed: false, message: "Select a group first." };
     }
-    // If a schedule is selected, treat as edit (re-apply data for safety).
-    // Otherwise, reset for "New" flow.
     const selected = dom.profileExisting?.value || "";
     if (selected) {
-      // Re-apply the saved data synchronously so validation that runs after this
-      // block has the right form values to check.
       const groupId = dom.profileGroup.value;
-      console.log("[wizard] forward with selection:", selected, "editingType:", state.schedules?.editingType);
+      _wlog(`forward with selection: ${selected} editingType=${state.schedules?.editingType}`);
       if (selected.startsWith("series::")) {
         const seriesId = selected.slice("series::".length);
         const seriesData = state.series?.[groupId]?.[seriesId];
         state.schedules.editingType = "series";
         state.schedules.editingSeriesId = seriesId;
         if (seriesData) {
-          console.log("[wizard] applying series data");
+          _wlog("applying series data to wizard");
           applySeriesToWizard(seriesData);
           showScheduleMode("series", { lock: true });
         } else {
-          console.warn("[wizard] series data missing for", groupId, seriesId, "have:", Object.keys(state.series?.[groupId] || {}));
+          _wlog(`series data missing for ${groupId} / ${seriesId} — have keys: ${Object.keys(state.series?.[groupId] || {}).join(",")}`);
         }
       } else {
-        // Template — load via existing helper
         const parts = selected.split("::");
         const profileKey = parts.slice(1).join("::");
         if (groupId && profileKey) {
@@ -717,7 +720,7 @@ export function handleProfileWizardStepChange({ current, next }) {
       }
       setProfileEditConfirmed(true);
     } else {
-      console.log("[wizard] no selection — resetting form (New flow)");
+      _wlog("no selection — resetting form (New flow)");
       resetProfileForm();
       updateProfileActionButtons();
     }
@@ -725,7 +728,7 @@ export function handleProfileWizardStepChange({ current, next }) {
 
   if (next > 1) {
     const validation = validateProfileBasics();
-    console.log("[wizard] validation result:", validation, "displayName:", dom.profileDisplayName?.value, "name:", dom.profileName?.value, "desc:", dom.profileDescription?.value?.slice(0, 30));
+    _wlog(`validation valid=${validation.valid} msg="${validation.message || ""}" displayName="${dom.profileDisplayName?.value || ""}" name="${dom.profileName?.value || ""}" descLen=${dom.profileDescription?.value?.length || 0}`);
     if (!validation.valid) {
       return { allowed: false, message: validation.message };
     }

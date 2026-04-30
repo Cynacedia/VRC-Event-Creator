@@ -1878,6 +1878,14 @@ ipcMain.handle("window:isMaximized", () => {
   return mainWindow.isMaximized();
 });
 
+// TEMPORARY: renderer-side debug logger that writes to the persistent debug log
+// so we can read it after the fact. Remove with the rest of the test harness.
+ipcMain.handle("debug:log", (_, payload) => {
+  const { context = "renderer", message = "" } = payload || {};
+  debugLog(`renderer:${context}`, message);
+  return true;
+});
+
 ipcMain.handle("settings:get", () => settings);
 
 ipcMain.handle("settings:set", (_, payload) => {

@@ -121,6 +121,9 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   seriesCheckModifications: payload => ipcRenderer.invoke("series:checkModifications", payload),
   seriesReconcile: payload => ipcRenderer.invoke("series:reconcile", payload),
 
+  // TEMPORARY: renderer debug logger (writes to debug-api.json)
+  debugLog: payload => ipcRenderer.invoke("debug:log", payload),
+
   // TEMPORARY: Series API test harness (remove before release)
   testCreateSeries: payload => ipcRenderer.invoke("test:createSeries", payload),
   testFetchEvent: payload => ipcRenderer.invoke("test:fetchEvent", payload),
