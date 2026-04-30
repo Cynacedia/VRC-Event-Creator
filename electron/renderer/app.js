@@ -9,7 +9,7 @@ import { checkSession, handleLogin, handleLoginClose, handleLogout, handleSettin
 import { resetProfileForm, applyProfileToForm, renderProfileList, updateProfileActionButtons, handleProfileNew, handleProfileEdit, handleProfileDelete, handleProfileSelection, handleProfileGroupChange, handleProfileSave, updateProfileDurationPreview, handleProfileAccessChange, renderProfileRoleRestrictions, validateAndCorrectAutomationOffset, handleProfileImportJson, handleProfileExportJson, updateDiscordVisibility, renderDiscordGroupSelect, initDiscordUI, updateCalendarVisibility, renderCalendarReminders, readCalendarRemindersFromDom, addCalendarReminderRow } from "./profiles.js";
 import { syncDateInputs, applyManualEventDefaults, handleEventGroupChange, handleEventProfileChange, handleEventCreate, handleEventAccessChange, renderEventRoleRestrictions, renderEventLanguageList, renderEventProfileOptions, renderEventPlatformList, updateDateOptions, refreshUpcomingEventCount, renderUpcomingEventCountLabel, updateEventDurationPreview, handleEventImportJson, handleEventExportJson, updateAdvancedSettingsVisibility, updateImportExportVisibility } from "./events.js";
 import { initGalleryPicker, openGalleryPicker } from "./gallery.js";
-import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview, updateModifyCalendarRemindersVisibility, updateModifyWebhookVisibility } from "./modify.js";
+import { initModifyEvents, initModifySelects, refreshModifyEvents, syncModifyLocalization, updateModifyDurationPreview, updateModifyCalendarRemindersVisibility, updateModifyWebhookVisibility, resetModifyFilters } from "./modify.js";
 import { initDemoControls } from "./demo.js";
 import {
   initSeriesModule,
@@ -972,7 +972,12 @@ import {
   function bindEvents() {
     dom.navButtons.forEach(btn => btn.addEventListener("click", () => {
       const view = btn.dataset.view;
+      const previousView = Array.from(dom.navButtons).find(b => b.classList.contains("is-active"))?.dataset.view;
       showView(view);
+      // Reset Modify Events filters when leaving the tab (filters are session-scoped)
+      if (previousView === "modify" && view !== "modify") {
+        resetModifyFilters();
+      }
       // Refresh profile list when navigating to profiles view
       if (view === "profiles") {
         renderProfileList(api);

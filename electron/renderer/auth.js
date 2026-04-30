@@ -66,9 +66,15 @@ async function onLoginSuccess(api, user, refreshDataFn) {
       dom.calendarSaveDirDisplay.textContent = settings.calendarSaveDir || "-";
     }
     state.settings = settings;
+    // Hydrate persisted modify time range
+    if (Number.isFinite(settings.modifyTimeRangeDays)) {
+      state.modify.timeRangeDays = settings.modifyTimeRangeDays;
+      if (dom.modifyTimeRange) {
+        dom.modifyTimeRange.value = String(settings.modifyTimeRangeDays);
+      }
+    }
     updateAdvancedSettingsVisibility();
     updateImportExportVisibility();
-    updateFeaturedVerificationVisibility();
     // Ensure Discord caret visibility is set on load (panel stays collapsed)
     updateDiscordVisibility();
     // Ensure Calendar visibility is set on load

@@ -196,6 +196,7 @@ function normalizeCalendarReminders(raw) {
 
 function normalizeSettings(raw) {
   // Only preserve the specific settings fields we define - ignore any other fields
+  const validRanges = [7, 14, 30, 90, 180, 365];
   if (!raw || typeof raw !== "object") {
     return {
       warnConflicts: false,
@@ -208,7 +209,8 @@ function normalizeSettings(raw) {
       discordEnabled: false,
       calendarEnabled: false,
       calendarSaveDir: "",
-      calendarReminders: [{ value: 30, unit: "minutes" }]
+      calendarReminders: [{ value: 30, unit: "minutes" }],
+      modifyTimeRangeDays: 90
     };
   }
   return {
@@ -222,7 +224,8 @@ function normalizeSettings(raw) {
     discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false,
     calendarEnabled: typeof raw.calendarEnabled === "boolean" ? raw.calendarEnabled : false,
     calendarSaveDir: typeof raw.calendarSaveDir === "string" ? raw.calendarSaveDir : "",
-    calendarReminders: normalizeCalendarReminders(raw.calendarReminders)
+    calendarReminders: normalizeCalendarReminders(raw.calendarReminders),
+    modifyTimeRangeDays: validRanges.includes(raw.modifyTimeRangeDays) ? raw.modifyTimeRangeDays : 90
   };
 }
 

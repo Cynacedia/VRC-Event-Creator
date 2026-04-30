@@ -426,7 +426,7 @@ export const state = {
       modified: true,
       series: {}                         // keyed by seriesId, true=visible
     },
-    timeRangeDays: 30                    // default 1 month
+    timeRangeDays: 90                    // default 3 months — persisted in settings
   },
   profile: {
     mode: "create",

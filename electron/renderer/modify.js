@@ -558,6 +558,28 @@ function getMergedEvents() {
   return [...realEvents, ...filteredOptimistic, ...pendingEvents].sort((a, b) => a.sortTime - b.sortTime);
 }
 
+/** Reset all session-scoped Modify Events filters to their default (everything visible).
+ *  Called on group change and tab navigation. Time range is NOT reset (it's persisted). */
+export function resetModifyFilters() {
+  state.modify.filters = {
+    pending: true,
+    standalone: true,
+    modified: true,
+    series: {}
+  };
+  // Sync UI checkboxes
+  if (dom.modifyFilterPending) dom.modifyFilterPending.checked = true;
+  if (dom.modifyFilterStandalone) dom.modifyFilterStandalone.checked = true;
+  if (dom.modifyFilterModified) dom.modifyFilterModified.checked = true;
+  // Hide the panel (collapsed state on reset)
+  if (dom.modifyFiltersPanel) dom.modifyFiltersPanel.classList.add("is-hidden");
+  // Clear and hide the per-series checkbox group
+  if (dom.modifyFilterSeriesGroup) dom.modifyFilterSeriesGroup.classList.add("is-hidden");
+  if (dom.modifyFilterSeriesList) dom.modifyFilterSeriesList.innerHTML = "";
+  // Keep state.modify.showPending in sync for legacy code paths
+  state.modify.showPending = true;
+}
+
 function populateSeriesFilterOptions(groupId, events) {
   if (!dom.modifyFilterSeriesGroup || !dom.modifyFilterSeriesList) return;
   // Collect unique seriesIds present in current events
@@ -1909,6 +1931,8 @@ export function initModifyEvents(api) {
     state.modify.deletedTombstones.clear();
     state.modify.lastRefreshTime = 0;
     state.modify.optimisticEvents.clear();
+    // Reset filters when changing groups (filters are scoped per session per group)
+    resetModifyFilters();
     // Load series metadata for the new group so badge labels appear correctly
     const newGroupId = dom.modifyGroup.value;
     if (newGroupId && modifyApi?.seriesList) {
@@ -1918,11 +1942,15 @@ export function initModifyEvents(api) {
     }
     void refreshModifyEvents(modifyApi);
   });
-  // Time range dropdown
+  // Time range dropdown — persists across restarts via settings
   if (dom.modifyTimeRange) {
     dom.modifyTimeRange.addEventListener("change", () => {
       const days = parseInt(dom.modifyTimeRange.value, 10);
-      state.modify.timeRangeDays = Number.isFinite(days) ? days : 30;
+      state.modify.timeRangeDays = Number.isFinite(days) ? days : 90;
+      // Persist to settings so the choice survives restart
+      if (modifyApi?.updateSettings) {
+        modifyApi.updateSettings({ modifyTimeRangeDays: state.modify.timeRangeDays }).catch(() => {});
+      }
       renderModifyEventGrid();
     });
   }
