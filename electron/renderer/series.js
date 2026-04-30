@@ -179,7 +179,7 @@ export function readSeriesFromWizard() {
     roleIds: dom.profileAccess?.value === "group" && Array.isArray(state.profile?.roleIds)
       ? state.profile.roleIds.filter(id => typeof id === "string" && id.trim())
       : [],
-    duration: parseDurationInput(dom.seriesDuration?.value || "00:02:00"),
+    duration: (parseDurationInput(dom.seriesDuration?.value || "00:02:00")?.minutes) || 120,
     sendCreationNotification: Boolean(dom.profileSendNotification?.checked)
   };
 
@@ -274,8 +274,8 @@ export function updateSeriesEndVisibility() {
 
 export function updateSeriesDurationPreview() {
   if (!dom.seriesDuration || !dom.seriesDurationPreview) return;
-  const minutes = parseDurationInput(dom.seriesDuration.value);
-  dom.seriesDurationPreview.textContent = formatDurationPreview(minutes);
+  // formatDurationPreview takes the raw string, not the parsed result
+  dom.seriesDurationPreview.textContent = formatDurationPreview(dom.seriesDuration.value);
 }
 
 /** Show the appropriate mode container in step 3. Defaults to template if mode is null. */
