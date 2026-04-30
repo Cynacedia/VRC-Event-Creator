@@ -129,6 +129,7 @@ export const en = {
       occurrencesLabel: "occurrences"
     },
     disclaimer: "A series can only be rescheduled before its first occurrence begins. Once it starts, you must delete it to change the date or time. Events can be scheduled up to one year ahead. Maximum event length is 31 days.",
+    lockedHint: "This series has already started. The schedule (date, time, recurrence) is locked. To reschedule, delete the series and create a new one.",
     buttons: {
       save: "Save Series"
     },

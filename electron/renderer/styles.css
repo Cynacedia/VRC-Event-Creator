@@ -3172,6 +3172,23 @@ input[type="color"]::-moz-color-swatch {
   gap: 8px;
 }
 
+/* Locked recurrence fields (after series start) — visible but read-only */
+#schedule-mode-series input:disabled,
+#schedule-mode-series select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.hint.warning {
+  background: rgba(255, 190, 70, 0.10);
+  border-left: 3px solid rgb(255, 190, 70);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
 .series-end-row input[type="number"],
 .series-end-row input[type="date"] {
   width: 140px;

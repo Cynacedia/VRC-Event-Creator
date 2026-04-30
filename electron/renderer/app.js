@@ -23,7 +23,9 @@ import {
   updateSeriesFrequencyVisibility,
   updateSeriesEndVisibility,
   updateSeriesDurationPreview,
-  populateSeriesTimezoneDropdown
+  populateSeriesTimezoneDropdown,
+  setRecurrenceFieldsLocked,
+  checkSeriesStarted
 } from "./series.js";
 
 (() => {
@@ -1613,6 +1615,8 @@ import {
         state.schedules.editingType = null;
         state.schedules.editingSeriesId = null;
         showScheduleMode(null, { lock: false });
+        // Ensure recurrence fields are unlocked for new series
+        setRecurrenceFieldsLocked(false);
         const r = handleProfileNew();
         if (!r.success && r.message) showToast(r.message, true);
       });
@@ -1629,9 +1633,17 @@ import {
           // Set up wizard for editing this series — lock the type toggle
           applySeriesToWizard(seriesData);
           showScheduleMode("series", { lock: true });
-          // Advance the wizard to step 2 (basics) for the user
+          // Default to unlocked recurrence fields — async check below may re-lock
+          setRecurrenceFieldsLocked(false);
+          // Async: check if the series has started, and lock recurrence fields if so
+          checkSeriesStarted(api, groupId, seriesId).then(started => {
+            if (started === true) {
+              setRecurrenceFieldsLocked(true);
+            }
+          }).catch(() => {});
+          // Land on step 2 (Basics) — most edits target event details, not recurrence
           const w0 = getProfileWizard();
-          if (w0?.goTo) w0.goTo(2);
+          if (w0?.goTo) w0.goTo(1);
           return;
         }
         // Template edit — existing flow, locked to template

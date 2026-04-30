@@ -312,6 +312,74 @@ export function updateSaveButtonLabel() {
   btn.dataset.i18n = key;
 }
 
+/**
+ * Lock the recurrence-rule fields when a series has already started its first
+ * occurrence. VRChat's rule: "A series can only be rescheduled before its first
+ * occurrence begins." Fields stay visible but become read-only with a hint.
+ */
+export function setRecurrenceFieldsLocked(locked) {
+  const fields = [
+    dom.seriesStartDate,
+    dom.seriesStartTime,
+    dom.seriesTimezone,
+    dom.seriesFrequency,
+    dom.seriesInterval,
+    dom.seriesIntervalUnit,
+    dom.seriesEndType,
+    dom.seriesEndCount,
+    dom.seriesEndDate,
+    ...document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]')
+  ];
+  fields.forEach(el => {
+    if (el) {
+      el.disabled = Boolean(locked);
+    }
+  });
+  // Show or hide a hint at the top of the recurrence card
+  let hint = document.getElementById("series-locked-hint");
+  if (locked) {
+    if (!hint && dom.seriesStartDate) {
+      const card = dom.seriesStartDate.closest(".card");
+      if (card) {
+        hint = document.createElement("p");
+        hint.id = "series-locked-hint";
+        hint.className = "hint warning";
+        hint.dataset.i18n = "series.lockedHint";
+        hint.textContent = t("series.lockedHint")
+          || "This series has already started. The schedule (date, time, recurrence) is locked and cannot be changed. Delete the series and create a new one to reschedule.";
+        // Insert as the first child of the card
+        card.insertBefore(hint, card.firstChild);
+      }
+    }
+  } else if (hint) {
+    hint.remove();
+  }
+}
+
+/**
+ * Determine whether a series has already had its first occurrence start.
+ * Fetches the group's upcoming events and checks if any matching occurrence
+ * has a startsAt in the past. Returns true if started, false if not yet,
+ * null on failure.
+ */
+export async function checkSeriesStarted(api, groupId, seriesId) {
+  if (!api?.listGroupEvents) return null;
+  try {
+    const events = await api.listGroupEvents({ groupId, upcomingOnly: false });
+    const now = Date.now();
+    const occurrences = (events || []).filter(e => e.seriesId === seriesId);
+    if (!occurrences.length) return null;
+    // If any occurrence has already started, the series has started
+    return occurrences.some(e => {
+      const start = e.startsAtUtc ? Date.parse(e.startsAtUtc) : null;
+      return start && start <= now;
+    });
+  } catch (err) {
+    console.error("checkSeriesStarted failed:", err);
+    return null;
+  }
+}
+
 /** Show the appropriate mode container in step 3. Defaults to template if mode is null.
  *  When editing an existing schedule, the type is locked — toggle gets disabled. */
 export function showScheduleMode(mode, options = {}) {
