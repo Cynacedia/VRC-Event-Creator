@@ -1,7 +1,7 @@
 // Main application entry point - imports and wires modular components
 
 import { CATEGORIES, ACCESS_TYPES, LANGUAGES, PLATFORMS, DATE_MODES, PATTERN_TYPES, WEEKDAYS, MONTHS, TAG_LIMIT } from "./config.js";
-import { dom, state, setEventWizard, setProfileWizard, getProfileWizard, getProfileEditConfirmed } from "./state.js";
+import { dom, state, setEventWizard, setProfileWizard, getProfileWizard, getProfileEditConfirmed, setProfileEditConfirmed } from "./state.js";
 import { setStatus, setFootMeta, showToast, setAuthState, setUpdateAvailable, setUpdateProgress, refreshStatusPill, showView, renderSelect, renderChecklist, setupWizard, bindWindowControls, initThemeControls, loadTheme, handleThemeChange, handleThemeReset, handleThemePresetSave, handleThemePresetDelete, handleThemePresetImport, handleThemePresetExport, syncThemeLocalization } from "./ui.js";
 import { initI18n, setLanguage, getCurrentLanguage, getLanguageOptions, applyTranslations, t, getLanguageDisplayName } from "./i18n/index.js";
 import { createTagInput, handleOpenDataDir, handleChangeDataDir, buildTimezones, normalizeDurationInput, sanitizeDurationInputValue, enforceGroupAccess, getTodayDateString, getMaxEventDateString, parseDurationInput, getTimeZoneAbbr } from "./utils.js";
@@ -25,7 +25,7 @@ import {
   updateSeriesDurationPreview,
   populateSeriesTimezoneDropdown,
   setRecurrenceFieldsLocked,
-  checkSeriesStarted
+  inspectSeriesOccurrences
 } from "./series.js";
 
 (() => {
@@ -1597,12 +1597,50 @@ import {
       dom.profileExisting.addEventListener("change", () => {
         const selected = dom.profileExisting.value;
         if (selected.startsWith("series::")) {
+          // Series selected — populate the wizard for editing so step buttons work directly
+          const seriesId = selected.slice("series::".length);
+          const groupId = dom.profileGroup?.value;
+          const seriesData = state.series?.[groupId]?.[seriesId];
           state.schedules.selectedType = "series";
+          if (seriesData) {
+            applySeriesToWizard(seriesData);
+            showScheduleMode("series", { lock: true });
+            setProfileEditConfirmed(true);
+            // Async-inspect occurrences: lock recurrence fields if started + backfill missing dates
+            setRecurrenceFieldsLocked(false);
+            inspectSeriesOccurrences(api, groupId, seriesId).then(info => {
+              if (info.started === true) setRecurrenceFieldsLocked(true);
+              // Backfill date/time fields if local metadata didn't have them
+              if (!seriesData.firstOccurrenceUtc && info.earliestStart && dom.seriesStartDate?.value === "") {
+                const localDate = new Date(info.earliestStart);
+                if (!Number.isNaN(localDate.getTime())) {
+                  const yyyy = localDate.getFullYear();
+                  const mm = String(localDate.getMonth() + 1).padStart(2, "0");
+                  const dd = String(localDate.getDate()).padStart(2, "0");
+                  const hh = String(localDate.getHours()).padStart(2, "0");
+                  const mi = String(localDate.getMinutes()).padStart(2, "0");
+                  if (dom.seriesStartDate) dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
+                  if (dom.seriesStartTime) dom.seriesStartTime.value = `${hh}:${mi}`;
+                }
+              }
+            }).catch(() => {});
+          }
         } else if (selected) {
+          // Template selected — handleProfileSelection loads the data; mark as edit
           state.schedules.selectedType = "template";
+          state.schedules.editingType = "template";
+          state.schedules.editingSeriesId = null;
+          showScheduleMode("template", { lock: true });
+          setRecurrenceFieldsLocked(false);
           handleProfileSelection(api);
+          setProfileEditConfirmed(true);
         } else {
           state.schedules.selectedType = null;
+          state.schedules.editingType = null;
+          state.schedules.editingSeriesId = null;
+          showScheduleMode(null, { lock: false });
+          setRecurrenceFieldsLocked(false);
+          setProfileEditConfirmed(false);
         }
         updateProfileActionButtons();
       });
@@ -1633,12 +1671,23 @@ import {
           // Set up wizard for editing this series — lock the type toggle
           applySeriesToWizard(seriesData);
           showScheduleMode("series", { lock: true });
-          // Default to unlocked recurrence fields — async check below may re-lock
+          setProfileEditConfirmed(true);
+          // Default to unlocked recurrence fields — async inspect below may re-lock
           setRecurrenceFieldsLocked(false);
-          // Async: check if the series has started, and lock recurrence fields if so
-          checkSeriesStarted(api, groupId, seriesId).then(started => {
-            if (started === true) {
-              setRecurrenceFieldsLocked(true);
+          // Async: inspect occurrences to lock if started + backfill date/time if missing
+          inspectSeriesOccurrences(api, groupId, seriesId).then(info => {
+            if (info.started === true) setRecurrenceFieldsLocked(true);
+            if (!seriesData.firstOccurrenceUtc && info.earliestStart && dom.seriesStartDate?.value === "") {
+              const localDate = new Date(info.earliestStart);
+              if (!Number.isNaN(localDate.getTime())) {
+                const yyyy = localDate.getFullYear();
+                const mm = String(localDate.getMonth() + 1).padStart(2, "0");
+                const dd = String(localDate.getDate()).padStart(2, "0");
+                const hh = String(localDate.getHours()).padStart(2, "0");
+                const mi = String(localDate.getMinutes()).padStart(2, "0");
+                if (dom.seriesStartDate) dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
+                if (dom.seriesStartTime) dom.seriesStartTime.value = `${hh}:${mi}`;
+              }
             }
           }).catch(() => {});
           // Land on step 2 (Basics) — most edits target event details, not recurrence

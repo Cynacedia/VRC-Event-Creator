@@ -1031,6 +1031,8 @@ function normalizeSeries(raw) {
         seriesId,
         createdAt: typeof entry.createdAt === "string" ? entry.createdAt : new Date().toISOString(),
         lastSyncedAt: typeof entry.lastSyncedAt === "string" ? entry.lastSyncedAt : null,
+        firstOccurrenceUtc: typeof entry.firstOccurrenceUtc === "string" ? entry.firstOccurrenceUtc : null,
+        firstOccurrenceEndUtc: typeof entry.firstOccurrenceEndUtc === "string" ? entry.firstOccurrenceEndUtc : null,
         recurrence,
         eventTemplate: normalizeSeriesEventTemplate(entry.eventTemplate)
       };
@@ -2436,6 +2438,8 @@ ipcMain.handle("series:create", async (_, payload) => {
       seriesId,
       createdAt: new Date().toISOString(),
       lastSyncedAt: new Date().toISOString(),
+      firstOccurrenceUtc: startsAtUtc,
+      firstOccurrenceEndUtc: endsAtUtc,
       recurrence: normalizeRecurrence(recurrence),
       eventTemplate: normalizeSeriesEventTemplate(eventTemplate)
     };
@@ -2514,6 +2518,9 @@ ipcMain.handle("series:update", async (_, payload) => {
       groupId,
       seriesId,
       lastSyncedAt: new Date().toISOString(),
+      // Preserve the original first occurrence timestamps (only update if explicitly provided)
+      firstOccurrenceUtc: startsAtUtc || existing.firstOccurrenceUtc || null,
+      firstOccurrenceEndUtc: endsAtUtc || existing.firstOccurrenceEndUtc || null,
       recurrence: recurrence ? normalizeRecurrence(recurrence) : existing.recurrence,
       eventTemplate: eventTemplate
         ? normalizeSeriesEventTemplate({ ...existing.eventTemplate, ...eventTemplate })

@@ -140,10 +140,22 @@ export function applySeriesToWizard(seriesData) {
     dom.seriesDuration.value = formatDuration(tpl.duration || 120);
     updateSeriesDurationPreview();
   }
-  // Note: We don't have the original startsAt stored locally. Leave date/time blank
-  // (user will see the wizard's date/time fields and can adjust if they want to update timing).
-  if (dom.seriesStartDate) dom.seriesStartDate.value = "";
-  if (dom.seriesStartTime) dom.seriesStartTime.value = "";
+  // Populate first occurrence date + time from saved metadata (interpreted in user's local timezone)
+  if (seriesData.firstOccurrenceUtc) {
+    const localDate = new Date(seriesData.firstOccurrenceUtc);
+    if (!Number.isNaN(localDate.getTime())) {
+      const yyyy = localDate.getFullYear();
+      const mm = String(localDate.getMonth() + 1).padStart(2, "0");
+      const dd = String(localDate.getDate()).padStart(2, "0");
+      const hh = String(localDate.getHours()).padStart(2, "0");
+      const mi = String(localDate.getMinutes()).padStart(2, "0");
+      if (dom.seriesStartDate) dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
+      if (dom.seriesStartTime) dom.seriesStartTime.value = `${hh}:${mi}`;
+    }
+  } else {
+    if (dom.seriesStartDate) dom.seriesStartDate.value = "";
+    if (dom.seriesStartTime) dom.seriesStartTime.value = "";
+  }
   if (dom.seriesModificationWarning) {
     dom.seriesModificationWarning.classList.add("is-hidden");
     dom.seriesModificationWarning.textContent = "";
@@ -335,6 +347,11 @@ export function setRecurrenceFieldsLocked(locked) {
       el.disabled = Boolean(locked);
     }
   });
+  // Hide the grey disclaimer when the yellow lock hint is showing (deduplicate)
+  const disclaimer = document.getElementById("series-disclaimer");
+  if (disclaimer) {
+    disclaimer.classList.toggle("is-hidden", Boolean(locked));
+  }
   // Show or hide a hint at the top of the recurrence card
   let hint = document.getElementById("series-locked-hint");
   if (locked) {
@@ -346,7 +363,7 @@ export function setRecurrenceFieldsLocked(locked) {
         hint.className = "hint warning";
         hint.dataset.i18n = "series.lockedHint";
         hint.textContent = t("series.lockedHint")
-          || "This series has already started. The schedule (date, time, recurrence) is locked and cannot be changed. Delete the series and create a new one to reschedule.";
+          || "This series has already started. The schedule (date, time, recurrence) is locked. To reschedule, delete the series and create a new one.";
         // Insert as the first child of the card
         card.insertBefore(hint, card.firstChild);
       }
@@ -357,27 +374,44 @@ export function setRecurrenceFieldsLocked(locked) {
 }
 
 /**
- * Determine whether a series has already had its first occurrence start.
- * Fetches the group's upcoming events and checks if any matching occurrence
- * has a startsAt in the past. Returns true if started, false if not yet,
- * null on failure.
+ * Inspect a series's occurrences. Returns:
+ *   { started: bool|null, earliestStart: ISO|null, earliestEnd: ISO|null }
+ * - started: true if any occurrence's start is in the past, false otherwise, null on error
+ * - earliestStart: ISO of the earliest occurrence (used to backfill the form when the
+ *   series was created before we stored firstOccurrenceUtc locally)
  */
-export async function checkSeriesStarted(api, groupId, seriesId) {
-  if (!api?.listGroupEvents) return null;
+export async function inspectSeriesOccurrences(api, groupId, seriesId) {
+  const result = { started: null, earliestStart: null, earliestEnd: null };
+  if (!api?.listGroupEvents) return result;
   try {
     const events = await api.listGroupEvents({ groupId, upcomingOnly: false });
     const now = Date.now();
     const occurrences = (events || []).filter(e => e.seriesId === seriesId);
-    if (!occurrences.length) return null;
-    // If any occurrence has already started, the series has started
-    return occurrences.some(e => {
+    if (!occurrences.length) return result;
+    // Sort by start time ascending, take the first
+    occurrences.sort((a, b) => {
+      const aMs = a.startsAtUtc ? Date.parse(a.startsAtUtc) : Number.POSITIVE_INFINITY;
+      const bMs = b.startsAtUtc ? Date.parse(b.startsAtUtc) : Number.POSITIVE_INFINITY;
+      return aMs - bMs;
+    });
+    const earliest = occurrences[0];
+    result.earliestStart = earliest?.startsAtUtc || null;
+    result.earliestEnd = earliest?.endsAtUtc || null;
+    result.started = occurrences.some(e => {
       const start = e.startsAtUtc ? Date.parse(e.startsAtUtc) : null;
       return start && start <= now;
     });
+    return result;
   } catch (err) {
-    console.error("checkSeriesStarted failed:", err);
-    return null;
+    console.error("inspectSeriesOccurrences failed:", err);
+    return result;
   }
+}
+
+/** @deprecated Use inspectSeriesOccurrences for richer info. Kept for legacy callers. */
+export async function checkSeriesStarted(api, groupId, seriesId) {
+  const info = await inspectSeriesOccurrences(api, groupId, seriesId);
+  return info.started;
 }
 
 /** Show the appropriate mode container in step 3. Defaults to template if mode is null.
