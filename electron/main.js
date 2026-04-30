@@ -699,11 +699,54 @@ function recurrenceToHumanString(recurrence) {
 function trySeriesAnnouncements(groupId, seriesData, startsAtUtc, endsAtUtc, announcementFlags, verb) {
   const groupData = profiles[groupId];
   if (!groupData) return;
-  const { calendarCreate, webhookPost, customMessage } = announcementFlags || {};
+  const { calendarCreate, discordSync, webhookPost, customMessage } = announcementFlags || {};
 
   const tpl = seriesData.eventTemplate || {};
   const label = seriesData.label || tpl.title || "Series";
   const humanRule = recurrenceToHumanString(seriesData.recurrence);
+
+  // Create a recurring Discord scheduled event mirroring the VRChat recurrence
+  if (discordSync && settings.discordEnabled && verb === "created") {
+    const botToken = decryptToken(groupData.discordBotToken);
+    const guildId = groupData.discordGuildId;
+    if (botToken && guildId) {
+      (async () => {
+        try {
+          const imageBase64 = tpl.imageId
+            ? await getImageBase64ForDiscord(tpl.imageId).catch(() => null)
+            : null;
+          const result = await discord.createDiscordScheduledEvent({
+            botToken,
+            guildId,
+            name: tpl.title || label,
+            description: tpl.description || "",
+            startTime: startsAtUtc,
+            endTime: endsAtUtc,
+            imageBase64,
+            recurrence: seriesData.recurrence
+          });
+          if (!result.ok) {
+            debugLog("series", "Discord recurring event failed:", result.error);
+            if (mainWindow) {
+              mainWindow.webContents.send("discord:syncFailed", {
+                eventTitle: label,
+                error: result.error
+              });
+            }
+          } else {
+            debugLog("series", "Discord recurring event created:", result.eventId);
+            if (mainWindow) {
+              mainWindow.webContents.send("discord:syncSuccess", {
+                eventTitle: label
+              });
+            }
+          }
+        } catch (err) {
+          debugLog("series", "Discord recurring event error:", err.message);
+        }
+      })();
+    }
+  }
 
   // Generate ICS with RRULE if calendar is enabled
   let icsContent = null;
