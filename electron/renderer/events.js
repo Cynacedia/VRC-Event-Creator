@@ -876,7 +876,7 @@ export async function handleEventCreate(api) {
     ? state.profiles?.[groupId]?.profiles?.[profileKey]
     : null;
   if (!groupId) {
-    return { success: false, message: t("events.selectGroupError") };
+    return { success: false, message: t("common.errors.noGroup") };
   }
   enforceGroupAccess(dom.eventAccess, groupId);
   if (getCreateBlockRemainingMs(groupId) > 0) {
@@ -981,10 +981,10 @@ export async function handleEventCreate(api) {
     return { success: false, message: "Maximum 3 languages allowed." };
   }
   if (!eventData.title) {
-    return { success: false, message: t("events.requiredSingle", { field: t("common.fields.eventName") }) };
+    return { success: false, message: t("common.errors.requiredSingle", { field: t("common.fields.eventName") }) };
   }
   if (!eventData.description) {
-    return { success: false, message: t("events.requiredSingle", { field: t("common.fields.description") }) };
+    return { success: false, message: t("common.errors.requiredSingle", { field: t("common.fields.description") }) };
   }
 
   // Check if user wants conflict warnings - if so, lock button IMMEDIATELY to prevent race conditions

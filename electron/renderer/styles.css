@@ -3047,6 +3047,8 @@ input[type="color"]::-moz-color-swatch {
   background: var(--bg-deep);
   flex-shrink: 0;
   position: relative;
+  justify-self: start;
+  width: max-content;
 }
 
 .schedule-toggle-btn {
@@ -3196,6 +3198,38 @@ input[type="color"]::-moz-color-swatch {
   border-radius: 4px;
   margin: 0 0 12px;
   line-height: 1.5;
+}
+
+.series-locked-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.series-locked-hint > p {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.series-locked-actions {
+  flex: 0 0 auto;
+}
+
+.rasterize-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.rasterize-status > span {
+  flex: 1;
+  min-width: 0;
 }
 
 .series-end-row input[type="number"],

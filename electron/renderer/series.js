@@ -140,7 +140,9 @@ export function applySeriesToWizard(seriesData) {
     dom.seriesDuration.value = formatDuration(tpl.duration || 120);
     updateSeriesDurationPreview();
   }
-  // Populate first occurrence date + time from saved metadata (interpreted in user's local timezone)
+  // Populate first occurrence date + time from saved metadata (interpreted in user's local timezone).
+  // If firstOccurrenceUtc is missing (older series predating local persistence), leave the inputs
+  // alone — the caller's inspectSeriesOccurrences backfill will set them from VRChat's data.
   if (seriesData.firstOccurrenceUtc) {
     const localDate = new Date(seriesData.firstOccurrenceUtc);
     if (!Number.isNaN(localDate.getTime())) {
@@ -152,9 +154,6 @@ export function applySeriesToWizard(seriesData) {
       if (dom.seriesStartDate) dom.seriesStartDate.value = `${yyyy}-${mm}-${dd}`;
       if (dom.seriesStartTime) dom.seriesStartTime.value = `${hh}:${mi}`;
     }
-  } else {
-    if (dom.seriesStartDate) dom.seriesStartDate.value = "";
-    if (dom.seriesStartTime) dom.seriesStartTime.value = "";
   }
   if (dom.seriesModificationWarning) {
     dom.seriesModificationWarning.classList.add("is-hidden");
@@ -232,18 +231,22 @@ export function readSeriesFromWizard() {
   }
   // "never" → no end key
 
-  // Build startsAt and endsAt
+  // Build startsAt and endsAt — require BOTH date and time. Silently defaulting
+  // the time was a real footgun: an empty field used to fall back to 20:00 and
+  // the series got created at 8pm without telling the user.
   const startDate = dom.seriesStartDate?.value || "";
-  const startTime = dom.seriesStartTime?.value || "20:00";
+  const startTime = dom.seriesStartTime?.value || "";
   let startsAtUtc = null;
   let endsAtUtc = null;
-  if (startDate) {
+  if (startDate && startTime) {
     const localStr = `${startDate}T${startTime}:00`;
     try {
       const localDate = new Date(localStr);
-      startsAtUtc = localDate.toISOString();
-      const durationMs = (eventTemplate.duration || 120) * 60 * 1000;
-      endsAtUtc = new Date(localDate.getTime() + durationMs).toISOString();
+      if (!Number.isNaN(localDate.getTime())) {
+        startsAtUtc = localDate.toISOString();
+        const durationMs = (eventTemplate.duration || 120) * 60 * 1000;
+        endsAtUtc = new Date(localDate.getTime() + durationMs).toISOString();
+      }
     } catch (err) {
       // ignore
     }
@@ -313,7 +316,7 @@ export function updateSaveButtonLabel() {
   let fallback = "Save Template";
   if (type === "series") {
     if (state.schedules?.editingSeriesId) {
-      key = "schedules.saveButton.seriesUpdate";
+      key = "series.warnings.confirmUpdate";
       fallback = "Update Series";
     } else {
       key = "schedules.saveButton.seriesCreate";
@@ -353,24 +356,92 @@ export function setRecurrenceFieldsLocked(locked) {
   if (disclaimer) {
     disclaimer.classList.toggle("is-hidden", Boolean(locked));
   }
-  // Show or hide a hint at the top of the recurrence card
+  // Show or hide a hint + Unlock button at the top of the recurrence card.
+  // When the user clicks Unlock, the recurrence fields become editable AND we
+  // flip state.schedules.recurrenceUnlocked so the save path uses the
+  // regenerate flow (delete+recreate, preserve modifications).
   let hint = document.getElementById("series-locked-hint");
   if (locked) {
     if (!hint && dom.seriesStartDate) {
       const card = dom.seriesStartDate.closest(".card");
       if (card) {
-        hint = document.createElement("p");
+        hint = document.createElement("div");
         hint.id = "series-locked-hint";
-        hint.className = "hint warning";
-        hint.dataset.i18n = "series.lockedHint";
-        hint.textContent = t("series.lockedHint")
-          || "This series has already started. Date, time, and the repeat rule are locked — but you can still adjust when it ends. To reschedule, delete the series and create a new one.";
-        // Insert as the first child of the card
+        hint.className = "hint warning series-locked-hint";
+        const text = document.createElement("p");
+        text.dataset.i18n = "series.lockedHint";
+        text.textContent = t("series.lockedHint")
+          || "This series has already started. Date, time, and the repeat rule are locked — but you can still adjust when it ends. To reschedule, click Unlock — saving will replace this series with a new one.";
+        hint.appendChild(text);
+        const actions = document.createElement("div");
+        actions.className = "series-locked-actions";
+        const unlockBtn = document.createElement("button");
+        unlockBtn.type = "button";
+        unlockBtn.id = "series-unlock-btn";
+        unlockBtn.className = "ghost compact-button";
+        unlockBtn.dataset.i18n = "series.unlockButton";
+        unlockBtn.textContent = t("series.unlockButton") || "Unlock";
+        unlockBtn.addEventListener("click", handleSeriesUnlock);
+        actions.appendChild(unlockBtn);
+        hint.appendChild(actions);
         card.insertBefore(hint, card.firstChild);
       }
     }
+    // Reset the "unlocked override" flag whenever we re-enter locked mode
+    if (state.schedules) state.schedules.recurrenceUnlocked = false;
+    // Also clear any leftover regen banner from a previous unlock session
+    const staleRegenBanner = document.getElementById("series-regen-warning");
+    if (staleRegenBanner) staleRegenBanner.remove();
   } else if (hint) {
     hint.remove();
+  }
+}
+
+/**
+ * Replace the locked banner with an unlocked-warning banner that says "saving
+ * will regenerate the series". The recurrence fields are unlocked. We do NOT
+ * call any destructive API here — the destructive work happens at save time.
+ * We DO query seriesCheckModifications so the banner copy reflects whether a
+ * Keep/Discard decision is coming on save.
+ */
+async function handleSeriesUnlock() {
+  if (!state.schedules) return;
+  // Set the override flag FIRST so any subsequent setRecurrenceFieldsLocked call
+  // from concurrent inspect retries doesn't undo the unlock.
+  state.schedules.recurrenceUnlocked = true;
+  setRecurrenceFieldsLocked(false);
+  if (!dom.seriesStartDate) return;
+  const card = dom.seriesStartDate.closest(".card");
+  if (!card) return;
+  let banner = document.getElementById("series-regen-warning");
+  if (!banner) {
+    banner = document.createElement("div");
+    banner.id = "series-regen-warning";
+    banner.className = "hint warning series-locked-hint";
+    const text = document.createElement("p");
+    text.id = "series-regen-warning-text";
+    banner.appendChild(text);
+    card.insertBefore(banner, card.firstChild);
+  }
+  const textEl = banner.querySelector("#series-regen-warning-text");
+  // Default copy assumes no modifications until we hear otherwise
+  const baseCopy = t("series.regenWarning")
+    || "Recurrence is unlocked. If you change the recurrence, the current series will be replaced with a new one.";
+  textEl.textContent = baseCopy;
+  // Async check: if modifications exist, update the banner to mention them
+  const groupId = dom.profileGroup?.value;
+  const seriesId = state.schedules.editingSeriesId;
+  if (!_seriesApi?.seriesCheckModifications || !groupId || !seriesId) return;
+  try {
+    const check = await _seriesApi.seriesCheckModifications({ groupId, seriesId });
+    if (check?.ok && check.count > 0) {
+      const withMods = (t("series.regenWarningWithMods")
+        || "Recurrence is unlocked. If you change the recurrence, the current series will be replaced with a new one and you'll be asked how to handle its {count} modified events.")
+        .replace("{count}", String(check.count));
+      textEl.textContent = withMods;
+    }
+  } catch (err) {
+    // Non-fatal — banner stays on the no-modifications copy
   }
 }
 
@@ -465,9 +536,13 @@ export function showScheduleMode(mode, options = {}) {
 // --- Action handlers ---
 
 export async function handleSeriesCreate(api) {
+  if (state.app?.updateAvailable) {
+    showToast(t("series.updateRequired") || "Update available. Please update before changing series.", true, { duration: 8000 });
+    return { success: false };
+  }
   const groupId = dom.profileGroup?.value;
   if (!groupId) {
-    showToast(t("series.errors.noGroup") || "Select a group first.", true);
+    showToast(t("common.errors.noGroup") || "Select a group.", true);
     return;
   }
   const { label, eventTemplate, recurrence, startsAtUtc, endsAtUtc, announcements } = readSeriesFromWizard();
@@ -481,6 +556,12 @@ export async function handleSeriesCreate(api) {
   }
   if (!startsAtUtc || !endsAtUtc) {
     showToast(t("series.errors.noStartDate") || "First occurrence date and time are required.", true);
+    return;
+  }
+  const startMs = Date.parse(startsAtUtc);
+  if (!Number.isFinite(startMs) || startMs < Date.now()) {
+    showToast(t("series.errors.startInPast")
+      || "First occurrence must be in the future. Update the date before saving.", true);
     return;
   }
   // For Custom + weekly unit, require at least one day of the week
@@ -519,6 +600,10 @@ export async function handleSeriesCreate(api) {
 }
 
 export async function handleSeriesUpdate(api) {
+  if (state.app?.updateAvailable) {
+    showToast(t("series.updateRequired") || "Update available. Please update before changing series.", true, { duration: 8000 });
+    return { success: false };
+  }
   const groupId = dom.profileGroup?.value;
   const seriesId = state.schedules.editingSeriesId;
   if (!groupId || !seriesId) {
@@ -533,21 +618,114 @@ export async function handleSeriesUpdate(api) {
 
   const existing = state.series[groupId]?.[seriesId];
   const existingRec = existing?.recurrence || {};
-  const recurrenceChanged = JSON.stringify(existingRec) !== JSON.stringify(recurrence);
+  const recurrenceRuleChanged = JSON.stringify(existingRec) !== JSON.stringify(recurrence);
+  // The first occurrence date+time lives on startsAt/endsAt, NOT inside the
+  // recurrence object. A change there also regenerates all occurrences and
+  // wipes occurrenceModified flags, so it must be treated like a recurrence
+  // change for warning + regenerate purposes.
+  const startTimeChanged = startsAtUtc && existing?.firstOccurrenceUtc
+    && Date.parse(startsAtUtc) !== Date.parse(existing.firstOccurrenceUtc);
+  const recurrenceChanged = recurrenceRuleChanged || Boolean(startTimeChanged);
+  const unlocked = Boolean(state.schedules?.recurrenceUnlocked);
 
-  if (recurrenceChanged) {
+  // Regenerate path: user explicitly unlocked recurrence on a started series.
+  // Delete + recreate, preserving modifications via the rasterize queue.
+  if (unlocked && recurrenceChanged) {
+    // Client-side validation BEFORE any destructive call. The most common
+    // cause of regen failure is a startsAt that's in the past (because the
+    // form had the old start date and the user didn't update it).
+    if (!startsAtUtc || !endsAtUtc) {
+      showToast(t("series.errors.noStartDate") || "First occurrence date and time are required.", true);
+      return { success: false };
+    }
+    const startMs = Date.parse(startsAtUtc);
+    if (!Number.isFinite(startMs) || startMs < Date.now()) {
+      showToast(t("series.errors.startInPast")
+        || "First occurrence must be in the future. Update the date before saving.", true);
+      return { success: false };
+    }
     const check = await api.seriesCheckModifications({ groupId, seriesId });
-    if (check?.ok && check.count > 0) {
-      const msg = (t("series.warnings.recurrenceUpdate") || "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?")
-        .replace("{count}", String(check.count));
+    const modCount = check?.ok ? check.count : 0;
+    let strategy = "discard";
+    if (modCount > 0) {
+      const choice = await showRegenerateChoiceModal(modCount);
+      if (choice === "cancel") return { success: false };
+      strategy = choice; // "keep" | "discard"
+    } else {
+      // No modifications — confirm the destructive action anyway since seriesId will change
       const confirmed = await showConfirmModal({
-        title: t("series.warnings.recurrenceUpdateTitle") || "Update will discard modifications",
-        message: msg,
-        confirmLabel: t("series.warnings.confirmUpdate") || "Update Series",
+        title: t("series.regen.choiceTitle") || "Replace series?",
+        message: t("series.regen.confirmMessage") || "This will replace the current series with a new one. Continue?",
+        confirmLabel: t("series.regen.confirmAction") || "Replace Series",
         cancelLabel: t("common.cancel") || "Cancel",
         danger: true
       });
       if (!confirmed) return { success: false };
+    }
+
+    const result = await api.seriesRegenerate({
+      groupId,
+      seriesId,
+      label,
+      eventTemplate,
+      recurrence,
+      startsAtUtc,
+      endsAtUtc,
+      announcements,
+      modificationStrategy: strategy,
+      modifiedOccurrences: strategy === "keep" && check?.ok ? check.occurrences : []
+    });
+
+    if (!result?.ok) {
+      showToast(result?.error?.message || t("series.errors.regenFailed") || "Could not regenerate series.", true);
+      return { success: false };
+    }
+
+    let toastKey = "series.regen.success";
+    let fallback = "Series \"{label}\" replaced.";
+    if (strategy === "keep" && modCount > 0) {
+      toastKey = "series.regen.successWithMods";
+      fallback = "Series \"{label}\" replaced. {count} modifications queued.";
+    }
+    showToast((t(toastKey) || fallback).replace("{label}", label).replace("{count}", String(modCount)));
+    state.schedules.recurrenceUnlocked = false;
+    await loadSeriesForGroup(groupId);
+    state.schedules.editingType = null;
+    state.schedules.editingSeriesId = null;
+    document.dispatchEvent(new CustomEvent("schedules:refresh"));
+    document.dispatchEvent(new CustomEvent("rasterize:changed"));
+    return { success: true };
+  }
+
+  // Standard update path (recurrence unchanged, or recurrence editable pre-start)
+  if (!startsAtUtc || !endsAtUtc) {
+    showToast(t("series.errors.noStartDate") || "First occurrence date and time are required.", true);
+    return { success: false };
+  }
+  // Only block past dates when recurrence changed (i.e. server will re-expand from startsAt).
+  // For pure event-detail updates with unchanged recurrence, leave startsAt alone.
+  if (recurrenceChanged) {
+    const startMs = Date.parse(startsAtUtc);
+    if (!Number.isFinite(startMs) || startMs < Date.now()) {
+      showToast(t("series.errors.startInPast")
+        || "First occurrence must be in the future. Update the date before saving.", true);
+      return { success: false };
+    }
+  }
+  // When recurrence/time changes, VRChat regenerates occurrences and wipes
+  // occurrenceModified flags. Same Keep/Discard/Cancel choice as the regenerate
+  // path — modifications get rescued via the rasterize queue regardless of
+  // whether we're going through PUT (pre-start) or DELETE+CREATE (post-start).
+  let strategyForUpdate = "discard";
+  let modsForUpdate = [];
+  if (recurrenceChanged) {
+    const check = await api.seriesCheckModifications({ groupId, seriesId });
+    const modCount = check?.ok ? check.count : 0;
+    if (modCount > 0) {
+      const choice = await showRegenerateChoiceModal(modCount);
+      if (choice === "cancel") return { success: false };
+      strategyForUpdate = choice;
+      if (choice === "keep" && check?.ok) modsForUpdate = check.occurrences;
     }
   }
 
@@ -559,7 +737,9 @@ export async function handleSeriesUpdate(api) {
     recurrence: recurrenceChanged ? recurrence : undefined,
     startsAtUtc,
     endsAtUtc,
-    announcements
+    announcements,
+    modificationStrategy: strategyForUpdate,
+    modifiedOccurrences: modsForUpdate
   });
 
   if (!result?.ok) {
@@ -567,7 +747,14 @@ export async function handleSeriesUpdate(api) {
     return { success: false };
   }
 
-  showToast((t("series.updated") || "Series \"{label}\" updated.").replace("{label}", label));
+  if (strategyForUpdate === "keep" && modsForUpdate.length > 0) {
+    showToast((t("series.regen.successWithMods") || "Series \"{label}\" replaced. {count} modifications queued.")
+      .replace("{label}", label)
+      .replace("{count}", String(modsForUpdate.length)));
+    document.dispatchEvent(new CustomEvent("rasterize:changed"));
+  } else {
+    showToast((t("series.updated") || "Series \"{label}\" updated.").replace("{label}", label));
+  }
   await loadSeriesForGroup(groupId);
   state.schedules.editingType = null;
   state.schedules.editingSeriesId = null;
@@ -575,7 +762,67 @@ export async function handleSeriesUpdate(api) {
   return { success: true };
 }
 
+/**
+ * Three-button modal asking the user how to handle modified occurrences when
+ * regenerating a series. Returns "keep" | "discard" | "cancel".
+ */
+function showRegenerateChoiceModal(modCount) {
+  return new Promise(resolve => {
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay";
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    const h = document.createElement("h3");
+    h.textContent = t("series.regen.choiceTitle") || "Replace series?";
+    modal.appendChild(h);
+    const p = document.createElement("p");
+    p.className = "hint";
+    p.style.whiteSpace = "pre-line";
+    p.textContent = (t("series.regen.choiceMessage")
+      || "This series has {count} modified events. The current series will be replaced with a new one.\n\n• Keep modifications: same-day overlaps update the new series; non-overlap events become standalones.\n• Discard modifications: changes to those occurrences are lost.")
+      .replace("{count}", String(modCount));
+    modal.appendChild(p);
+    const actions = document.createElement("div");
+    actions.className = "modal-actions";
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "ghost";
+    cancel.textContent = t("common.cancel") || "Cancel";
+    const discard = document.createElement("button");
+    discard.type = "button";
+    discard.className = "danger";
+    discard.textContent = t("series.regen.discard") || "Discard Modifications";
+    const keep = document.createElement("button");
+    keep.type = "button";
+    keep.className = "primary";
+    keep.textContent = t("series.regen.keep") || "Keep Modifications";
+    actions.appendChild(cancel);
+    actions.appendChild(discard);
+    actions.appendChild(keep);
+    modal.appendChild(actions);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const close = result => {
+      overlay.remove();
+      document.removeEventListener("keydown", onKey);
+      resolve(result);
+    };
+    const onKey = e => { if (e.key === "Escape") close("cancel"); };
+    cancel.addEventListener("click", () => close("cancel"));
+    discard.addEventListener("click", () => close("discard"));
+    keep.addEventListener("click", () => close("keep"));
+    overlay.addEventListener("click", e => { if (e.target === overlay) close("cancel"); });
+    document.addEventListener("keydown", onKey);
+    keep.focus();
+  });
+}
+
 export async function handleSeriesDelete(api, seriesId) {
+  if (state.app?.updateAvailable) {
+    showToast(t("series.updateRequired") || "Update available. Please update before changing series.", true, { duration: 8000 });
+    return { success: false };
+  }
   const groupId = dom.profileGroup?.value;
   if (!groupId || !seriesId) return { success: false };
   const seriesData = state.series[groupId]?.[seriesId];
@@ -638,4 +885,80 @@ export function recurrenceToHumanString(recurrence) {
 
 export function isGroupSeriesActive(groupId) {
   return Boolean(state.series[groupId] && Object.keys(state.series[groupId]).length);
+}
+
+// ----------------------------------------------------------------------------
+// Rasterize queue status indicator. Shows when the local pending-rasterize.json
+// queue has entries waiting (e.g. rate limited 429s after a regeneration).
+// Surfaces below the schedule selector on the Manage Schedules tab.
+// ----------------------------------------------------------------------------
+let _rasterizeStatusInited = false;
+
+function formatRelativeRetry(nextRetryAt) {
+  if (!nextRetryAt) return "";
+  const ms = Date.parse(nextRetryAt) - Date.now();
+  if (!Number.isFinite(ms) || ms <= 0) return "";
+  const minutes = Math.round(ms / 60000);
+  if (minutes < 1) return "<1m";
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.round(minutes / 60);
+  return `${hours}h`;
+}
+
+export async function refreshRasterizeStatus() {
+  if (!_seriesApi?.seriesRasterizeStatus) return;
+  const container = document.getElementById("rasterize-status");
+  const textEl = document.getElementById("rasterize-status-text");
+  if (!container || !textEl) return;
+  let result;
+  try {
+    result = await _seriesApi.seriesRasterizeStatus();
+  } catch (err) {
+    container.classList.add("is-hidden");
+    return;
+  }
+  if (!result?.ok || !result.count) {
+    container.classList.add("is-hidden");
+    return;
+  }
+  // Find the soonest nextRetryAt across all entries
+  const soonest = result.entries
+    .map(e => e.nextRetryAt)
+    .filter(Boolean)
+    .sort()[0];
+  const wait = formatRelativeRetry(soonest);
+  const template = t("series.rasterize.statusText")
+    || "{count} pending event(s) waiting to be created.{wait}";
+  const waitSuffix = wait ? ` ${(t("series.rasterize.retryIn") || "Next retry in {wait}.").replace("{wait}", wait)}` : "";
+  textEl.textContent = template
+    .replace("{count}", String(result.count))
+    .replace("{wait}", waitSuffix);
+  container.classList.remove("is-hidden");
+}
+
+export function initRasterizeStatusIndicator() {
+  if (_rasterizeStatusInited) return;
+  _rasterizeStatusInited = true;
+  const retryBtn = document.getElementById("rasterize-status-retry");
+  if (retryBtn) {
+    retryBtn.addEventListener("click", async () => {
+      if (!_seriesApi?.seriesRasterizeDrain) return;
+      retryBtn.disabled = true;
+      try {
+        await _seriesApi.seriesRasterizeDrain();
+      } finally {
+        retryBtn.disabled = false;
+        await refreshRasterizeStatus();
+      }
+    });
+  }
+  document.addEventListener("rasterize:changed", () => {
+    refreshRasterizeStatus().catch(() => {});
+  });
+  // Periodic refresh (every minute) so the "next retry in Xm" countdown updates
+  setInterval(() => {
+    refreshRasterizeStatus().catch(() => {});
+  }, 60 * 1000);
+  // Initial refresh
+  refreshRasterizeStatus().catch(() => {});
 }

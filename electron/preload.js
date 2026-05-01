@@ -120,6 +120,9 @@ contextBridge.exposeInMainWorld("vrcEvent", {
   seriesDelete: payload => ipcRenderer.invoke("series:delete", payload),
   seriesCheckModifications: payload => ipcRenderer.invoke("series:checkModifications", payload),
   seriesReconcile: payload => ipcRenderer.invoke("series:reconcile", payload),
+  seriesRegenerate: payload => ipcRenderer.invoke("series:regenerate", payload),
+  seriesRasterizeStatus: () => ipcRenderer.invoke("series:rasterizeStatus"),
+  seriesRasterizeDrain: () => ipcRenderer.invoke("series:rasterizeDrain"),
 
   // TEMPORARY: renderer debug logger (writes to debug-api.json)
   debugLog: payload => ipcRenderer.invoke("debug:log", payload),

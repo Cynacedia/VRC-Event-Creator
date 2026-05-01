@@ -38,7 +38,7 @@
         <section class="content">
           <section class="view" id="view-create">
             <div class="view-header">
-              <h2 data-i18n="events.title">Create Event</h2>
+              <h2 data-i18n="nav.create">Create Event</h2>
               <p data-i18n="events.profileHint">Profiles are optional. Use one for defaults, or create everything manually.</p>
             </div>
 
@@ -81,7 +81,7 @@
                   </div>
                   <div id="event-advanced-section" class="card is-hidden">
                     <h3 data-i18n="events.labels.advanced">Advanced</h3>
-                    <button id="event-import-json" class="ghost compact-button" type="button" disabled data-i18n="events.importJsonButton">Import JSON</button>
+                    <button id="event-import-json" class="ghost compact-button" type="button" disabled data-i18n="common.importJson">Import JSON</button>
                   </div>
                 </div>
 
@@ -271,7 +271,7 @@
                   </div>
                   <div id="event-export-section" class="card is-hidden">
                     <h3 data-i18n="events.labels.advanced">Advanced</h3>
-                    <button id="event-export-json" class="ghost compact-button" type="button" data-i18n="events.exportJsonButton">Export JSON</button>
+                    <button id="event-export-json" class="ghost compact-button" type="button" data-i18n="common.exportJson">Export JSON</button>
                   </div>
                   <div class="field mt-1">
                     <label class="toggle">
@@ -293,14 +293,14 @@
 
           <section class="view is-hidden" id="view-modify">
             <div class="view-header">
-              <h2 data-i18n="modify.title">Modify Events</h2>
+              <h2 data-i18n="nav.modify">Modify Events</h2>
               <p data-i18n="modify.subtitle">Edit or delete upcoming group events.</p>
             </div>
 
             <div class="card">
               <div class="modify-toolbar">
                 <div class="field">
-                  <label for="modify-group" data-i18n="modify.groupLabel">Group</label>
+                  <label for="modify-group" data-i18n="common.labels.group">Group</label>
                   <select id="modify-group"></select>
                 </div>
                 <div class="field">
@@ -328,7 +328,7 @@
                   <label class="toggle"><input type="checkbox" id="modify-filter-modified" checked /><span data-i18n="modify.filters.modified">Modified occurrences</span></label>
                 </div>
                 <div class="modify-filter-group is-hidden" id="modify-filter-series-group">
-                  <h4 data-i18n="modify.filters.seriesHeading">Series</h4>
+                  <h4 data-i18n="common.labels.series">Series</h4>
                   <div id="modify-filter-series-list"></div>
                 </div>
               </div>
@@ -339,7 +339,7 @@
 
           <section class="view is-hidden" id="view-profiles">
             <div class="view-header">
-              <h2 data-i18n="schedules.title">Manage Schedules</h2>
+              <h2 data-i18n="nav.schedules">Manage Schedules</h2>
               <p data-i18n="schedules.subtitle">Templates for announcement-driven scheduling and native VRChat recurring series.</p>
             </div>
 
@@ -366,21 +366,21 @@
               <div class="wizard-body">
                 <div class="wizard-step" data-step="1">
                   <div class="card">
-                    <h3 data-i18n="schedules.section.selection">Schedule Selection</h3>
+                    <h3 data-i18n="common.section.scheduleSelection">Schedule Selection</h3>
                     <div class="field">
-                      <label for="profile-group" data-i18n="profiles.labels.group">Group</label>
+                      <label for="profile-group" data-i18n="common.labels.group">Group</label>
                       <select id="profile-group"></select>
                     </div>
                     <div class="field">
                       <label data-i18n="schedules.filter.label">Show</label>
                       <div class="schedule-filter-chips" id="schedule-filter-chips">
                         <button class="chip is-active" data-filter="all" type="button" data-i18n="schedules.filter.all">All</button>
-                        <button class="chip" data-filter="templates" type="button" data-i18n="schedules.filter.templates">Templates</button>
-                        <button class="chip" data-filter="series" type="button" data-i18n="schedules.filter.series">Series</button>
+                        <button class="chip" data-filter="templates" type="button" data-i18n="common.labels.templates">Templates</button>
+                        <button class="chip" data-filter="series" type="button" data-i18n="common.labels.series">Series</button>
                       </div>
                     </div>
                     <div class="field">
-                      <label for="profile-existing" data-i18n="schedules.labels.schedule">Schedule</label>
+                      <label for="profile-existing" data-i18n="common.labels.schedule">Schedule</label>
                       <div class="profile-select-row">
                         <button id="profile-new" class="ghost" type="button" data-i18n="profiles.buttons.new">New</button>
                         <select id="profile-existing"></select>
@@ -389,6 +389,10 @@
                           <button id="profile-delete" class="danger is-hidden" type="button" data-i18n="common.delete">Delete</button>
                         </div>
                       </div>
+                    </div>
+                    <div id="rasterize-status" class="hint warning rasterize-status is-hidden">
+                      <span id="rasterize-status-text"></span>
+                      <button id="rasterize-status-retry" type="button" class="ghost compact-button" data-i18n="series.rasterize.retryNow">Retry Now</button>
                     </div>
                     <div class="profile-hint-row">
                       <p class="hint" id="schedule-group-hint" data-i18n="profiles.hints.groupAccess">Choose a group with calendar access.</p>
@@ -463,7 +467,7 @@
                   <div class="card schedule-header-card">
                     <div class="schedule-header-row">
                       <div>
-                        <h3 data-i18n="schedules.section.scheduleHeading">Schedule</h3>
+                        <h3 data-i18n="common.labels.schedule">Schedule</h3>
                         <p class="hint">
                           <span id="schedule-mode-blurb-template" data-i18n="schedules.modeBlurb.template">Templates autofill repeated events and post each occurrence individually with optional announcements.</span>
                           <span id="schedule-mode-blurb-series" class="is-hidden" data-i18n="schedules.modeBlurb.series">A series is VRChat's native recurring event scheduler. The server pre-generates all occurrences server-side. No announcements.</span>
@@ -472,7 +476,7 @@
                       </div>
                       <div class="schedule-type-toggle" role="group" aria-label="Schedule type">
                         <button id="schedule-type-template-btn" class="schedule-toggle-btn" type="button" data-type="template" data-i18n="schedules.types.templateButton">Template</button>
-                        <button id="schedule-type-series-btn" class="schedule-toggle-btn" type="button" data-type="series" data-i18n="schedules.types.seriesButton">Series</button>
+                        <button id="schedule-type-series-btn" class="schedule-toggle-btn" type="button" data-type="series" data-i18n="common.labels.series">Series</button>
                       </div>
                     </div>
                     <div class="schedule-mode-info is-hidden" id="schedule-mode-info">
@@ -816,7 +820,7 @@
 
           <section class="view is-hidden" id="view-about">
             <div class="view-header">
-              <h2 data-i18n="settings.title">Settings</h2>
+              <h2 data-i18n="nav.settings">Settings</h2>
             </div>
 
             <div class="card">
@@ -875,7 +879,7 @@
                   <p class="hint discord-description" data-i18n="settings.discord.description">Automatically create Discord Events when VRChat events are posted. Configure per group below.</p>
                   <div id="discord-configured-list" class="discord-configured-list"></div>
                   <div class="field">
-                    <label for="discord-group-select" data-i18n="settings.discord.groupLabel">Group</label>
+                    <label for="discord-group-select" data-i18n="common.labels.group">Group</label>
                     <select id="discord-group-select"></select>
                   </div>
                   <div id="discord-group-config" class="is-hidden">
@@ -1203,7 +1207,7 @@
         </div>
         <div class="modify-body">
           <div class="field">
-            <label for="modify-profile" data-i18n="modify.profileLabel">Load Profile (optional)</label>
+            <label for="modify-profile" data-i18n="events.loadProfile">Load Template (optional)</label>
             <div class="inline-row">
               <select id="modify-profile"></select>
               <button id="modify-profile-load" class="ghost compact-button" type="button" data-i18n="modify.profileLoad">Load</button>

@@ -611,7 +611,7 @@ function populateSeriesFilterOptions(groupId, events) {
   dom.modifyFilterSeriesList.innerHTML = "";
   Array.from(seriesIds).sort().forEach(seriesId => {
     const label = seriesMap[seriesId]?.label
-      || `${t("modify.filters.unknownSeries") || "Series"} (${seriesId.slice(0, 8)})`;
+      || `${t("common.labels.series") || "Series"} (${seriesId.slice(0, 8)})`;
     const wrapper = document.createElement("label");
     wrapper.className = "toggle";
     const input = document.createElement("input");
@@ -738,7 +738,7 @@ function renderPublishedCard(event) {
   badgeRow.className = "event-badge-row";
   if (event.seriesId) {
     const seriesData = state.series?.[event.groupId]?.[event.seriesId];
-    const label = seriesData?.label || t("modify.badge.unknownSeries") || "Series";
+    const label = seriesData?.label || t("common.labels.series") || "Series";
     const seriesBadge = document.createElement("span");
     seriesBadge.className = "event-series-badge";
     seriesBadge.textContent = `↻ ${label}`;
@@ -1105,11 +1105,11 @@ async function handlePendingSave() {
   });
 
   if (!title) {
-    showToast(t("modify.requiredSingle", { field: t("common.fields.eventName") }), true);
+    showToast(t("common.errors.requiredSingle", { field: t("common.fields.eventName") }), true);
     return;
   }
   if (!description) {
-    showToast(t("modify.requiredSingle", { field: t("common.fields.description") }), true);
+    showToast(t("common.errors.requiredSingle", { field: t("common.fields.description") }), true);
     return;
   }
 
@@ -1118,7 +1118,7 @@ async function handlePendingSave() {
     durationMinutes = normalizeDurationInput(dom.modifyEventDuration, 120);
   }
   if (!durationMinutes || durationMinutes < 1) {
-    showToast(t("modify.durationError"), true);
+    showToast(t("common.errors.durationError"), true);
     return;
   }
 
@@ -1192,7 +1192,7 @@ function renderModifyProfileOptions(groupId) {
   const profiles = state.profiles[groupId]?.profiles || {};
   const profileKeys = Object.keys(profiles);
   const options = [
-    { label: t("modify.profileSelect"), value: "" },
+    { label: t("common.selectTemplate"), value: "" },
     ...profileKeys.map(key => ({
       label: getProfileLabel(key, profiles[key]),
       value: `${groupId}::${key}`
@@ -1629,11 +1629,11 @@ async function handleModifySave() {
   });
   dom.modifyEventDescription.value = description;
   if (!title) {
-    showToast(t("modify.requiredSingle", { field: t("common.fields.eventName") }), true);
+    showToast(t("common.errors.requiredSingle", { field: t("common.fields.eventName") }), true);
     return;
   }
   if (!description) {
-    showToast(t("modify.requiredSingle", { field: t("common.fields.description") }), true);
+    showToast(t("common.errors.requiredSingle", { field: t("common.fields.description") }), true);
     return;
   }
   const manualDate = dom.modifyEventDate.value;
@@ -1657,11 +1657,11 @@ async function handleModifySave() {
     durationMinutes = normalizeDurationInput(dom.modifyEventDuration, 120);
   }
   if (!durationMinutes || durationMinutes < 1) {
-    showToast(t("modify.durationError"), true);
+    showToast(t("common.errors.durationError"), true);
     return;
   }
   if (state.modify.languages.length > 3) {
-    showToast(t("modify.maxLanguages"), true);
+    showToast(t("common.errors.maxLanguages"), true);
     return;
   }
   state.modify.saving = true;

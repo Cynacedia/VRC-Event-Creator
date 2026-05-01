@@ -238,6 +238,7 @@ export const dom = {
   discordTestResult: document.getElementById("discord-test-result"),
   discordSaveBtn: document.getElementById("discord-save-btn"),
   discordConfiguredList: document.getElementById("discord-configured-list"),
+  profileAnnouncementsCard: document.getElementById("profile-announcements-card"),
   discordSyncField: document.getElementById("discord-sync-field"),
   discordSyncCheck: document.getElementById("discord-sync-check"),
   eventDiscordSyncField: document.getElementById("event-discord-sync-field"),
@@ -377,7 +378,8 @@ export const state = {
     filterType: "all",       // "all" | "templates" | "series" — list filter
     selectedType: null,      // "template" | "series" — what's currently selected in the dropdown
     editingType: null,       // "template" | "series" | null — current wizard mode
-    editingSeriesId: null    // when editing an existing series
+    editingSeriesId: null,   // when editing an existing series
+    recurrenceUnlocked: false // user clicked Unlock on a started series — save uses regenerate flow
   },
   event: {
     languages: [],
