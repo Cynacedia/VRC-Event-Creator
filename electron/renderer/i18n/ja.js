@@ -18,10 +18,8 @@ export const ja = {
     loggingIn: "ログイン中…",
     loginFailed: "ログインに失敗しました",
     sessionChecking: "セッションを確認中...",
-    sessionCheckFailed: "セッションの確認に失敗しました。",
     loginRequired: "ログイン必須",
     loggedInAs: "{name} としてログイン中",
-    logoutFailed: "ログアウトに失敗しました。",
     loggedOut: "ログアウトしました。"
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const ja = {
     theme: {
       title: "テーマ",
       description: "アプリの外観をカスタマイズします。プリセットを選ぶか手動で調整してください。",
-      default: "デフォルト (ティール/グリーン)",
-      blue: "オーシャンブルー",
-      purple: "パープルヘイズ",
-      amber: "アルティミット・アンバー",
-      red: "クリムゾンレッド",
-      custom: "カスタムカラー",
-      accentColor: "アクセントカラー",
-      bgColor: "背景色",
       presetLabel: "現在のテーマ",
       nameLabel: "テーマ名",
       namePlaceholder: "新しいテーマ名",
@@ -147,10 +137,8 @@ export const ja = {
       autoUploadImages: "インポートしたイベント/プロファイルからギャラリー画像を自動アップロード"
     },
     discord: {
-      title: "Discord連携",
       enable: "Discord連携を有効にする",
       description: "VRChatイベントの作成時に、Discordイベントを自動的に作成します。",
-      profileHint: "このテンプレートのイベントはDiscordにも投稿されます。",
       tokenLabel: "Botトークン",
       tokenPlaceholder: "Botトークンを貼り付け",
       guildLabel: "サーバーID",
@@ -162,7 +150,6 @@ export const ja = {
       selectGroup: "グループを選択...",
       saveButton: "保存",
       saved: "Discord設定を保存しました。",
-      syncLabel: "Discordに投稿",
       eventLabel: "Discordイベントを作成",
       syncSuccess: "「{title}」のDiscordイベントを作成しました",
       syncFailed: "「{title}」のDiscord同期に失敗しました: {error}"
@@ -174,23 +161,15 @@ export const ja = {
       syncFailed: "「{title}」のWebhook配信に失敗: {error}"
     },
     calendar: {
-      title: "カレンダー連携",
-      description: "リマインダー付きの.icsカレンダーファイルを生成し、ローカル保存またはWebhook投稿に添付します。",
       enable: "カレンダーファイル生成を有効にする",
       createInvite: ".icsカレンダー招待を作成",
-      remindersTitle: ".icsカレンダーリマインダー",
       enableReminders: ".icsカレンダーリマインダーを有効にする",
-      remindersDescription: ".icsファイルに含めるデフォルトのリマインダーを設定します。",
       addReminder: "リマインダーを追加",
-      postToDiscord: ".icsをDiscordに投稿",
       unit: {
         minutes: "分",
         hours: "時間",
         days: "日"
       },
-      syncLabel: ".icsファイルを添付",
-      syncSuccess: "「{title}」のカレンダーファイルを送信しました",
-      syncFailed: "「{title}」のカレンダーファイル送信に失敗しました: {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Webhookをテスト",
@@ -273,17 +252,15 @@ export const ja = {
       groupRequired: "グループ (必須)",
       profileOptional: "テンプレート (任意)",
       advanced: "詳細設定",
-      importJson: "JSON からインポート",
-      dateSource: "使用",
-      dateSourcePattern: "パターン",
       patternDates: "パターン日付",
       manualDate: "手動日付",
       manualTime: "手動時刻",
-      dateSourceManual: "手動"
+      dateSourceManual: "手動",
+      dateSource: "使用",
+      dateSourcePattern: "パターン"
     },
     hints: {
       profileDefaults: "テンプレートを選ぶと既定値を使えます。空欄なら手動で作成します。",
-      importJson: "JSON ファイルからイベントの詳細をインポートします。"
     },
     dateHints: {
       default: "手動モードは準備完了。パターン付きテンプレートで日付候補が表示されます。",
@@ -299,11 +276,8 @@ export const ja = {
     importSuccess: "イベントデータを JSON からインポートしました。",
     importWrongType: "これはテンプレートの JSON のようです。代わりにテンプレートのインポートを使用してください。",
     exportSuccess: "イベントデータを JSON にエクスポートしました。",
-    dateSource: "日時",
-    dateSourcePattern: "テンプレートのパターンから",
     dateOption: "日付を選択",
     patternDateLabel: "{label} - {date}",
-    access: "アクセス",
     roleRestrictions: {
         title: "ロール制限",
         hint: "任意 - 有効にすると、選択したグループロールのみ参加できます。",
@@ -335,13 +309,11 @@ export const ja = {
     failed: "イベントを作成できませんでした。",
     selectDateError: "日付を選択してください。",
     updateRequired: "更新があります。イベントを作成する前に更新してください。",
-    noDateOptionsError: "テンプレートから日付候補がありません。",
     featuredPermissionRevoked: "このグループで注目イベントを作成する権限が失われました",
     groupFairPermissionRevoked: "このグル－プでグループフェアイベントを作成する権限が失われました"
   },
   modify: {
     subtitle: "作成済みのグループのイベントを編集、または削除",
-    showPending: "保留中を表示",
     countEmpty: "今後のイベント情報を取得できません。",
     countGroupFallback: "このグループ",
     countStatus: "{group} の今後のイベント: {count}。",
@@ -409,7 +381,6 @@ export const ja = {
     }
   },
   profiles: {
-    subtitle: "グループごとのテンプレートを作成します。",
     steps: {
       select: "選択",
       basics: "基本",
@@ -435,7 +406,6 @@ export const ja = {
     existingProfilePlaceholder: "テンプレートを選択",
     displayName: "テンプレート名",
     displayNamePlaceholder: "コミュニティ交流テンプレート",
-    access: "アクセス",
     durationDefault: "既定の所要時間（DD:HH:MM）",
     dateMode: "日付モード",
     dateModePattern: "パターン",
@@ -489,11 +459,6 @@ export const ja = {
         after: "前のイベント終了後",
         monthly: "毎月特定の日"
       },
-      offsetHint: "イベントを投稿するまでの時間（前/後）：",
-      days: "日",
-      hours: "時間",
-      minutes: "分",
-      monthlyHint: "毎月この日にイベントを投稿：",
       monthlyDay: "日",
       monthlyTime: "時刻",
       repeatMode: "繰り返し",
@@ -502,7 +467,6 @@ export const ja = {
         count: "固定回数"
       },
       repeatCount: "作成数",
-      disclaimer: "自動投稿を使うにはアプリケーションを開いておく必要があります。自動投稿を逃した場合は「イベントを変更」のタブから処理できます",
       patternsRequired: "自動化には少なくとも1つのパターンが必要です",
       confirmTitle: "自動化を有効にしますか？",
       confirmEnable: "自動化にはイベントを投稿するためにアプリの実行が必要です。見逃した自動化は「イベントを変更」タブから処理できます。",
@@ -522,11 +486,6 @@ export const ja = {
         monthly: "毎月{day}日{time}"
       },
       helpers: {
-        offsetDays: "イベントを投稿する日程の日数を前後に調整",
-        offsetHours: "イベントを投稿する時間を一時間単位で前後に調整",
-        offsetMinutes: "イベントを投稿する時間を一分単位で前後に調整",
-        monthlyDay: "29～31日は短い月の最終日になります",
-        monthlyTime: "毎月イベントが投稿される時刻を設定します"
       },
       offsetProse: "次のイベントの開始7日前に投稿する。",
       monthlyProse: "毎月1日午後6時",
@@ -565,7 +524,6 @@ export const ja = {
     groupFairEvent: "グループフェアに含める",
     noMatches: "一致する項目がありません。",
     noGroupsAccess: "カレンダー権限のあるグループがありません",
-    selectGroup: "グループを選択",
     selectGroupPlaceholder: "グループを選択してください",
     accessTypes: {
       public: "公開",
@@ -614,8 +572,6 @@ export const ja = {
       languagesHint: "{count}件選択",
       filterLanguages: "言語を検索...",
       platforms: "プラットフォーム",
-      manualDate: "日付",
-      manualTime: "時刻"
     },
     errors: {
       durationError: "所要時間は正の数である必要があります。",
@@ -673,7 +629,7 @@ export const ja = {
       template: {
         bullet1: "各イベントは独立したカレンダー項目として投稿され、回ごとに編集できます。",
         bullet2: "各イベントを Discord 予定イベント、Webhook、.ics カレンダー招待で任意にアナウンスできます。",
-        bullet3: "EC の自動化とパターンベースのスケジュールと組み合わせれば、手動操作なしで投稿できます。",
+        bullet3: "自動化とパターンベースのスケジュールと組み合わせれば、手動操作なしで投稿できます。",
         bullet4: "自動投稿にはアプリが起動している必要があります。",
         title: "テンプレート"
       }

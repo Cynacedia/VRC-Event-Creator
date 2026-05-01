@@ -18,10 +18,8 @@ export const zh = {
     loggingIn: "正在登录...",
     loginFailed: "登录失败。",
     sessionChecking: "正在检查会话...",
-    sessionCheckFailed: "会话检查失败。",
     loginRequired: "需要登录。",
     loggedInAs: "已登录为 {name}。",
-    logoutFailed: "退出登录失败。",
     loggedOut: "已退出登录。"
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const zh = {
     theme: {
       title: "主题",
       description: "自定义应用外观。选择预设主题或手动调整。",
-      default: "默认（青绿色）",
-      blue: "海洋蓝",
-      purple: "紫色迷雾",
-      amber: "Altimit 琥珀",
-      red: "绯红",
-      custom: "自定义颜色",
-      accentColor: "强调色",
-      bgColor: "背景色",
       presetLabel: "当前主题",
       nameLabel: "主题名称",
       namePlaceholder: "新主题名称",
@@ -147,10 +137,8 @@ export const zh = {
       autoUploadImages: "自动上传导入活动/模板中的图库图片"
     },
     discord: {
-      title: "Discord 集成",
       enable: "启用 Discord 集成",
       description: "创建 VRChat 活动时自动创建 Discord 活动。",
-      profileHint: "此模板的活动也会发布到 Discord。",
       tokenLabel: "机器人令牌",
       tokenPlaceholder: "粘贴机器人令牌",
       guildLabel: "服务器 ID",
@@ -162,7 +150,6 @@ export const zh = {
       selectGroup: "选择群组...",
       saveButton: "保存",
       saved: "Discord 设置已保存。",
-      syncLabel: "发布到Discord",
       eventLabel: "创建 Discord 活动",
       syncSuccess: "已为「{title}」创建 Discord 活动",
       syncFailed: "「{title}」的 Discord 同步失败：{error}"
@@ -174,23 +161,15 @@ export const zh = {
       syncFailed: "「{title}」的 Webhook 发送失败：{error}"
     },
     calendar: {
-      title: "日历集成",
-      description: "生成带有提醒的 .ics 日历文件，本地保存或附加到 Webhook 帖子中。",
       enable: "启用日历文件生成",
       createInvite: "创建.ics日历邀请",
-      remindersTitle: ".ics日历提醒",
       enableReminders: "启用.ics日历提醒",
-      remindersDescription: "配置.ics文件中包含的默认提醒。",
       addReminder: "添加提醒",
-      postToDiscord: "发布.ics到Discord",
       unit: {
         minutes: "分钟",
         hours: "小时",
         days: "天"
       },
-      syncLabel: "附加.ics文件",
-      syncSuccess: "已发送\"{title}\"的日历文件",
-      syncFailed: "\"{title}\"的日历文件发送失败：{error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "测试Webhook",
@@ -273,17 +252,15 @@ export const zh = {
       groupRequired: "群组（必填）",
       profileOptional: "模板（可选）",
       advanced: "高级",
-      importJson: "从 JSON 导入",
-      dateSource: "使用",
-      dateSourcePattern: "模式",
       patternDates: "模式日期",
       manualDate: "手动日期",
       manualTime: "手动时间",
-      dateSourceManual: "手动"
+      dateSourceManual: "手动",
+      dateSource: "使用",
+      dateSourcePattern: "模式"
     },
     hints: {
       profileDefaults: "选择模板以填充默认值，或留空手动创建。",
-      importJson: "从 JSON 文件导入活动详情。"
     },
     dateHints: {
       default: "手动模式已就绪。带模式的模板会提供日期选项。",
@@ -299,11 +276,8 @@ export const zh = {
     importSuccess: "已从 JSON 导入活动数据。",
     importWrongType: "这似乎是模板 JSON。请改用导入模板。",
     exportSuccess: "已将活动数据导出为 JSON。",
-    dateSource: "日期与时间",
-    dateSourcePattern: "来自模板模式",
     dateOption: "选择日期",
     patternDateLabel: "{label} - {date}",
-    access: "访问权限",
     roleRestrictions: {
       title: "角色限制",
       hint: "可选：启用后，仅所选群组角色可加入。",
@@ -335,13 +309,11 @@ export const zh = {
     failed: "无法创建活动。",
     selectDateError: "请选择日期。",
     updateRequired: "有可用更新。请先更新再创建活动。",
-    noDateOptionsError: "模板中没有可用日期选项。",
     featuredPermissionRevoked: "该群组不再有创建精选活动的权限。",
     groupFairPermissionRevoked: "该群组不再有将活动包含在群组集市中的权限。"
   },
   modify: {
     subtitle: "编辑或删除群组即将到来的活动。",
-    showPending: "显示待处理",
     countEmpty: "无法获取即将到来的活动。",
     countGroupFallback: "该群组",
     countStatus: "{group} 的即将到来的活动：{count}。",
@@ -409,7 +381,6 @@ export const zh = {
     }
   },
   profiles: {
-    subtitle: "为每个群组创建可复用的模板。",
     steps: {
       select: "选择",
       basics: "基础",
@@ -435,7 +406,6 @@ export const zh = {
     existingProfilePlaceholder: "选择一个模板",
     displayName: "模板名称",
     displayNamePlaceholder: "社区聚会模板",
-    access: "访问权限",
     durationDefault: "默认时长（DD:HH:MM）",
     dateMode: "日期模式",
     dateModePattern: "基于模式",
@@ -489,11 +459,6 @@ export const zh = {
         after: "上一个活动结束后",
         monthly: "每月特定日期"
       },
-      offsetHint: "提前/延后多长时间发布活动：",
-      days: "天",
-      hours: "小时",
-      minutes: "分钟",
-      monthlyHint: "每月在此日期发布活动：",
       monthlyDay: "月份日期",
       monthlyTime: "时间",
       repeatMode: "重复",
@@ -502,7 +467,6 @@ export const zh = {
         count: "固定次数"
       },
       repeatCount: "要创建的活动数",
-      disclaimer: "自动化需要应用保持运行。可在「编辑活动」选项卡处理错过的自动化。",
       patternsRequired: "自动化至少需要一个模式",
       confirmTitle: "启用自动化？",
       confirmEnable: "自动化需要应用保持运行才能发布活动。可在「编辑活动」选项卡处理错过的自动化。",
@@ -522,11 +486,6 @@ export const zh = {
         monthly: "每月{day}日{time}"
       },
       helpers: {
-        offsetDays: "设置提前或延后多少天发布活动",
-        offsetHours: "设置提前或延后多少小时发布活动",
-        offsetMinutes: "设置提前或延后多少分钟发布活动",
-        monthlyDay: "第 29-31 天将使用较短月份的最后一天",
-        monthlyTime: "设置每月发布活动的时间"
       },
       offsetProse: "在下一个活动开始前 7 天发布。",
       monthlyProse: "每月 1 日下午 6 点",
@@ -565,7 +524,6 @@ export const zh = {
     groupFairEvent: "包含在群组集市中",
     noMatches: "无匹配项。",
     noGroupsAccess: "没有具备日历权限的群组",
-    selectGroup: "选择群组",
     selectGroupPlaceholder: "选择一个群组",
     accessTypes: {
       public: "公开",
@@ -614,8 +572,6 @@ export const zh = {
       languagesHint: "已选择 {count} 种",
       filterLanguages: "筛选语言...",
       platforms: "平台",
-      manualDate: "日期",
-      manualTime: "时间"
     },
     errors: {
       durationError: "时长必须为正数。",
@@ -673,7 +629,7 @@ export const zh = {
       template: {
         bullet1: "每个活动作为独立的日历条目发布——可逐次修改。",
         bullet2: "可选择性地通过 Discord 预定活动、Webhook 和 .ics 日历邀请来公告每个活动。",
-        bullet3: "结合 EC 的自动化和基于模式的调度，实现免操作发布。",
+        bullet3: "结合自动化和基于模式的调度，实现免操作发布。",
         bullet4: "自动发布需要应用保持运行。",
         title: "模板"
       }

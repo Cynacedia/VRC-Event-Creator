@@ -18,10 +18,8 @@ export const ru = {
     loggingIn: "Вход...",
     loginFailed: "Ошибка входа.",
     sessionChecking: "Проверка сессии...",
-    sessionCheckFailed: "Не удалось проверить сессию.",
     loginRequired: "Требуется вход.",
     loggedInAs: "Вход выполнен как {name}.",
-    logoutFailed: "Не удалось выйти.",
     loggedOut: "Вы вышли."
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const ru = {
     theme: {
       title: "Тема",
       description: "Настройте внешний вид приложения. Выберите пресет или настройте вручную.",
-      default: "По умолчанию (бирюзовый/зеленый)",
-      blue: "Океанский синий",
-      purple: "Фиолетовая дымка",
-      amber: "Янтарь Altimit",
-      red: "Красный кармин",
-      custom: "Пользовательские цвета",
-      accentColor: "Цвет акцента",
-      bgColor: "Цвет фона",
       presetLabel: "Текущая тема",
       nameLabel: "Название темы",
       namePlaceholder: "Новое название темы",
@@ -147,10 +137,8 @@ export const ru = {
       autoUploadImages: "Автоматически загружать изображения галереи из импортированных событий/шаблонов"
     },
     discord: {
-      title: "Интеграция с Discord",
       enable: "Включить интеграцию с Discord",
       description: "Автоматически создаёт мероприятия в Discord при создании событий VRChat.",
-      profileHint: "События из этого шаблона также будут опубликованы в Discord.",
       tokenLabel: "Токен бота",
       tokenPlaceholder: "Вставьте токен бота",
       guildLabel: "ID сервера",
@@ -162,7 +150,6 @@ export const ru = {
       selectGroup: "Выберите группу...",
       saveButton: "Сохранить",
       saved: "Настройки Discord сохранены.",
-      syncLabel: "Опубликовать в Discord",
       eventLabel: "Создать событие Discord",
       syncSuccess: "Мероприятие Discord создано для «{title}»",
       syncFailed: "Синхронизация с Discord не удалась для «{title}»: {error}"
@@ -174,23 +161,15 @@ export const ru = {
       syncFailed: "Не удалось отправить webhook для \"{title}\": {error}"
     },
     calendar: {
-      title: "Интеграция с календарём",
-      description: "Создаёт файлы календаря .ics с напоминаниями, сохраняемые локально или прикрепляемые к публикациям webhook.",
       enable: "Включить создание файлов календаря",
       createInvite: "Создать приглашение календаря .ics",
-      remindersTitle: "Напоминания календаря .ics",
       enableReminders: "Включить напоминания календаря .ics",
-      remindersDescription: "Настройте напоминания по умолчанию для файлов .ics.",
       addReminder: "Добавить напоминание",
-      postToDiscord: "Отправить .ics в Discord",
       unit: {
         minutes: "минут",
         hours: "часов",
         days: "дней"
       },
-      syncLabel: "Прикрепить файл .ics",
-      syncSuccess: "Файл календаря отправлен для \"{title}\"",
-      syncFailed: "Ошибка отправки файла календаря для \"{title}\": {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Проверить вебхук",
@@ -273,17 +252,15 @@ export const ru = {
       groupRequired: "Группа (обязательно)",
       profileOptional: "Шаблон (необязательно)",
       advanced: "Дополнительно",
-      importJson: "Импорт из JSON",
-      dateSource: "Использовать",
-      dateSourcePattern: "Шаблон",
       patternDates: "Даты шаблона",
       manualDate: "Ручная дата",
       manualTime: "Ручное время",
-      dateSourceManual: "Вручную"
+      dateSourceManual: "Вручную",
+      dateSource: "Использовать",
+      dateSourcePattern: "Шаблон"
     },
     hints: {
       profileDefaults: "Выберите шаблон для значений по умолчанию или оставьте пустым для ручного создания.",
-      importJson: "Импортировать детали события из файла JSON."
     },
     dateHints: {
       default: "Ручной режим готов. Шаблоны с шаблонами открывают варианты дат.",
@@ -299,11 +276,8 @@ export const ru = {
     importSuccess: "Данные события импортированы из JSON.",
     importWrongType: "Похоже, это JSON шаблона. Пожалуйста, используйте импорт шаблона.",
     exportSuccess: "Данные события экспортированы в JSON.",
-    dateSource: "Дата и время",
-    dateSourcePattern: "По шаблону шаблона",
     dateOption: "Выберите дату",
     patternDateLabel: "{label} - {date}",
-    access: "Доступ",
     roleRestrictions: {
       title: "Ограничения ролей",
       hint: "Необязательно - если включено, присоединяться могут только выбранные роли группы.",
@@ -335,13 +309,11 @@ export const ru = {
     failed: "Не удалось создать событие.",
     selectDateError: "Выберите дату.",
     updateRequired: "Доступно обновление. Пожалуйста, обновите приложение перед созданием событий.",
-    noDateOptionsError: "Для шаблона нет доступных дат.",
     featuredPermissionRevoked: "У этой группы больше нет разрешения создавать избранные события.",
     groupFairPermissionRevoked: "У этой группы больше нет разрешения включать события в групповую ярмарку."
   },
   modify: {
     subtitle: "Редактируйте или удаляйте предстоящие события группы.",
-    showPending: "Показать ожидающие",
     countEmpty: "Предстоящие события недоступны.",
     countGroupFallback: "Эта группа",
     countStatus: "Предстоящие события для {group}: {count}.",
@@ -409,7 +381,6 @@ export const ru = {
     }
   },
   profiles: {
-    subtitle: "Создавайте шаблоны для групп.",
     steps: {
       select: "Выбор",
       basics: "Основы",
@@ -435,7 +406,6 @@ export const ru = {
     existingProfilePlaceholder: "Выберите шаблон",
     displayName: "Название шаблона",
     displayNamePlaceholder: "Шаблон встречи сообщества",
-    access: "Доступ",
     durationDefault: "Длительность по умолчанию (DD:HH:MM)",
     dateMode: "Режим даты",
     dateModePattern: "По шаблону",
@@ -489,11 +459,6 @@ export const ru = {
         after: "После окончания предыдущего события",
         monthly: "Ежемесячно в определенный день"
       },
-      offsetHint: "За сколько до/после публиковать событие:",
-      days: "Дни",
-      hours: "Часы",
-      minutes: "Минуты",
-      monthlyHint: "Публиковать события в этот день каждого месяца:",
       monthlyDay: "День месяца",
       monthlyTime: "Время",
       repeatMode: "Повторять",
@@ -502,7 +467,6 @@ export const ru = {
         count: "Фиксированное количество"
       },
       repeatCount: "Событий создать",
-      disclaimer: "Для автоматизации требуется запущенное приложение. Пропущенные автоматизации можно обработать на вкладке Изменить события.",
       patternsRequired: "Для автоматизации требуется как минимум один шаблон",
       confirmTitle: "Включить автоматизацию?",
       confirmEnable: "Для автоматизации требуется запущенное приложение для публикации событий. Пропущенные автоматизации можно обработать на вкладке Изменить события.",
@@ -522,11 +486,6 @@ export const ru = {
         monthly: "Каждый месяц {day}-го числа в {time}"
       },
       helpers: {
-        offsetDays: "Установите, за сколько дней до/после публиковать событие",
-        offsetHours: "Установите, за сколько часов до/после публиковать событие",
-        offsetMinutes: "Установите, за сколько минут до/после публиковать событие",
-        monthlyDay: "Дни 29-31 будут использовать последний день более коротких месяцев",
-        monthlyTime: "Установите время, в которое события будут публиковаться каждый месяц"
       },
       offsetProse: "Опубликовать следующее событие за 7 дней до его начала.",
       monthlyProse: "Каждый месяц 1-го числа в 6:00 PM",
@@ -565,7 +524,6 @@ export const ru = {
     groupFairEvent: "Включить в групповую ярмарку",
     noMatches: "Совпадений нет.",
     noGroupsAccess: "Нет групп с доступом к календарю",
-    selectGroup: "Выбрать группу",
     selectGroupPlaceholder: "Выберите группу",
     accessTypes: {
       public: "Публичный",
@@ -614,8 +572,6 @@ export const ru = {
       languagesHint: "выбрано: {count}",
       filterLanguages: "Фильтр языков...",
       platforms: "Платформы",
-      manualDate: "Дата",
-      manualTime: "Время"
     },
     errors: {
       durationError: "Длительность должна быть положительным числом.",
@@ -673,7 +629,7 @@ export const ru = {
       template: {
         bullet1: "Каждое событие публикуется как отдельная запись в календаре — изменяется индивидуально.",
         bullet2: "По желанию анонсируйте каждое событие через запланированные события Discord, вебхуки и приглашения календаря .ics.",
-        bullet3: "Сочетайте с автоматизацией EC и расписанием по шаблонам для публикации без участия.",
+        bullet3: "Сочетайте с автоматизацией и расписанием по шаблонам для публикации без участия.",
         bullet4: "Для автоматической публикации приложение должно быть запущено.",
         title: "Шаблоны"
       }

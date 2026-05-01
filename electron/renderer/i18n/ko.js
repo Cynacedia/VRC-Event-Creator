@@ -18,10 +18,8 @@ export const ko = {
     loggingIn: "로그인 중...",
     loginFailed: "로그인 실패.",
     sessionChecking: "세션 확인 중...",
-    sessionCheckFailed: "세션 확인 실패.",
     loginRequired: "로그인이 필요합니다.",
     loggedInAs: "{name}로 로그인됨.",
-    logoutFailed: "로그아웃 실패.",
     loggedOut: "로그아웃됨."
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const ko = {
     theme: {
       title: "테마",
       description: "앱의 외형을 사용자 지정하세요. 프리셋을 선택하거나 수동으로 조정하세요.",
-      default: "기본 (청록/초록)",
-      blue: "오션 블루",
-      purple: "퍼플 헤이즈",
-      amber: "알티밋 앰버",
-      red: "크림슨 레드",
-      custom: "사용자 색상",
-      accentColor: "강조 색상",
-      bgColor: "배경 색상",
       presetLabel: "현재 테마",
       nameLabel: "테마 이름",
       namePlaceholder: "새 테마 이름",
@@ -147,10 +137,8 @@ export const ko = {
       autoUploadImages: "가져온 이벤트/템플릿에서 갤러리 이미지 자동 업로드"
     },
     discord: {
-      title: "Discord 연동",
       enable: "Discord 연동 활성화",
       description: "VRChat 이벤트 생성 시 Discord 이벤트를 자동으로 만듭니다.",
-      profileHint: "이 템플릿의 이벤트가 Discord에도 게시됩니다.",
       tokenLabel: "봇 토큰",
       tokenPlaceholder: "봇 토큰 붙여넣기",
       guildLabel: "서버 ID",
@@ -162,7 +150,6 @@ export const ko = {
       selectGroup: "그룹 선택...",
       saveButton: "저장",
       saved: "Discord 설정이 저장되었습니다.",
-      syncLabel: "Discord에 게시",
       eventLabel: "Discord 이벤트 생성",
       syncSuccess: "\"{title}\" Discord 이벤트가 생성되었습니다",
       syncFailed: "\"{title}\" Discord 동기화 실패: {error}"
@@ -174,23 +161,15 @@ export const ko = {
       syncFailed: "\"{title}\" 웹훅 전송 실패: {error}"
     },
     calendar: {
-      title: "캘린더 연동",
-      description: ".ics 캘린더 파일을 리마인더와 함께 생성하고, 로컬에 저장하거나 웹훅 게시물에 첨부합니다.",
       enable: "캘린더 파일 생성 활성화",
       createInvite: ".ics 캘린더 초대 생성",
-      remindersTitle: ".ics 캘린더 알림",
       enableReminders: ".ics 캘린더 알림 활성화",
-      remindersDescription: ".ics 파일에 포함할 기본 알림을 설정합니다.",
       addReminder: "알림 추가",
-      postToDiscord: ".ics를 Discord에 게시",
       unit: {
         minutes: "분",
         hours: "시간",
         days: "일"
       },
-      syncLabel: ".ics 파일 첨부",
-      syncSuccess: "\"{title}\" 캘린더 파일이 전송되었습니다",
-      syncFailed: "\"{title}\" 캘린더 파일 전송 실패: {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Webhook 테스트",
@@ -273,17 +252,15 @@ export const ko = {
       groupRequired: "그룹 (필수)",
       profileOptional: "템플릿 (선택)",
       advanced: "고급",
-      importJson: "JSON에서 가져오기",
-      dateSource: "사용",
-      dateSourcePattern: "패턴",
       patternDates: "패턴 날짜",
       manualDate: "수동 날짜",
       manualTime: "수동 시간",
-      dateSourceManual: "수동"
+      dateSourceManual: "수동",
+      dateSource: "사용",
+      dateSourcePattern: "패턴"
     },
     hints: {
       profileDefaults: "기본값을 위해 템플릿을 선택하거나, 비워두고 수동으로 생성하세요.",
-      importJson: "JSON 파일에서 이벤트 세부 정보를 가져옵니다."
     },
     dateHints: {
       default: "수동 모드가 준비되었습니다. 패턴이 있는 템플릿은 날짜 옵션을 제공합니다.",
@@ -299,11 +276,8 @@ export const ko = {
     importSuccess: "JSON에서 이벤트 데이터를 가져왔습니다.",
     importWrongType: "템플릿 JSON으로 보입니다. 대신 템플릿 가져오기를 사용하세요.",
     exportSuccess: "이벤트 데이터를 JSON으로 내보냈습니다.",
-    dateSource: "날짜 및 시간",
-    dateSourcePattern: "템플릿 패턴에서",
     dateOption: "날짜 선택",
     patternDateLabel: "{label} - {date}",
-    access: "접근",
     roleRestrictions: {
       title: "역할 제한",
       hint: "선택 사항 - 활성화하면 선택한 그룹 역할만 참여할 수 있습니다.",
@@ -335,13 +309,11 @@ export const ko = {
     failed: "이벤트를 만들 수 없습니다.",
     selectDateError: "날짜를 선택하세요.",
     updateRequired: "업데이트가 있습니다. 이벤트를 만들기 전에 업데이트하세요.",
-    noDateOptionsError: "템플릿에서 사용할 날짜 옵션이 없습니다.",
     featuredPermissionRevoked: "이 그룹은 더 이상 주목 이벤트를 생성할 권한이 없습니다.",
     groupFairPermissionRevoked: "이 그룹은 더 이상 그룹 페어에 이벤트를 포함할 권한이 없습니다."
   },
   modify: {
     subtitle: "그룹의 예정된 이벤트를 수정하거나 삭제합니다.",
-    showPending: "보류 중 표시",
     countEmpty: "예정된 이벤트를 불러올 수 없습니다.",
     countGroupFallback: "이 그룹",
     countStatus: "{group}의 예정된 이벤트: {count}.",
@@ -409,7 +381,6 @@ export const ko = {
     }
   },
   profiles: {
-    subtitle: "그룹별로 재사용 가능한 템플릿을 만듭니다.",
     steps: {
       select: "선택",
       basics: "기본",
@@ -435,7 +406,6 @@ export const ko = {
     existingProfilePlaceholder: "템플릿 선택",
     displayName: "템플릿 이름",
     displayNamePlaceholder: "커뮤니티 모임 템플릿",
-    access: "접근",
     durationDefault: "기본 지속 시간 (DD:HH:MM)",
     dateMode: "날짜 모드",
     dateModePattern: "패턴 기반",
@@ -489,11 +459,6 @@ export const ko = {
         after: "이전 이벤트 종료 후",
         monthly: "매월 특정 날짜"
       },
-      offsetHint: "이벤트 게시까지의 시간 (전/후):",
-      days: "일",
-      hours: "시간",
-      minutes: "분",
-      monthlyHint: "매월 이 날짜에 이벤트 게시:",
       monthlyDay: "일",
       monthlyTime: "시간",
       repeatMode: "반복",
@@ -502,7 +467,6 @@ export const ko = {
         count: "고정 횟수"
       },
       repeatCount: "생성 수",
-      disclaimer: "자동화를 사용하려면 앱이 실행 중이어야 합니다. 놓친 자동화는 이벤트 수정 탭에서 처리할 수 있습니다.",
       patternsRequired: "자동화에는 최소 1개의 패턴이 필요합니다",
       confirmTitle: "자동화를 활성화하시겠습니까?",
       confirmEnable: "자동화를 사용하려면 이벤트를 게시하기 위해 앱이 실행 중이어야 합니다. 놓친 자동화는 이벤트 수정 탭에서 처리할 수 있습니다.",
@@ -522,11 +486,6 @@ export const ko = {
         monthly: "매월 {day}일 {time}"
       },
       helpers: {
-        offsetDays: "이벤트를 게시할 날짜 수를 설정합니다",
-        offsetHours: "이벤트를 게시할 시간을 설정합니다",
-        offsetMinutes: "이벤트를 게시할 분을 설정합니다",
-        monthlyDay: "29~31일은 더 짧은 달의 마지막 날을 사용합니다",
-        monthlyTime: "매월 이벤트가 게시될 시간을 설정합니다"
       },
       offsetProse: "다음 이벤트 시작 7일 전에 게시합니다.",
       monthlyProse: "매월 1일 오후 6시",
@@ -565,7 +524,6 @@ export const ko = {
     groupFairEvent: "그룹 페어에 포함",
     noMatches: "일치하는 항목이 없습니다.",
     noGroupsAccess: "캘린더 접근 권한이 있는 그룹이 없습니다",
-    selectGroup: "그룹 선택",
     selectGroupPlaceholder: "그룹을 선택하세요",
     accessTypes: {
       public: "공개",
@@ -614,8 +572,6 @@ export const ko = {
       languagesHint: "{count}개 선택됨",
       filterLanguages: "언어 검색...",
       platforms: "플랫폼",
-      manualDate: "날짜",
-      manualTime: "시간"
     },
     errors: {
       durationError: "지속 시간은 양수여야 합니다.",
@@ -673,7 +629,7 @@ export const ko = {
       template: {
         bullet1: "각 이벤트는 독립된 캘린더 항목으로 게시되며 회차별로 수정할 수 있습니다.",
         bullet2: "각 이벤트를 Discord 예정 이벤트, Webhook, .ics 캘린더 초대로 선택적으로 알릴 수 있습니다.",
-        bullet3: "EC의 자동화 및 패턴 기반 일정과 결합하여 방치형 게시가 가능합니다.",
+        bullet3: "자동화 및 패턴 기반 일정과 결합하여 방치형 게시가 가능합니다.",
         bullet4: "자동 게시는 앱이 실행 중이어야 합니다.",
         title: "템플릿"
       }

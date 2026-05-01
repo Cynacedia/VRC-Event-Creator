@@ -18,10 +18,8 @@ export const pt = {
     loggingIn: "Entrando...",
     loginFailed: "Falha ao entrar.",
     sessionChecking: "Verificando sessão...",
-    sessionCheckFailed: "Falha ao verificar a sessão.",
     loginRequired: "Login necessário.",
     loggedInAs: "Conectado como {name}.",
-    logoutFailed: "Falha ao sair.",
     loggedOut: "Desconectado."
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const pt = {
     theme: {
       title: "Tema",
       description: "Personalize a aparência do app. Selecione um preset ou ajuste manualmente.",
-      default: "Padrão (Turquesa/Verde)",
-      blue: "Azul Oceano",
-      purple: "Névoa Roxa",
-      amber: "Âmbar Altimit",
-      red: "Vermelho Carmesim",
-      custom: "Cores personalizadas",
-      accentColor: "Cor de destaque",
-      bgColor: "Cor de fundo",
       presetLabel: "Tema atual",
       nameLabel: "Nome do tema",
       namePlaceholder: "Novo nome do tema",
@@ -147,10 +137,8 @@ export const pt = {
       autoUploadImages: "Carregar automaticamente imagens da galeria de eventos/modelos importados"
     },
     discord: {
-      title: "Integração com Discord",
       enable: "Ativar integração com Discord",
       description: "Cria automaticamente eventos no Discord ao criar eventos do VRChat.",
-      profileHint: "Os eventos deste modelo também serão publicados no Discord.",
       tokenLabel: "Token do bot",
       tokenPlaceholder: "Cole o token do bot",
       guildLabel: "ID do servidor",
@@ -162,7 +150,6 @@ export const pt = {
       selectGroup: "Selecionar um grupo...",
       saveButton: "Salvar",
       saved: "Configurações do Discord salvas.",
-      syncLabel: "Publicar no Discord",
       eventLabel: "Criar evento no Discord",
       syncSuccess: "Evento do Discord criado para \"{title}\"",
       syncFailed: "Sincronização com Discord falhou para \"{title}\": {error}"
@@ -174,23 +161,15 @@ export const pt = {
       syncFailed: "Falha na entrega do webhook para \"{title}\": {error}"
     },
     calendar: {
-      title: "Integração de Calendário",
-      description: "Gera arquivos de calendário .ics com lembretes, salvos localmente ou anexados a publicações do webhook.",
       enable: "Ativar geração de arquivos de calendário",
       createInvite: "Criar convite de calendário .ics",
-      remindersTitle: "Lembretes de calendário .ics",
       enableReminders: "Ativar lembretes de calendário .ics",
-      remindersDescription: "Configure os lembretes padrão incluídos nos arquivos .ics.",
       addReminder: "Adicionar Lembrete",
-      postToDiscord: "Publicar .ics no Discord",
       unit: {
         minutes: "minutos",
         hours: "horas",
         days: "dias"
       },
-      syncLabel: "Anexar arquivo .ics",
-      syncSuccess: "Arquivo de calendário enviado para \"{title}\"",
-      syncFailed: "Falha ao enviar arquivo de calendário para \"{title}\": {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Testar Webhook",
@@ -273,17 +252,15 @@ export const pt = {
       groupRequired: "Grupo (obrigatório)",
       profileOptional: "Modelo (opcional)",
       advanced: "Avançado",
-      importJson: "Importar de JSON",
-      dateSource: "Usar",
-      dateSourcePattern: "Padrão",
       patternDates: "Datas do padrão",
       manualDate: "Data manual",
       manualTime: "Hora manual",
-      dateSourceManual: "Manual"
+      dateSourceManual: "Manual",
+      dateSource: "Usar",
+      dateSourcePattern: "Padrão"
     },
     hints: {
       profileDefaults: "Escolha um modelo para padrões ou deixe em branco para criar manualmente.",
-      importJson: "Importar detalhes do evento de um arquivo JSON."
     },
     dateHints: {
       default: "O modo manual está pronto. Modelos com padrões liberam opções de data.",
@@ -299,11 +276,8 @@ export const pt = {
     importSuccess: "Dados do evento importados do JSON.",
     importWrongType: "Isto parece ser um JSON de modelo. Use Importar modelo em vez disso.",
     exportSuccess: "Dados do evento exportados para JSON.",
-    dateSource: "Data e hora",
-    dateSourcePattern: "Do padrão do modelo",
     dateOption: "Selecionar data",
     patternDateLabel: "{label} - {date}",
-    access: "Acesso",
     roleRestrictions: {
       title: "Restrições de cargos",
       hint: "Opcional - Se ativado, apenas os cargos de grupo selecionados podem participar.",
@@ -335,13 +309,11 @@ export const pt = {
     failed: "Não foi possível criar o evento.",
     selectDateError: "Selecione uma data.",
     updateRequired: "Atualização disponível. Atualize antes de criar eventos.",
-    noDateOptionsError: "Nenhuma opção de data disponível no modelo.",
     featuredPermissionRevoked: "Este grupo não tem mais permissão para criar eventos em destaque.",
     groupFairPermissionRevoked: "Este grupo não tem mais permissão para incluir eventos na Feira de Grupos."
   },
   modify: {
     subtitle: "Editar ou excluir eventos futuros do grupo.",
-    showPending: "Mostrar pendentes",
     countEmpty: "Eventos futuros indisponíveis.",
     countGroupFallback: "Este grupo",
     countStatus: "Eventos futuros para {group}: {count}.",
@@ -409,7 +381,6 @@ export const pt = {
     }
   },
   profiles: {
-    subtitle: "Crie modelos reutilizáveis por grupo.",
     steps: {
       select: "Selecionar",
       basics: "Básico",
@@ -435,7 +406,6 @@ export const pt = {
     existingProfilePlaceholder: "Selecione um modelo",
     displayName: "Nome do modelo",
     displayNamePlaceholder: "Modelo de encontro da comunidade",
-    access: "Acesso",
     durationDefault: "Duração padrão (DD:HH:MM)",
     dateMode: "Modo de data",
     dateModePattern: "Baseado em padrão",
@@ -489,11 +459,6 @@ export const pt = {
         after: "Após o término do evento anterior",
         monthly: "Mensalmente em dia específico"
       },
-      offsetHint: "Quanto tempo antes/depois publicar o evento:",
-      days: "Dias",
-      hours: "Horas",
-      minutes: "Minutos",
-      monthlyHint: "Publicar eventos neste dia todo mês:",
       monthlyDay: "Dia do mês",
       monthlyTime: "Hora",
       repeatMode: "Repetir",
@@ -502,7 +467,6 @@ export const pt = {
         count: "Contagem fixa"
       },
       repeatCount: "Eventos a criar",
-      disclaimer: "A automação requer que o aplicativo esteja em execução. Automações perdidas podem ser gerenciadas na aba Modificar Eventos.",
       patternsRequired: "Pelo menos um padrão é necessário para automação",
       confirmTitle: "Ativar automação?",
       confirmEnable: "A automação requer que o aplicativo esteja em execução para publicar eventos. Automações perdidas podem ser gerenciadas na aba Modificar Eventos.",
@@ -522,11 +486,6 @@ export const pt = {
         monthly: "O {day}º de cada mês às {time}"
       },
       helpers: {
-        offsetDays: "Define quantos dias antes/depois publicar o evento",
-        offsetHours: "Define quantas horas antes/depois publicar o evento",
-        offsetMinutes: "Define quantos minutos antes/depois publicar o evento",
-        monthlyDay: "Os dias 29-31 usarão o último dia dos meses mais curtos",
-        monthlyTime: "Define a hora em que os eventos serão publicados a cada mês"
       },
       offsetProse: "Publicar o próximo evento 7 dias antes de começar.",
       monthlyProse: "O 1º de cada mês às 6:00 PM",
@@ -565,7 +524,6 @@ export const pt = {
     groupFairEvent: "Incluir na Feira de Grupos",
     noMatches: "Nenhuma correspondência.",
     noGroupsAccess: "Nenhum grupo com acesso ao calendário",
-    selectGroup: "Selecionar grupo",
     selectGroupPlaceholder: "Escolher um grupo",
     accessTypes: {
       public: "Público",
@@ -614,8 +572,6 @@ export const pt = {
       languagesHint: "{count} selecionados",
       filterLanguages: "Filtrar idiomas...",
       platforms: "Plataformas",
-      manualDate: "Data",
-      manualTime: "Hora"
     },
     errors: {
       durationError: "A duração deve ser um número positivo.",
@@ -673,7 +629,7 @@ export const pt = {
       template: {
         bullet1: "Cada evento é publicado como uma entrada de calendário independente — modificável por ocorrência.",
         bullet2: "Anuncie opcionalmente cada evento via eventos agendados do Discord, webhooks e convites de calendário .ics.",
-        bullet3: "Combine com a automação e o agendamento por padrões do EC para publicação sem intervenção.",
+        bullet3: "Combine com a automação e o agendamento por padrões para publicação sem intervenção.",
         bullet4: "Requer que o aplicativo esteja em execução para publicação automática.",
         title: "Modelos"
       }

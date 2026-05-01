@@ -5,6 +5,7 @@ import { t } from "./i18n/index.js";
 import { enforceTagsInput, sanitizeText, formatDuration, normalizeDurationInput, parseDurationInput, formatDurationPreview, enforceGroupAccess } from "./utils.js";
 import { fetchGroupRoles, renderRoleList } from "./roles.js";
 import { applySeriesToWizard, showScheduleMode } from "./series.js";
+import { showToast } from "./ui.js";
 
 let roleFetchToken = 0;
 let _discordApi = null;
@@ -549,7 +550,7 @@ export function renderProfileList(api) {
     dom.profileExisting.innerHTML = "";
     const option = document.createElement("option");
     option.value = "";
-    option.textContent = t("profiles.selectGroupFirst");
+    option.textContent = t("common.errors.noGroup");
     dom.profileExisting.appendChild(option);
     dom.profileExisting.disabled = true;
     updateProfileActionButtons();
@@ -611,7 +612,7 @@ export function renderProfileList(api) {
     // Use optgroups when showing both
     if (templateEntries.length) {
       const tplGroup = document.createElement("optgroup");
-      tplGroup.label = t("schedules.types.template") || "Templates";
+      tplGroup.label = t("common.labels.templates") || "Templates";
       templateEntries.forEach(entry => {
         const option = document.createElement("option");
         option.value = entry.value;
@@ -622,7 +623,7 @@ export function renderProfileList(api) {
     }
     if (seriesEntries.length) {
       const srGroup = document.createElement("optgroup");
-      srGroup.label = t("schedules.types.series") || "Series";
+      srGroup.label = t("common.labels.series") || "Series";
       seriesEntries.forEach(entry => {
         const option = document.createElement("option");
         option.value = entry.value;
@@ -682,15 +683,19 @@ function _wlog(message) {
 // Handle profile wizard step change
 export function handleProfileWizardStepChange({ current, next }) {
   _wlog(`step change current=${current} next=${next} selected=${dom.profileExisting?.value || ""} editConfirmed=${getProfileEditConfirmed()}`);
-  if (next <= current) {
+  if (next < current) {
     syncStep3Mode(next);
+    return true;
+  }
+  if (next === current) {
     return true;
   }
 
   if (current === 0 && next > 0) {
     if (!dom.profileGroup.value) {
       _wlog("blocked: no group");
-      return { allowed: false, message: "Select a group first." };
+      showToast(t("common.errors.noGroup") || "Select a group.", true);
+      return false;
     }
     const selected = dom.profileExisting?.value || "";
     if (selected) {
@@ -719,7 +724,7 @@ export function handleProfileWizardStepChange({ current, next }) {
         }
       }
       setProfileEditConfirmed(true);
-    } else {
+    } else if (!getProfileEditConfirmed()) {
       _wlog("no selection — resetting form (New flow)");
       resetProfileForm();
       updateProfileActionButtons();
@@ -730,7 +735,8 @@ export function handleProfileWizardStepChange({ current, next }) {
     const validation = validateProfileBasics();
     _wlog(`validation valid=${validation.valid} msg="${validation.message || ""}" displayName="${dom.profileDisplayName?.value || ""}" name="${dom.profileName?.value || ""}" descLen=${dom.profileDescription?.value?.length || 0}`);
     if (!validation.valid) {
-      return { allowed: false, message: validation.message };
+      showToast(validation.message, true);
+      return false;
     }
   }
 
@@ -967,7 +973,7 @@ export async function handleProfileSave(api) {
       await api.updateProfile(profilePayload);
       return {
         success: true,
-        message: "Profile updated.",
+        message: t("profiles.updated"),
         groupId,
         profileKey,
         wasEdit: true
@@ -976,7 +982,7 @@ export async function handleProfileSave(api) {
       await api.createProfile(profilePayload);
       return {
         success: true,
-        message: "Profile created.",
+        message: t("profiles.created"),
         groupId,
         profileKey,
         wasEdit: false
@@ -1001,7 +1007,7 @@ export async function handleProfileDelete(api) {
   const profile = state.profiles?.[groupId]?.profiles?.[profileKey];
   const label = getProfileLabel(profileKey, profile);
 
-  const confirmDelete = window.confirm(`Delete profile "${label}"?`);
+  const confirmDelete = window.confirm(t("profiles.confirmDelete", { name: label }));
   if (!confirmDelete) {
     return { success: false, cancelled: true };
   }
@@ -1010,7 +1016,7 @@ export async function handleProfileDelete(api) {
     await api.deleteProfile({ groupId, profileKey });
     return {
       success: true,
-      message: "Profile deleted."
+      message: t("profiles.deleted")
     };
   } catch (err) {
     return {
@@ -1401,6 +1407,13 @@ export function updateDiscordVisibility({ expandPanel } = {}) {
   // Also hide the event message input when the toggle field is hidden
   if (!eventKitActive && dom.eventWebhookMessageInput) {
     dom.eventWebhookMessageInput.classList.add("is-hidden");
+  }
+  // Hide the announcements card entirely when no toggles inside are visible
+  if (dom.profileAnnouncementsCard) {
+    const anyVisible = (dom.discordSyncField && !dom.discordSyncField.classList.contains("is-hidden"))
+      || (dom.webhookPostField && !dom.webhookPostField.classList.contains("is-hidden"))
+      || (dom.profileWebhookMessageField && !dom.profileWebhookMessageField.classList.contains("is-hidden"));
+    dom.profileAnnouncementsCard.classList.toggle("is-hidden", !anyVisible);
   }
 }
 

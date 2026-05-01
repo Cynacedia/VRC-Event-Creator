@@ -18,10 +18,8 @@ export const nl = {
     loggingIn: "Bezig met inloggen...",
     loginFailed: "Inloggen mislukt.",
     sessionChecking: "Sessie controleren...",
-    sessionCheckFailed: "Sessiecontrole mislukt.",
     loginRequired: "Inloggen vereist.",
     loggedInAs: "Ingelogd als {name}.",
-    logoutFailed: "Uitloggen mislukt.",
     loggedOut: "Uitgelogd."
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const nl = {
     theme: {
       title: "Thema",
       description: "Pas het uiterlijk van de app aan. Selecteer een preset of stel handmatig in.",
-      default: "Standaard (turkoois/groen)",
-      blue: "Oceaanblauw",
-      purple: "Paarse nevel",
-      amber: "Altimit Amber",
-      red: "Karmozijnrood",
-      custom: "Aangepaste kleuren",
-      accentColor: "Accentkleur",
-      bgColor: "Achtergrondkleur",
       presetLabel: "Huidig thema",
       nameLabel: "Themanaam",
       namePlaceholder: "Nieuwe themanaam",
@@ -147,10 +137,8 @@ export const nl = {
       autoUploadImages: "Galerij-afbeeldingen automatisch uploaden van geïmporteerde evenementen/sjablonen"
     },
     discord: {
-      title: "Discord-integratie",
       enable: "Discord-integratie inschakelen",
       description: "Maakt automatisch Discord-evenementen aan bij het aanmaken van VRChat-evenementen.",
-      profileHint: "Evenementen van dit sjabloon worden ook op Discord geplaatst.",
       tokenLabel: "Bot-token",
       tokenPlaceholder: "Plak het bot-token",
       guildLabel: "Server-ID",
@@ -162,7 +150,6 @@ export const nl = {
       selectGroup: "Selecteer een groep...",
       saveButton: "Opslaan",
       saved: "Discord-instellingen opgeslagen.",
-      syncLabel: "Publiceren op Discord",
       eventLabel: "Discord-evenement maken",
       syncSuccess: "Discord-evenement aangemaakt voor \"{title}\"",
       syncFailed: "Discord-synchronisatie mislukt voor \"{title}\": {error}"
@@ -174,23 +161,15 @@ export const nl = {
       syncFailed: "Webhook-levering mislukt voor \"{title}\": {error}"
     },
     calendar: {
-      title: "Kalender Integratie",
-      description: "Genereert .ics-kalenderbestanden met herinneringen, lokaal opgeslagen of bijgevoegd aan webhook-berichten.",
       enable: "Kalenderbestand generatie inschakelen",
       createInvite: ".ics kalenderuitnodiging maken",
-      remindersTitle: ".ics kalenderherinneringen",
       enableReminders: ".ics kalenderherinneringen inschakelen",
-      remindersDescription: "Configureer standaard herinneringen in .ics bestanden.",
       addReminder: "Herinnering Toevoegen",
-      postToDiscord: ".ics naar Discord posten",
       unit: {
         minutes: "minuten",
         hours: "uren",
         days: "dagen"
       },
-      syncLabel: ".ics bestand bijvoegen",
-      syncSuccess: "Kalenderbestand verstuurd voor \"{title}\"",
-      syncFailed: "Kalenderbestand verzending mislukt voor \"{title}\": {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Webhook Testen",
@@ -273,17 +252,15 @@ export const nl = {
       groupRequired: "Groep (verplicht)",
       profileOptional: "Sjabloon (optioneel)",
       advanced: "Geavanceerd",
-      importJson: "Importeren uit JSON",
-      dateSource: "Gebruik",
-      dateSourcePattern: "Patroon",
       patternDates: "Patroondatums",
       manualDate: "Handmatige datum",
       manualTime: "Handmatige tijd",
-      dateSourceManual: "Handmatig"
+      dateSourceManual: "Handmatig",
+      dateSource: "Gebruik",
+      dateSourcePattern: "Patroon"
     },
     hints: {
       profileDefaults: "Kies een sjabloon met standaardinstellingen, of laat leeg om handmatig aan te maken.",
-      importJson: "Eventdetails importeren uit een JSON-bestand."
     },
     dateHints: {
       default: "Handmatige modus is klaar. Sjablonen met patronen ontgrendelen datumopties.",
@@ -299,11 +276,8 @@ export const nl = {
     importSuccess: "Eventgegevens geïmporteerd uit JSON.",
     importWrongType: "Dit lijkt een sjabloon-JSON te zijn. Gebruik in plaats daarvan Sjabloon importeren.",
     exportSuccess: "Eventgegevens geëxporteerd naar JSON.",
-    dateSource: "Datum & tijd",
-    dateSourcePattern: "Uit sjabloonpatroon",
     dateOption: "Datum kiezen",
     patternDateLabel: "{label} - {date}",
-    access: "Toegang",
     roleRestrictions: {
       title: "Rolbeperkingen",
       hint: "Optioneel - indien ingeschakeld, mogen alleen de geselecteerde groepsrollen deelnemen.",
@@ -335,13 +309,11 @@ export const nl = {
     failed: "Kon evenement niet aanmaken.",
     selectDateError: "Selecteer een datum.",
     updateRequired: "Update beschikbaar. Werk bij voordat je evenementen aanmaakt.",
-    noDateOptionsError: "Geen datumopties beschikbaar vanuit sjabloon.",
     featuredPermissionRevoked: "Deze groep heeft geen toestemming meer om uitgelichte evenementen te maken.",
     groupFairPermissionRevoked: "Deze groep heeft geen toestemming meer om evenementen op te nemen in de Groepsbeurs."
   },
   modify: {
     subtitle: "Bewerk of verwijder aankomende groepsevenementen.",
-    showPending: "In afwachting tonen",
     countEmpty: "Aankomende evenementen niet beschikbaar.",
     countGroupFallback: "Deze groep",
     countStatus: "Aankomende evenementen voor {group}: {count}.",
@@ -409,7 +381,6 @@ export const nl = {
     }
   },
   profiles: {
-    subtitle: "Maak herbruikbare sjablonen per groep.",
     steps: {
       select: "Selecteren",
       basics: "Basis",
@@ -435,7 +406,6 @@ export const nl = {
     existingProfilePlaceholder: "Selecteer een sjabloon",
     displayName: "Sjabloonnaam",
     displayNamePlaceholder: "Community hangout-sjabloon",
-    access: "Toegang",
     durationDefault: "Standaardtijdsduur (DD:HH:MM)",
     dateMode: "Datummodus",
     dateModePattern: "Patroon gebaseerd",
@@ -489,11 +459,6 @@ export const nl = {
         after: "Nadat het vorige evenement eindigt",
         monthly: "Maandelijks op specifieke dag"
       },
-      offsetHint: "Hoe lang ervoor/erna om de evenementvermelding te plaatsen:",
-      days: "Dagen",
-      hours: "Uren",
-      minutes: "Minuten",
-      monthlyHint: "Plaats evenementen op deze dag elke maand:",
       monthlyDay: "Dag van de maand",
       monthlyTime: "Tijd",
       repeatMode: "Herhalen",
@@ -502,7 +467,6 @@ export const nl = {
         count: "Vast aantal"
       },
       repeatCount: "Aantal evenementen om aan te maken",
-      disclaimer: "Automatisering vereist dat de app actief is. Gemiste automatiseringen kunnen worden afgehandeld via het tabblad Evenementen wijzigen.",
       patternsRequired: "Minstens één patroon is vereist voor automatisering",
       confirmTitle: "Automatisering inschakelen?",
       confirmEnable: "Automatiseringen vereisen dat de app actief is om evenementen te plaatsen. Gemiste automatiseringen kunnen worden afgehandeld via het tabblad Evenementen wijzigen.",
@@ -522,11 +486,6 @@ export const nl = {
         monthly: "Elke maand op de {day}{ordinal} om {time}"
       },
       helpers: {
-        offsetDays: "Stel in hoeveel dagen ervoor/erna het evenement wordt geplaatst",
-        offsetHours: "Stel in hoeveel uren ervoor/erna het evenement wordt geplaatst",
-        offsetMinutes: "Stel in hoeveel minuten ervoor/erna het evenement wordt geplaatst",
-        monthlyDay: "Dagen 29-31 gebruiken de laatste dag van kortere maanden",
-        monthlyTime: "Stel de tijd in waarop evenementen elke maand worden geplaatst"
       },
       offsetProse: "Plaats het volgende evenement 7 dagen voordat het begint.",
       monthlyProse: "Elke maand op de 1e om 18:00",
@@ -565,7 +524,6 @@ export const nl = {
     groupFairEvent: "Opnemen in Groepsbeurs",
     noMatches: "Geen overeenkomsten.",
     noGroupsAccess: "Geen groepen met kalendertoegang",
-    selectGroup: "Groep selecteren",
     selectGroupPlaceholder: "Kies een groep",
     accessTypes: {
       public: "Openbaar",
@@ -614,8 +572,6 @@ export const nl = {
       languagesHint: "{count} geselecteerd",
       filterLanguages: "Talen filteren...",
       platforms: "Platformen",
-      manualDate: "Datum",
-      manualTime: "Tijd"
     },
     errors: {
       durationError: "Tijdsduur moet een positief getal zijn.",
@@ -673,7 +629,7 @@ export const nl = {
       template: {
         bullet1: "Elk evenement wordt geplaatst als een onafhankelijk agenda-item — per voorval aanpasbaar.",
         bullet2: "Kondig elk evenement optioneel aan via geplande Discord-evenementen, webhooks en .ics-agenda-uitnodigingen.",
-        bullet3: "Combineer met EC's automatisering en patroon-gebaseerde planning voor publicatie zonder tussenkomst.",
+        bullet3: "Combineer met automatisering en patroon-gebaseerde planning voor publicatie zonder tussenkomst.",
         bullet4: "Vereist dat de app actief is voor automatische publicatie.",
         title: "Sjablonen"
       }

@@ -28,7 +28,7 @@ export const en = {
         title: "Templates",
         bullet1: "Each event posts as an independent calendar entry — modifiable per occurrence.",
         bullet2: "Optionally announce each event via Discord scheduled events, webhooks, and .ics calendar invites.",
-        bullet3: "Combine with EC's automation and pattern-based scheduling for hands-off posting.",
+        bullet3: "Combine with automation and pattern-based scheduling for hands-off posting.",
         bullet4: "Requires the app to be running for automated posting."
       },
       series: {
@@ -152,10 +152,8 @@ export const en = {
     loggingIn: "Logging in...",
     loginFailed: "Login failed.",
     sessionChecking: "Checking session...",
-    sessionCheckFailed: "Session check failed.",
     loginRequired: "Login required.",
     loggedInAs: "Logged in as {name}.",
-    logoutFailed: "Logout failed.",
     loggedOut: "Logged out."
   },
   twoFactor: {
@@ -195,14 +193,6 @@ export const en = {
     theme: {
       title: "Theme",
       description: "Customize the appearance of the app. Select a preset or adjust manually.",
-      default: "Default (Teal/Green)",
-      blue: "Ocean Blue",
-      purple: "Purple Haze",
-      amber: "Altimit Amber",
-      red: "Crimson Red",
-      custom: "Custom Colors",
-      accentColor: "Accent Color",
-      bgColor: "Background Color",
       presetLabel: "Current Theme",
       nameLabel: "Theme Name",
       namePlaceholder: "New theme name",
@@ -284,10 +274,8 @@ export const en = {
       autoUploadImages: "Automatically upload gallery images from imported events/templates"
     },
     discord: {
-      title: "Discord Integration",
       enable: "Enable Discord integration",
       description: "Automatically create Discord Events when VRChat events are posted.",
-      profileHint: "Events from this template will also be posted to Discord.",
       tokenLabel: "Bot Token",
       tokenPlaceholder: "Paste your bot token",
       guildLabel: "Server ID",
@@ -299,7 +287,6 @@ export const en = {
       selectGroup: "Select a group...",
       saveButton: "Save",
       saved: "Discord settings saved.",
-      syncLabel: "Post to Discord",
       eventLabel: "Create Discord Event",
       syncSuccess: "Discord event created for \"{title}\"",
       syncFailed: "Discord sync failed for \"{title}\": {error}"
@@ -311,24 +298,16 @@ export const en = {
       syncFailed: "Webhook delivery failed for \"{title}\": {error}"
     },
     calendar: {
-      title: "Calendar Integration",
-      description: "Generate .ics calendar files with reminders, auto-saved locally or attached to webhook posts.",
       enable: "Enable calendar file generation",
       inviteTitle: "Calendar Invite",
       createInvite: "Create .ics Calendar Invite",
-      remindersTitle: ".ics Calendar Reminders",
       enableReminders: "Enable .ics Calendar Reminders",
-      remindersDescription: "Configure default reminders included in .ics files.",
       addReminder: "Add Reminder",
-      postToDiscord: "Post .ics to Discord",
       unit: {
         minutes: "minutes",
         hours: "hours",
         days: "days"
       },
-      syncLabel: "Attach .ics file",
-      syncSuccess: "Calendar file sent for \"{title}\"",
-      syncFailed: "Calendar file delivery failed for \"{title}\": {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Test Webhook",
@@ -407,7 +386,6 @@ export const en = {
       groupRequired: "Group (required)",
       profileOptional: "Template (optional)",
       advanced: "Advanced",
-      importJson: "Import from JSON",
       dateSource: "Use",
       dateSourcePattern: "Pattern",
       dateSourceManual: "Manual",
@@ -417,7 +395,6 @@ export const en = {
     },
     hints: {
       profileDefaults: "Pick a template for defaults, or leave blank to create manually.",
-      importJson: "Import event details from a JSON file."
     },
     dateHints: {
       default: "Manual mode is ready. Templates with patterns unlock date options.",
@@ -433,11 +410,8 @@ export const en = {
     importSuccess: "Event data imported from JSON.",
     importWrongType: "This appears to be a template JSON. Please use Import Template instead.",
     exportSuccess: "Event data exported to JSON.",
-    dateSource: "Date & Time",
-    dateSourcePattern: "From template pattern",
     dateOption: "Select Date",
     patternDateLabel: "{label} - {date}",
-    access: "Access",
     roleRestrictions: {
       title: "Role Restrictions",
       hint: "Optional - If enabled, only the selected group roles may join.",
@@ -469,13 +443,11 @@ export const en = {
     failed: "Could not create event.",
     selectDateError: "Select a date.",
     updateRequired: "Update available. Please update before creating events.",
-    noDateOptionsError: "No date options available from template.",
     featuredPermissionRevoked: "This group no longer has permission to create featured events.",
     groupFairPermissionRevoked: "This group no longer has permission to include events in the Group Fair."
   },
   modify: {
     subtitle: "Edit or delete upcoming group events.",
-    showPending: "Show Pending",
     filter: {
     },
     filtersButton: "Filters",
@@ -545,7 +517,6 @@ export const en = {
     postingOptions: "Posting Options"
   },
   profiles: {
-    subtitle: "Create reusable templates per group.",
     steps: {
       select: "Select",
       basics: "Basics",
@@ -569,7 +540,6 @@ export const en = {
     existingProfilePlaceholder: "Select a schedule",
     displayName: "Schedule Name",
     displayNamePlaceholder: "Community Hangout",
-    access: "Access",
     durationDefault: "Default Duration (DD:HH:MM)",
     dateMode: "Date Mode",
     dateModePattern: "Pattern based",
@@ -623,11 +593,6 @@ export const en = {
         after: "After previous event ends",
         monthly: "Monthly on specific day"
       },
-      offsetHint: "How long before/after to post the event listing:",
-      days: "Days",
-      hours: "Hours",
-      minutes: "Minutes",
-      monthlyHint: "Post events on this day each month:",
       monthlyDay: "Day of Month",
       monthlyTime: "Time",
       repeatMode: "Repeat",
@@ -636,7 +601,6 @@ export const en = {
         count: "Fixed count"
       },
       repeatCount: "Events to Create",
-      disclaimer: "Automation requires the app to be running. Missed automations can be handled from the Modify Events tab.",
       patternsRequired: "At least one pattern is required for automation",
       confirmTitle: "Enable Automation?",
       confirmEnable: "Automations require the app to be running to post events. Missed automations can be handled from the Modify Events tab.",
@@ -656,11 +620,6 @@ export const en = {
         monthly: "Every month on the {day}{ordinal} at {time}"
       },
       helpers: {
-        offsetDays: "Set how many days before/after to post the event",
-        offsetHours: "Set how many hours before/after to post the event",
-        offsetMinutes: "Set how many minutes before/after to post the event",
-        monthlyDay: "Days 29-31 will use the last day of shorter months",
-        monthlyTime: "Set the time when events will be posted each month"
       },
       offsetProse: "Post the next event 7 days before it begins.",
       monthlyProse: "Every month on the 1st at 6:00 PM",
@@ -702,7 +661,6 @@ export const en = {
     groupFairEvent: "Include in Group Fair",
     noMatches: "No matches.",
     noGroupsAccess: "No groups with calendar access",
-    selectGroup: "Select Group",
     selectGroupPlaceholder: "Choose a group",
     errors: {
       noGroup: "Select a group.",
@@ -767,8 +725,6 @@ export const en = {
       languagesHint: "{count} selected",
       filterLanguages: "Filter languages...",
       platforms: "Platforms",
-      manualDate: "Date",
-      manualTime: "Time"
     }
   },
   wizard: {

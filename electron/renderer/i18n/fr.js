@@ -18,10 +18,8 @@ export const fr = {
     loggingIn: "Connexion...",
     loginFailed: "Échec de la connexion.",
     sessionChecking: "Vérification de la session...",
-    sessionCheckFailed: "Échec de la vérification de session.",
     loginRequired: "Connexion requise.",
     loggedInAs: "Connecté en tant que {name}.",
-    logoutFailed: "Échec de la déconnexion.",
     loggedOut: "Déconnecté."
   },
   twoFactor: {
@@ -58,14 +56,6 @@ export const fr = {
     theme: {
       title: "Thème",
       description: "Personnalisez l'apparence de l'application. Sélectionnez un préréglage ou ajustez manuellement.",
-      default: "Par défaut (Turquoise/Vert)",
-      blue: "Bleu océan",
-      purple: "Brume violette",
-      amber: "Ambre Altimit",
-      red: "Rouge cramoisi",
-      custom: "Couleurs personnalisées",
-      accentColor: "Couleur d'accent",
-      bgColor: "Couleur d'arrière-plan",
       presetLabel: "Thème actuel",
       nameLabel: "Nom du thème",
       namePlaceholder: "Nouveau nom de thème",
@@ -147,10 +137,8 @@ export const fr = {
       autoUploadImages: "Télécharger automatiquement les images de galerie depuis les événements/modèles importés"
     },
     discord: {
-      title: "Intégration Discord",
       enable: "Activer l'intégration Discord",
       description: "Crée automatiquement des événements Discord lors de la création d'événements VRChat.",
-      profileHint: "Les événements de ce modèle seront également publiés sur Discord.",
       tokenLabel: "Jeton du bot",
       tokenPlaceholder: "Collez le jeton du bot",
       guildLabel: "ID du serveur",
@@ -162,7 +150,6 @@ export const fr = {
       selectGroup: "Sélectionner un groupe...",
       saveButton: "Enregistrer",
       saved: "Paramètres Discord enregistrés.",
-      syncLabel: "Publier sur Discord",
       eventLabel: "Créer un événement Discord",
       syncSuccess: "Événement Discord créé pour « {title} »",
       syncFailed: "Synchronisation Discord échouée pour « {title} » : {error}"
@@ -174,23 +161,15 @@ export const fr = {
       syncFailed: "Échec de livraison du webhook pour \"{title}\" : {error}"
     },
     calendar: {
-      title: "Intégration Calendrier",
-      description: "Génère des fichiers calendrier .ics avec rappels, enregistrés localement ou joints aux publications webhook.",
       enable: "Activer la génération de fichiers calendrier",
       createInvite: "Créer une invitation calendrier .ics",
-      remindersTitle: "Rappels calendrier .ics",
       enableReminders: "Activer les rappels calendrier .ics",
-      remindersDescription: "Configurez les rappels par défaut inclus dans les fichiers .ics.",
       addReminder: "Ajouter un Rappel",
-      postToDiscord: "Publier .ics sur Discord",
       unit: {
         minutes: "minutes",
         hours: "heures",
         days: "jours"
       },
-      syncLabel: "Joindre le fichier .ics",
-      syncSuccess: "Fichier calendrier envoyé pour \"{title}\"",
-      syncFailed: "Échec de l'envoi du fichier calendrier pour \"{title}\" : {error}",
       webhookLabel: "Webhook URL",
       webhookPlaceholder: "https://discord.com/api/webhooks/...",
       webhookTestButton: "Tester le Webhook",
@@ -273,17 +252,15 @@ export const fr = {
       groupRequired: "Groupe (obligatoire)",
       profileOptional: "Modèle (facultatif)",
       advanced: "Avancé",
-      importJson: "Importer depuis JSON",
-      dateSource: "Utiliser",
-      dateSourcePattern: "Modèle",
       patternDates: "Dates de modèle",
       manualDate: "Date manuelle",
       manualTime: "Heure manuelle",
-      dateSourceManual: "Manuel"
+      dateSourceManual: "Manuel",
+      dateSource: "Utiliser",
+      dateSourcePattern: "Modèle"
     },
     hints: {
       profileDefaults: "Choisissez un modèle pour les valeurs par défaut, ou laissez vide pour créer manuellement.",
-      importJson: "Importer les détails de l'événement depuis un fichier JSON."
     },
     dateHints: {
       default: "Le mode manuel est prêt. Les modèles avec des modèles débloquent les options de date.",
@@ -299,11 +276,8 @@ export const fr = {
     importSuccess: "Données de l'événement importées depuis JSON.",
     importWrongType: "Ceci semble être un JSON de modèle. Veuillez utiliser Importer le modèle à la place.",
     exportSuccess: "Données de l'événement exportées vers JSON.",
-    dateSource: "Date et heure",
-    dateSourcePattern: "À partir du modèle",
     dateOption: "Sélectionner une date",
     patternDateLabel: "{label} - {date}",
-    access: "Accès",
     roleRestrictions: {
       title: "Restrictions de rôle",
       hint: "Optionnel - Si activé, seuls les rôles de groupe sélectionnés peuvent rejoindre.",
@@ -335,13 +309,11 @@ export const fr = {
     failed: "Impossible de créer l'événement.",
     selectDateError: "Sélectionnez une date.",
     updateRequired: "Mise à jour disponible. Mettez à jour avant de créer des événements.",
-    noDateOptionsError: "Aucune date disponible depuis le modèle.",
     featuredPermissionRevoked: "Ce groupe n'a plus la permission de créer des événements en vedette.",
     groupFairPermissionRevoked: "Ce groupe n'a plus la permission d'inclure des événements dans la Foire des Groupes."
   },
   modify: {
     subtitle: "Modifier ou supprimer les événements à venir du groupe.",
-    showPending: "Afficher en attente",
     countEmpty: "Événements à venir indisponibles.",
     countGroupFallback: "Ce groupe",
     countStatus: "Événements à venir pour {group} : {count}.",
@@ -409,7 +381,6 @@ export const fr = {
     }
   },
   profiles: {
-    subtitle: "Créez des modèles réutilisables par groupe.",
     steps: {
       select: "Sélection",
       basics: "Bases",
@@ -435,7 +406,6 @@ export const fr = {
     existingProfilePlaceholder: "Sélectionner un modèle",
     displayName: "Nom du modèle",
     displayNamePlaceholder: "Modèle de rencontre communautaire",
-    access: "Accès",
     durationDefault: "Durée par défaut (DD:HH:MM)",
     dateMode: "Mode de date",
     dateModePattern: "Basé sur un modèle",
@@ -489,11 +459,6 @@ export const fr = {
         after: "Après la fin de l'événement précédent",
         monthly: "Mensuellement à une date spécifique"
       },
-      offsetHint: "Combien de temps avant/après publier l'événement :",
-      days: "Jours",
-      hours: "Heures",
-      minutes: "Minutes",
-      monthlyHint: "Publier les événements ce jour chaque mois :",
       monthlyDay: "Jour du mois",
       monthlyTime: "Heure",
       repeatMode: "Répéter",
@@ -502,7 +467,6 @@ export const fr = {
         count: "Nombre fixe"
       },
       repeatCount: "Événements à créer",
-      disclaimer: "L'automatisation nécessite que l'application soit en cours d'exécution. Les automatisations manquées peuvent être gérées depuis l'onglet Modifier les événements.",
       patternsRequired: "Au moins un modèle est requis pour l'automatisation",
       confirmTitle: "Activer l'automatisation ?",
       confirmEnable: "L'automatisation nécessite que l'application soit en cours d'exécution pour publier les événements. Les automatisations manquées peuvent être gérées depuis l'onglet Modifier les événements.",
@@ -522,11 +486,6 @@ export const fr = {
         monthly: "Le {day}{ordinal} de chaque mois à {time}"
       },
       helpers: {
-        offsetDays: "Définissez le nombre de jours avant/après pour publier l'événement",
-        offsetHours: "Définissez le nombre d'heures avant/après pour publier l'événement",
-        offsetMinutes: "Définissez le nombre de minutes avant/après pour publier l'événement",
-        monthlyDay: "Les jours 29-31 utiliseront le dernier jour des mois plus courts",
-        monthlyTime: "Définissez l'heure à laquelle les événements seront publiés chaque mois"
       },
       offsetProse: "Publier le prochain événement 7 jours avant qu'il ne commence.",
       monthlyProse: "Le 1er de chaque mois à 18:00",
@@ -565,7 +524,6 @@ export const fr = {
     groupFairEvent: "Inclure dans la Foire des Groupes",
     noMatches: "Aucune correspondance.",
     noGroupsAccess: "Aucun groupe avec accès au calendrier",
-    selectGroup: "Sélectionner un groupe",
     selectGroupPlaceholder: "Choisir un groupe",
     accessTypes: {
       public: "Public",
@@ -614,8 +572,6 @@ export const fr = {
       languagesHint: "{count} sélectionnées",
       filterLanguages: "Filtrer les langues...",
       platforms: "Plateformes",
-      manualDate: "Date",
-      manualTime: "Heure"
     },
     errors: {
       durationError: "La durée doit être un nombre positif.",
@@ -673,7 +629,7 @@ export const fr = {
       template: {
         bullet1: "Chaque événement est publié comme une entrée de calendrier indépendante — modifiable par occurrence.",
         bullet2: "Annoncez optionnellement chaque événement via les événements programmés Discord, les webhooks et les invitations calendrier .ics.",
-        bullet3: "Combinez avec l'automatisation et la planification par motifs d'EC pour une publication sans intervention.",
+        bullet3: "Combinez avec l'automatisation et la planification par motifs pour une publication sans intervention.",
         bullet4: "Nécessite que l'application soit en cours d'exécution pour la publication automatique.",
         title: "Modèles"
       }
