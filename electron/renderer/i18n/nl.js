@@ -4,8 +4,8 @@ export const nl = {
   nav: {
     create: "Evenement maken",
     modify: "Evenementen wijzigen",
-    profiles: "Sjablonen beheren",
-    settings: "Instellingen"
+    settings: "Instellingen",
+    schedules: "Planningen beheren"
   },
   auth: {
     title: "Toegangsknooppunt",
@@ -55,11 +55,9 @@ export const nl = {
     loadFailed: "Kon galerij niet laden."
   },
   settings: {
-    title: "Instellingen",
     theme: {
       title: "Thema",
       description: "Pas het uiterlijk van de app aan. Selecteer een preset of stel handmatig in.",
-      label: "Kleurthema",
       default: "Standaard (turkoois/groen)",
       blue: "Oceaanblauw",
       purple: "Paarse nevel",
@@ -161,7 +159,6 @@ export const nl = {
       testSuccess: "Verbonden als {botName}",
       testFailed: "Verbinding mislukt. Controleer het bot-token.",
       tokenMissing: "Voer eerst een bot-token in.",
-      groupLabel: "Groep",
       selectGroup: "Selecteer een groep...",
       saveButton: "Opslaan",
       saved: "Discord-instellingen opgeslagen.",
@@ -202,7 +199,8 @@ export const nl = {
       webhookMissing: "Voer eerst een webhook URL in.",
       remindersHint: "Sommige kalender-apps gebruiken mogelijk alleen de eerste herinnering.",
       saveDirLabel: "Kalender opslagmap",
-      autoSaved: "Kalenderbestand opgeslagen: {filePath}"
+      autoSaved: "Kalenderbestand opgeslagen: {filePath}",
+      inviteTitle: "Agenda-uitnodiging"
     },
     eckit: {
       importButton: "Kit Importeren",
@@ -219,7 +217,10 @@ export const nl = {
       selectImage: "Selecteren"
     },
     saveButton: "Instellingen opslaan",
-    saved: "Instellingen opgeslagen."
+    saved: "Instellingen opgeslagen.",
+    featuredVerification: {
+      permissionDenied: "Deze groep mag geen uitgelichte evenementen aanmaken."
+    }
   },
   demo: {
     controls: {
@@ -255,7 +256,6 @@ export const nl = {
     ios: "iOS"
   },
   events: {
-    title: "Evenement maken",
     steps: {
       group: "Groep",
       date: "Datum",
@@ -276,10 +276,10 @@ export const nl = {
       importJson: "Importeren uit JSON",
       dateSource: "Gebruik",
       dateSourcePattern: "Patroon",
-      dateSourceManual: "Handmatig",
       patternDates: "Patroondatums",
       manualDate: "Handmatige datum",
-      manualTime: "Handmatige tijd"
+      manualTime: "Handmatige tijd",
+      dateSourceManual: "Handmatig"
     },
     hints: {
       profileDefaults: "Kies een sjabloon met standaardinstellingen, of laat leeg om handmatig aan te maken.",
@@ -295,15 +295,11 @@ export const nl = {
     },
     profileHint: "Sjablonen zijn optioneel. Gebruik er één met standaardinstellingen, of maak alles handmatig.",
     loadProfile: "Sjabloon laden (optioneel)",
-    loadProfilePlaceholder: "Selecteer een sjabloon",
     clearProfile: "Sjabloon wissen",
-    importJsonButton: "JSON importeren",
     importSuccess: "Eventgegevens geïmporteerd uit JSON.",
     importWrongType: "Dit lijkt een sjabloon-JSON te zijn. Gebruik in plaats daarvan Sjabloon importeren.",
-    exportJsonButton: "JSON exporteren",
     exportSuccess: "Eventgegevens geëxporteerd naar JSON.",
     dateSource: "Datum & tijd",
-    dateSourceManual: "Handmatig",
     dateSourcePattern: "Uit sjabloonpatroon",
     dateOption: "Datum kiezen",
     patternDateLabel: "{label} - {date}",
@@ -337,19 +333,14 @@ export const nl = {
     },
     created: "Evenement aangemaakt.",
     failed: "Kon evenement niet aanmaken.",
-    selectGroupError: "Selecteer een groep.",
     selectDateError: "Selecteer een datum.",
     updateRequired: "Update beschikbaar. Werk bij voordat je evenementen aanmaakt.",
-    requiredSingle: "{field} is verplicht.",
-    requiredMultiple: "{fields} zijn verplicht.",
     noDateOptionsError: "Geen datumopties beschikbaar vanuit sjabloon.",
     featuredPermissionRevoked: "Deze groep heeft geen toestemming meer om uitgelichte evenementen te maken.",
     groupFairPermissionRevoked: "Deze groep heeft geen toestemming meer om evenementen op te nemen in de Groepsbeurs."
   },
   modify: {
-    title: "Evenementen wijzigen",
     subtitle: "Bewerk of verwijder aankomende groepsevenementen.",
-    groupLabel: "Groep",
     showPending: "In afwachting tonen",
     countEmpty: "Aankomende evenementen niet beschikbaar.",
     countGroupFallback: "Deze groep",
@@ -359,8 +350,6 @@ export const nl = {
     eventImage: "Evenementafbeelding",
     noImage: "Geen afbeelding",
     untitled: "Naamloos evenement",
-    profileLabel: "Sjabloon laden (optioneel)",
-    profileSelect: "Selecteer een sjabloon",
     profileLoad: "Laden",
     profileSelectError: "Selecteer een sjabloon om te laden.",
     profileLoadFailed: "Kon sjabloon-standaardwaarden niet laden.",
@@ -373,10 +362,7 @@ export const nl = {
     },
     updateRequired: "Update beschikbaar. Werk bij voordat je evenementen wijzigt.",
     selectEventError: "Selecteer een evenement om te bewerken.",
-    requiredSingle: "{field} is verplicht.",
     selectDateError: "Selecteer een datum en tijd.",
-    durationError: "Tijdsduur moet een positief getal zijn.",
-    maxLanguages: "Maximaal 3 talen toegestaan.",
     saveFailed: "Kon evenement niet bijwerken.",
     saved: "Evenement bijgewerkt.",
     deleteFailed: "Kon evenement niet verwijderen.",
@@ -401,10 +387,28 @@ export const nl = {
       editSaved: "Evenement in afwachting bijgewerkt.",
       editFailed: "Kon evenement in afwachting niet bijwerken."
     },
-    postingOptions: "Publicatieopties"
+    postingOptions: "Publicatieopties",
+    badge: {
+      modified: "Gewijzigd"
+    },
+    filters: {
+      heading: "Tonen",
+      modified: "Gewijzigde voorvallen",
+      pending: "Wachtende evenementen",
+      standalone: "Losstaande evenementen"
+    },
+    filtersButton: "Filters",
+    timeRange: {
+      "1month": "1 maand",
+      "1week": "1 week",
+      "1year": "1 jaar",
+      "2weeks": "2 weken",
+      "3months": "3 maanden",
+      "6months": "6 maanden",
+      label: "Tijdsbereik"
+    }
   },
   profiles: {
-    title: "Sjablonen beheren",
     subtitle: "Maak herbruikbare sjablonen per groep.",
     steps: {
       select: "Selecteren",
@@ -413,32 +417,22 @@ export const nl = {
       audience: "Publiek"
     },
     section: {
-      selection: "Sjabloonselectie",
       basics: "Sjabloonbasis",
-      schedule: "Schema",
       audience: "Publiek"
     },
     labels: {
-      group: "Groep",
-      profile: "Sjabloon"
     },
     buttons: {
       new: "Nieuw"
     },
-    importJsonButton: "JSON importeren",
     importSuccess: "Sjabloongegevens geïmporteerd uit JSON.",
     importWrongType: "Dit lijkt een evenement-JSON te zijn. Gebruik in plaats daarvan Evenement importeren.",
-    exportJsonButton: "JSON exporteren",
     exportSuccess: "Sjabloongegevens geëxporteerd naar JSON.",
     hints: {
       groupAccess: "Kies een groep met kalendertoegang.",
       patternsInfo: "Patronen worden gebruikt om aankomende datums vooraf te genereren."
     },
-    existingProfile: "Bestaand sjabloon",
     existingProfilePlaceholder: "Selecteer een sjabloon",
-    noProfiles: "Geen sjablonen voor deze groep",
-    newButton: "Nieuw sjabloon",
-    saveButton: "Sjabloon opslaan",
     displayName: "Sjabloonnaam",
     displayNamePlaceholder: "Community hangout-sjabloon",
     access: "Toegang",
@@ -449,7 +443,6 @@ export const nl = {
     dateModeBoth: "Patronen + handmatig",
     sendNotificationDefault: "Stuur melding standaard",
     patterns: {
-      title: "Terugkerende patronen",
       addButton: "Patroon toevoegen",
       clearButton: "Patronen wissen",
       noPatterns: "Nog geen patronen.",
@@ -502,7 +495,6 @@ export const nl = {
       minutes: "Minuten",
       monthlyHint: "Plaats evenementen op deze dag elke maand:",
       monthlyDay: "Dag van de maand",
-      monthlyDayHint: "Dagen 29-31 gebruiken de laatste dag van kortere maanden",
       monthlyTime: "Tijd",
       repeatMode: "Herhalen",
       repeatModes: {
@@ -549,14 +541,6 @@ export const nl = {
     updated: "Sjabloon bijgewerkt.",
     deleted: "Sjabloon verwijderd.",
     confirmDelete: "Sjabloon \"{name}\" verwijderen?",
-    selectGroupError: "Selecteer een groep.",
-    selectGroupFirst: "Selecteer eerst een groep.",
-    selectProfileError: "Selecteer een sjabloon om te bewerken.",
-    maxLanguages: "Maximaal 3 talen toegestaan.",
-    durationError: "Tijdsduur moet een positief getal zijn.",
-    required: "{fields} {verb} verplicht.",
-    requiredSingle: "{field} is verplicht.",
-    requiredMultiple: "{fields} zijn verplicht."
   },
   common: {
     syncing: "Gegevens synchroniseren...",
@@ -632,7 +616,26 @@ export const nl = {
       platforms: "Platformen",
       manualDate: "Datum",
       manualTime: "Tijd"
-    }
+    },
+    errors: {
+      durationError: "Tijdsduur moet een positief getal zijn.",
+      maxLanguages: "Maximaal 3 talen toegestaan.",
+      noGroup: "Selecteer een groep.",
+      requiredMultiple: "{fields} zijn verplicht.",
+      requiredSingle: "{field} is verplicht."
+    },
+    exportJson: "JSON exporteren",
+    importJson: "JSON importeren",
+    labels: {
+      group: "Groep",
+      schedule: "Planning",
+      series: "Serie",
+      templates: "Sjablonen"
+    },
+    section: {
+      scheduleSelection: "Planningselectie"
+    },
+    selectTemplate: "Selecteer een sjabloon"
   },
   wizard: {
     back: "Terug",
@@ -643,5 +646,133 @@ export const nl = {
     message: "Een evenement \"{title}\" staat al gepland op dit tijdstip.",
     changeTime: "Tijd opnieuw kiezen",
     continue: "Toch aanmaken"
+  },
+  schedules: {
+    announcements: {
+      hint: "Schakel de acties in die uitgevoerd worden wanneer dit sjabloon een evenement plaatst.",
+      hintSeries: "Schakel de acties in die uitgevoerd worden wanneer deze serie aangemaakt of gewijzigd wordt.",
+      title: "Aankondigingen"
+    },
+    empty: {
+      all: "Geen planningen voor deze groep.",
+      series: "Geen series voor deze groep.",
+      templates: "Geen sjablonen voor deze groep."
+    },
+    filter: {
+      all: "Alles",
+      label: "Tonen"
+    },
+    info: {
+      series: {
+        bullet1: "VRChat genereert alle voorvallen serverzijde vooraf op basis van een herhalingsregel.",
+        bullet2: "Instellen en vergeten — geen app nodig na het aanmaken.",
+        bullet3: "Beperkingen: geen aankondigingen per evenement; de herhalingsregel kan niet worden gewijzigd zonder alle voorvallen opnieuw te genereren (wijzigingen gaan verloren).",
+        bullet4: "Geschikt voor stabiele, terugkerende evenementen zonder aankondigingen.",
+        title: "Series"
+      },
+      template: {
+        bullet1: "Elk evenement wordt geplaatst als een onafhankelijk agenda-item — per voorval aanpasbaar.",
+        bullet2: "Kondig elk evenement optioneel aan via geplande Discord-evenementen, webhooks en .ics-agenda-uitnodigingen.",
+        bullet3: "Combineer met EC's automatisering en patroon-gebaseerde planning voor publicatie zonder tussenkomst.",
+        bullet4: "Vereist dat de app actief is voor automatische publicatie.",
+        title: "Sjablonen"
+      }
+    },
+    modeBlurb: {
+      moreInfo: "(meer info)",
+      series: "Een serie is VRChat's eigen terugkerende plannen-tool. De server genereert alle voorvallen vooraf. Geen aankondigingen.",
+      template: "Sjablonen vullen herhaalde evenementen automatisch in en plaatsen elk voorval afzonderlijk, met optionele aankondigingen."
+    },
+    saveButton: {
+      seriesCreate: "Serie aanmaken",
+      template: "Sjabloon opslaan"
+    },
+    subtitle: "Sjablonen voor planning met aankondigingen en native terugkerende VRChat-series.",
+    types: {
+      templateButton: "Sjabloon"
+    }
+  },
+  series: {
+    confirmDelete: "\"{label}\" verwijderen? Hiermee verwijder je de serie en al zijn voorvallen uit VRChat.",
+    confirmDeleteTitle: "Serie verwijderen?",
+    created: "Serie \"{label}\" aangemaakt.",
+    days: {
+      fr: "Vr",
+      mo: "Ma",
+      sa: "Za",
+      su: "Zo",
+      th: "Do",
+      tu: "Di",
+      we: "Wo"
+    },
+    deleted: "Serie \"{label}\" verwijderd.",
+    disclaimer: "Een serie kan alleen vóór het eerste voorval opnieuw gepland worden. Eenmaal gestart, moet je hem verwijderen om datum of tijd te wijzigen. Evenementen kunnen tot een jaar vooruit gepland worden. Maximale duur van een evenement is 31 dagen.",
+    end: {
+      afterDateLabel: "Op een specifieke datum",
+      afterOccurrencesLabel: "Na N voorvallen",
+      never: "Nooit",
+      occurrencesLabel: "voorvallen"
+    },
+    errors: {
+      createFailed: "Kon serie niet aanmaken.",
+      deleteFailed: "Kon serie niet verwijderen.",
+      noDaysOfWeek: "Selecteer ten minste één dag van de week.",
+      noEndDate: "Stel een einddatum in.",
+      noLabel: "Serie-label is verplicht.",
+      noSeries: "Geen serie geselecteerd.",
+      noStartDate: "Datum en tijd van het eerste voorval zijn verplicht.",
+      noTitle: "Evenementnaam is verplicht.",
+      notFound: "Serie niet gevonden.",
+      regenFailed: "Kon serie niet opnieuw genereren.",
+      startInPast: "Het eerste voorval moet in de toekomst liggen. Werk de datum bij voor het opslaan.",
+      updateFailed: "Kon serie niet bijwerken."
+    },
+    frequency: {
+      custom: "Aangepast",
+      daily: "Dagelijks",
+      monthly: "Maandelijks",
+      weekdays: "Doordeweeks",
+      weekends: "Weekends",
+      weekly: "Wekelijks",
+      yearly: "Jaarlijks"
+    },
+    labels: {
+      daysOfWeek: "Herhaalt op",
+      endCondition: "Eindigt",
+      frequency: "Frequentie",
+      interval: "Herhalen elke",
+      startDate: "Datum eerste voorval",
+      startTime: "Starttijd"
+    },
+    lockedHint: "Deze serie is al begonnen. Datum, tijd en herhalingsregel zijn vergrendeld — maar je kunt nog wel aanpassen wanneer hij eindigt. Klik op Ontgrendelen om opnieuw te plannen — bij opslaan wordt deze serie vervangen door een nieuwe.",
+    rasterize: {
+      retryIn: "Opnieuw proberen over {wait}.",
+      retryNow: "Nu opnieuw proberen",
+      statusText: "{count} evenement(en) wachten op aanmaak.{wait}"
+    },
+    regen: {
+      choiceMessage: "Deze serie heeft {count} gewijzigd(e) evenement(en). De huidige serie wordt vervangen door een nieuwe.\n\n• Wijzigingen behouden: overlapt dezelfde dag, dan werkt het de nieuwe serie bij; voorvallen zonder overlap worden losstaand.\n• Wijzigingen verwerpen: aanpassingen aan die voorvallen gaan verloren.",
+      choiceTitle: "Serie vervangen?",
+      confirmAction: "Serie vervangen",
+      confirmMessage: "Hiermee wordt de huidige serie vervangen door een nieuwe. Doorgaan?",
+      discard: "Wijzigingen verwerpen",
+      keep: "Wijzigingen behouden",
+      success: "Serie \"{label}\" vervangen.",
+      successWithMods: "Serie \"{label}\" vervangen. {count} wijziging(en) in wachtrij."
+    },
+    regenWarning: "De herhalingsregel is ontgrendeld. Als je de herhalingsregel wijzigt, wordt de huidige serie vervangen door een nieuwe.",
+    regenWarningWithMods: "De herhalingsregel is ontgrendeld. Als je de herhalingsregel wijzigt, wordt de huidige serie vervangen door een nieuwe en wordt gevraagd hoe om te gaan met de {count} gewijzigde evenementen.",
+    unit: {
+      days: "dagen",
+      months: "maanden",
+      weeks: "weken",
+      years: "jaren"
+    },
+    unlockButton: "Ontgrendelen",
+    updateRequired: "Update beschikbaar. Werk bij voordat je series wijzigt.",
+    updated: "Serie \"{label}\" bijgewerkt.",
+    warnings: {
+      confirmUpdate: "Serie bijwerken"
+    }
   }
 };

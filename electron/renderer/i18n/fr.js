@@ -4,8 +4,8 @@ export const fr = {
   nav: {
     create: "Créer un événement",
     modify: "Modifier les événements",
-    profiles: "Gérer les modèles",
-    settings: "Paramètres"
+    settings: "Paramètres",
+    schedules: "Gérer les planifications"
   },
   auth: {
     title: "Connexion",
@@ -55,11 +55,9 @@ export const fr = {
     loadFailed: "Impossible de charger la galerie."
   },
   settings: {
-    title: "Paramètres",
     theme: {
       title: "Thème",
       description: "Personnalisez l'apparence de l'application. Sélectionnez un préréglage ou ajustez manuellement.",
-      label: "Thème de couleur",
       default: "Par défaut (Turquoise/Vert)",
       blue: "Bleu océan",
       purple: "Brume violette",
@@ -161,7 +159,6 @@ export const fr = {
       testSuccess: "Connecté en tant que {botName}",
       testFailed: "Échec de la connexion. Vérifiez le jeton du bot.",
       tokenMissing: "Veuillez d'abord entrer un jeton de bot.",
-      groupLabel: "Groupe",
       selectGroup: "Sélectionner un groupe...",
       saveButton: "Enregistrer",
       saved: "Paramètres Discord enregistrés.",
@@ -202,7 +199,8 @@ export const fr = {
       webhookMissing: "Entrez d'abord une URL de webhook.",
       remindersHint: "Certaines applications de calendrier peuvent n'utiliser que le premier rappel.",
       saveDirLabel: "Répertoire de sauvegarde du calendrier",
-      autoSaved: "Fichier calendrier sauvegardé : {filePath}"
+      autoSaved: "Fichier calendrier sauvegardé : {filePath}",
+      inviteTitle: "Invitation calendrier"
     },
     eckit: {
       importButton: "Importer le Kit",
@@ -219,7 +217,10 @@ export const fr = {
       selectImage: "Sélectionner"
     },
     saveButton: "Enregistrer les paramètres",
-    saved: "Paramètres enregistrés."
+    saved: "Paramètres enregistrés.",
+    featuredVerification: {
+      permissionDenied: "Ce groupe n'est pas autorisé à créer des événements en vedette."
+    }
   },
   demo: {
     controls: {
@@ -255,7 +256,6 @@ export const fr = {
     ios: "iOS"
   },
   events: {
-    title: "Créer un événement",
     steps: {
       group: "Groupe",
       date: "Date",
@@ -263,7 +263,7 @@ export const fr = {
       create: "Créer"
     },
     section: {
-      groupModèlee: "Groupe + Modèle",
+      groupProfile: "Groupe + Modèle",
       dateSelection: "Sélection de la date",
       details: "Détails de l'événement",
       readyTitle: "Prêt à créer ?",
@@ -271,39 +271,35 @@ export const fr = {
     },
     labels: {
       groupRequired: "Groupe (obligatoire)",
-      modèleeOptional: "Modèle (facultatif)",
+      profileOptional: "Modèle (facultatif)",
       advanced: "Avancé",
       importJson: "Importer depuis JSON",
       dateSource: "Utiliser",
       dateSourcePattern: "Modèle",
-      dateSourceManual: "Manuel",
       patternDates: "Dates de modèle",
       manualDate: "Date manuelle",
-      manualTime: "Heure manuelle"
+      manualTime: "Heure manuelle",
+      dateSourceManual: "Manuel"
     },
     hints: {
-      modèleeDefaults: "Choisissez un modèle pour les valeurs par défaut, ou laissez vide pour créer manuellement.",
+      profileDefaults: "Choisissez un modèle pour les valeurs par défaut, ou laissez vide pour créer manuellement.",
       importJson: "Importer les détails de l'événement depuis un fichier JSON."
     },
     dateHints: {
       default: "Le mode manuel est prêt. Les modèles avec des modèles débloquent les options de date.",
-      noModèlee: "Aucun modèle sélectionné. Utilisez la date/heure manuelle.",
+      noProfile: "Aucun modèle sélectionné. Utilisez la date/heure manuelle.",
       manualReady: "Mode manuel prêt.",
       chooseGenerated: "Choisissez une date générée ou utilisez le mode manuel.",
       noUpcoming: "Aucune date à venir trouvée.",
       loadFailed: "Impossible de charger les dates du modèle."
     },
-    modèleeHint: "Les modèles sont facultatifs. Utilisez-en un pour les valeurs par défaut ou créez tout manuellement.",
-    loadModèlee: "Charger un modèle (facultatif)",
-    loadModèleePlaceholder: "Sélectionner un modèle",
-    clearModèlee: "Effacer le modèle",
-    importJsonButton: "Importer JSON",
+    profileHint: "Les modèles sont facultatifs. Utilisez-en un pour les valeurs par défaut ou créez tout manuellement.",
+    loadProfile: "Charger un modèle (facultatif)",
+    clearProfile: "Effacer le modèle",
     importSuccess: "Données de l'événement importées depuis JSON.",
     importWrongType: "Ceci semble être un JSON de modèle. Veuillez utiliser Importer le modèle à la place.",
-    exportJsonButton: "Exporter JSON",
     exportSuccess: "Données de l'événement exportées vers JSON.",
     dateSource: "Date et heure",
-    dateSourceManual: "Manuel",
     dateSourcePattern: "À partir du modèle",
     dateOption: "Sélectionner une date",
     patternDateLabel: "{label} - {date}",
@@ -317,7 +313,7 @@ export const fr = {
       roles: "Rôles",
       noRoles: "Aucun rôle disponible pour ce groupe."
     },
-    manualModèleeOption: "Manuel (sans modèle)",
+    manualProfileOption: "Manuel (sans modèle)",
     pastDateError: "Impossible de sélectionner une date passée.",
     futureDateError: "Les événements ne peuvent être planifiés que jusqu'à 1 an à l'avance.",
     upcomingLimitNotice: "VRChat limite actuellement chaque groupe à 10 événements à venir.",
@@ -337,19 +333,14 @@ export const fr = {
     },
     created: "Événement créé.",
     failed: "Impossible de créer l'événement.",
-    selectGroupError: "Sélectionnez un groupe.",
     selectDateError: "Sélectionnez une date.",
     updateRequired: "Mise à jour disponible. Mettez à jour avant de créer des événements.",
-    requiredSingle: "{field} est requis.",
-    requiredMultiple: "{fields} sont requis.",
     noDateOptionsError: "Aucune date disponible depuis le modèle.",
     featuredPermissionRevoked: "Ce groupe n'a plus la permission de créer des événements en vedette.",
     groupFairPermissionRevoked: "Ce groupe n'a plus la permission d'inclure des événements dans la Foire des Groupes."
   },
   modify: {
-    title: "Modifier les événements",
     subtitle: "Modifier ou supprimer les événements à venir du groupe.",
-    groupLabel: "Groupe",
     showPending: "Afficher en attente",
     countEmpty: "Événements à venir indisponibles.",
     countGroupFallback: "Ce groupe",
@@ -359,12 +350,10 @@ export const fr = {
     eventImage: "Image de l'événement",
     noImage: "Aucune image",
     untitled: "Événement sans titre",
-    modèleeLabel: "Charger un modèle (optionnel)",
-    modèleeSelect: "Sélectionner un modèle",
-    modèleeLoad: "Charger",
-    modèleeSelectError: "Sélectionnez un modèle à charger.",
-    modèleeLoadFailed: "Impossible de charger les valeurs du modèle.",
-    modèleeLoaded: "Valeurs du modèle chargées.",
+    profileLoad: "Charger",
+    profileSelectError: "Sélectionnez un modèle à charger.",
+    profileLoadFailed: "Impossible de charger les valeurs du modèle.",
+    profileLoaded: "Valeurs du modèle chargées.",
     manualDate: "Changer la date",
     manualTime: "Changer l'heure",
     modal: {
@@ -373,10 +362,7 @@ export const fr = {
     },
     updateRequired: "Mise à jour disponible. Veuillez mettre à jour avant de modifier des événements.",
     selectEventError: "Sélectionnez un événement à modifier.",
-    requiredSingle: "{field} est requis.",
     selectDateError: "Sélectionnez une date et une heure.",
-    durationError: "La durée doit être un nombre positif.",
-    maxLanguages: "Maximum 3 langues autorisées.",
     saveFailed: "Impossible de mettre à jour l'événement.",
     saved: "Événement mis à jour.",
     deleteFailed: "Impossible de supprimer l'événement.",
@@ -401,10 +387,28 @@ export const fr = {
       editSaved: "Événement en attente mis à jour.",
       editFailed: "Impossible de mettre à jour l'événement en attente."
     },
-    postingOptions: "Options de publication"
+    postingOptions: "Options de publication",
+    badge: {
+      modified: "Modifié"
+    },
+    filters: {
+      heading: "Afficher",
+      modified: "Occurrences modifiées",
+      pending: "Événements en attente",
+      standalone: "Événements indépendants"
+    },
+    filtersButton: "Filtres",
+    timeRange: {
+      "1month": "1 mois",
+      "1week": "1 semaine",
+      "1year": "1 an",
+      "2weeks": "2 semaines",
+      "3months": "3 mois",
+      "6months": "6 mois",
+      label: "Plage temporelle"
+    }
   },
-    profiles: {
-    title: "Gérer les modèles",
+  profiles: {
     subtitle: "Créez des modèles réutilisables par groupe.",
     steps: {
       select: "Sélection",
@@ -413,32 +417,22 @@ export const fr = {
       audience: "Public"
     },
     section: {
-      selection: "Sélection du modèle",
       basics: "Bases du modèle",
-      schedule: "Planning",
       audience: "Public"
     },
     labels: {
-      group: "Groupe",
-      modèlee: "Modèle"
     },
     buttons: {
       new: "Nouveau"
     },
-    importJsonButton: "Importer JSON",
     importSuccess: "Données du modèle importées depuis JSON.",
     importWrongType: "Ceci semble être un JSON d'événement. Veuillez utiliser Importer un événement à la place.",
-    exportJsonButton: "Exporter JSON",
     exportSuccess: "Données du modèle exportées vers JSON.",
     hints: {
       groupAccess: "Choisissez un groupe avec accès au calendrier.",
       patternsInfo: "Les modèles servent à pré-générer les dates à venir."
     },
-    existingModèlee: "Modèle existant",
-    existingModèleePlaceholder: "Sélectionner un modèle",
-    noModèlees: "Aucun modèle pour ce groupe",
-    newButton: "Nouveau modèle",
-    saveButton: "Enregistrer le modèle",
+    existingProfilePlaceholder: "Sélectionner un modèle",
     displayName: "Nom du modèle",
     displayNamePlaceholder: "Modèle de rencontre communautaire",
     access: "Accès",
@@ -449,7 +443,6 @@ export const fr = {
     dateModeBoth: "Modèles + manuel",
     sendNotificationDefault: "Envoyer une notification par défaut",
     patterns: {
-      title: "Modèles récurrents",
       addButton: "Ajouter un modèle",
       clearButton: "Effacer les modèles",
       noPatterns: "Aucun modèle pour l'instant.",
@@ -502,7 +495,6 @@ export const fr = {
       minutes: "Minutes",
       monthlyHint: "Publier les événements ce jour chaque mois :",
       monthlyDay: "Jour du mois",
-      monthlyDayHint: "Les jours 29-31 utiliseront le dernier jour des mois plus courts",
       monthlyTime: "Heure",
       repeatMode: "Répéter",
       repeatModes: {
@@ -542,21 +534,13 @@ export const fr = {
       restoreSuccess: "{count} événement(s) restauré(s)",
       restoreNone: "Aucun événement à restaurer",
       restoreFailed: "Échec de la restauration des événements",
-      restoreNoModèlee: "Aucun modèle sélectionné",
+      restoreNoProfile: "Aucun modèle sélectionné",
       restorableCount: "{count} événement(s) supprimé(s) peuvent être restauré(s)"
     },
     created: "Modèle créé.",
     updated: "Modèle mis à jour.",
     deleted: "Modèle supprimé.",
     confirmDelete: "Supprimer le modèle \"{name}\" ?",
-    selectGroupError: "Sélectionnez un groupe.",
-    selectGroupFirst: "Sélectionnez d'abord un groupe.",
-    selectModèleeError: "Sélectionnez un modèle à modifier.",
-    maxLanguages: "Maximum 3 langues autorisées.",
-    durationError: "La durée doit être un nombre positif.",
-    required: "{fields} {verb} requis.",
-    requiredSingle: "{field} est requis.",
-    requiredMultiple: "{fields} sont requis."
   },
   common: {
     syncing: "Synchronisation des données...",
@@ -632,7 +616,26 @@ export const fr = {
       platforms: "Plateformes",
       manualDate: "Date",
       manualTime: "Heure"
-    }
+    },
+    errors: {
+      durationError: "La durée doit être un nombre positif.",
+      maxLanguages: "Maximum 3 langues autorisées.",
+      noGroup: "Sélectionnez un groupe.",
+      requiredMultiple: "{fields} sont requis.",
+      requiredSingle: "{field} est requis."
+    },
+    exportJson: "Exporter JSON",
+    importJson: "Importer JSON",
+    labels: {
+      group: "Groupe",
+      schedule: "Planification",
+      series: "Série",
+      templates: "Modèles"
+    },
+    section: {
+      scheduleSelection: "Sélection de la planification"
+    },
+    selectTemplate: "Sélectionner un modèle"
   },
   wizard: {
     back: "Retour",
@@ -643,5 +646,133 @@ export const fr = {
     message: "Un événement \"{title}\" est déjà programmé à cette heure.",
     changeTime: "Resélectionner l'heure",
     continue: "Créer quand même"
+  },
+  schedules: {
+    announcements: {
+      hint: "Activez les actions à effectuer lorsque ce modèle publie un événement.",
+      hintSeries: "Activez les actions à effectuer lorsque cette série est créée ou modifiée.",
+      title: "Annonces"
+    },
+    empty: {
+      all: "Aucune planification pour ce groupe.",
+      series: "Aucune série pour ce groupe.",
+      templates: "Aucun modèle pour ce groupe."
+    },
+    filter: {
+      all: "Tout",
+      label: "Afficher"
+    },
+    info: {
+      series: {
+        bullet1: "VRChat pré-génère toutes les occurrences côté serveur à partir d'une règle de récurrence.",
+        bullet2: "Configurez puis oubliez — aucune application requise après la création.",
+        bullet3: "Limitations : pas d'annonces par événement ; la règle de récurrence ne peut pas être modifiée sans régénérer toutes les occurrences (les modifications sont perdues).",
+        bullet4: "Idéal pour des événements stables et répétitifs qui n'ont pas besoin d'annonces.",
+        title: "Séries"
+      },
+      template: {
+        bullet1: "Chaque événement est publié comme une entrée de calendrier indépendante — modifiable par occurrence.",
+        bullet2: "Annoncez optionnellement chaque événement via les événements programmés Discord, les webhooks et les invitations calendrier .ics.",
+        bullet3: "Combinez avec l'automatisation et la planification par motifs d'EC pour une publication sans intervention.",
+        bullet4: "Nécessite que l'application soit en cours d'exécution pour la publication automatique.",
+        title: "Modèles"
+      }
+    },
+    modeBlurb: {
+      moreInfo: "(plus d'infos)",
+      series: "Une série est le planificateur récurrent natif de VRChat. Le serveur pré-génère toutes les occurrences. Pas d'annonces.",
+      template: "Les modèles remplissent automatiquement les événements répétés et publient chaque occurrence individuellement avec des annonces optionnelles."
+    },
+    saveButton: {
+      seriesCreate: "Créer la série",
+      template: "Enregistrer le modèle"
+    },
+    subtitle: "Modèles pour la planification avec annonces et séries récurrentes natives de VRChat.",
+    types: {
+      templateButton: "Modèle"
+    }
+  },
+  series: {
+    confirmDelete: "Supprimer « {label} » ? Cela supprimera la série et toutes ses occurrences de VRChat.",
+    confirmDeleteTitle: "Supprimer la série ?",
+    created: "Série « {label} » créée.",
+    days: {
+      fr: "Ven",
+      mo: "Lun",
+      sa: "Sam",
+      su: "Dim",
+      th: "Jeu",
+      tu: "Mar",
+      we: "Mer"
+    },
+    deleted: "Série « {label} » supprimée.",
+    disclaimer: "Une série ne peut être reprogrammée qu'avant le début de sa première occurrence. Une fois commencée, vous devez la supprimer pour changer la date ou l'heure. Les événements peuvent être planifiés jusqu'à un an à l'avance. La durée maximale d'un événement est de 31 jours.",
+    end: {
+      afterDateLabel: "À une date précise",
+      afterOccurrencesLabel: "Après N occurrences",
+      never: "Jamais",
+      occurrencesLabel: "occurrences"
+    },
+    errors: {
+      createFailed: "Impossible de créer la série.",
+      deleteFailed: "Impossible de supprimer la série.",
+      noDaysOfWeek: "Sélectionnez au moins un jour de la semaine.",
+      noEndDate: "Définissez une date de fin.",
+      noLabel: "L'étiquette de la série est requise.",
+      noSeries: "Aucune série sélectionnée.",
+      noStartDate: "La date et l'heure de la première occurrence sont requises.",
+      noTitle: "Le nom de l'événement est requis.",
+      notFound: "Série introuvable.",
+      regenFailed: "Impossible de régénérer la série.",
+      startInPast: "La première occurrence doit être dans le futur. Mettez à jour la date avant d'enregistrer.",
+      updateFailed: "Impossible de mettre à jour la série."
+    },
+    frequency: {
+      custom: "Personnalisé",
+      daily: "Quotidien",
+      monthly: "Mensuel",
+      weekdays: "Jours de semaine",
+      weekends: "Week-ends",
+      weekly: "Hebdomadaire",
+      yearly: "Annuel"
+    },
+    labels: {
+      daysOfWeek: "Répéter le",
+      endCondition: "Se termine",
+      frequency: "Fréquence",
+      interval: "Répéter tous les",
+      startDate: "Date de la première occurrence",
+      startTime: "Heure de début"
+    },
+    lockedHint: "Cette série a déjà commencé. La date, l'heure et la règle de répétition sont verrouillées — mais vous pouvez encore ajuster la fin. Pour reprogrammer, cliquez sur Déverrouiller — l'enregistrement remplacera cette série par une nouvelle.",
+    rasterize: {
+      retryIn: "Nouvelle tentative dans {wait}.",
+      retryNow: "Réessayer maintenant",
+      statusText: "{count} événement(s) en attente de création.{wait}"
+    },
+    regen: {
+      choiceMessage: "Cette série a {count} événement(s) modifié(s). La série actuelle sera remplacée par une nouvelle.\n\n• Conserver les modifications : les chevauchements le même jour mettent à jour la nouvelle série ; les événements sans chevauchement deviennent autonomes.\n• Ignorer les modifications : les changements apportés à ces occurrences sont perdus.",
+      choiceTitle: "Remplacer la série ?",
+      confirmAction: "Remplacer la série",
+      confirmMessage: "Cela remplacera la série actuelle par une nouvelle. Continuer ?",
+      discard: "Ignorer les modifications",
+      keep: "Conserver les modifications",
+      success: "Série « {label} » remplacée.",
+      successWithMods: "Série « {label} » remplacée. {count} modification(s) en file d'attente."
+    },
+    regenWarning: "La récurrence est déverrouillée. Si vous changez la récurrence, la série actuelle sera remplacée par une nouvelle.",
+    regenWarningWithMods: "La récurrence est déverrouillée. Si vous changez la récurrence, la série actuelle sera remplacée par une nouvelle et il vous sera demandé comment gérer ses {count} événements modifiés.",
+    unit: {
+      days: "jours",
+      months: "mois",
+      weeks: "semaines",
+      years: "ans"
+    },
+    unlockButton: "Déverrouiller",
+    updateRequired: "Mise à jour disponible. Veuillez mettre à jour avant de modifier des séries.",
+    updated: "Série « {label} » mise à jour.",
+    warnings: {
+      confirmUpdate: "Mettre à jour la série"
+    }
   }
 };

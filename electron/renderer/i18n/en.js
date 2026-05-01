@@ -4,26 +4,19 @@ export const en = {
   nav: {
     create: "Create Event",
     modify: "Modify Events",
-    profiles: "Manage Templates",
     schedules: "Manage Schedules",
     settings: "Settings"
   },
   schedules: {
-    title: "Manage Schedules",
     subtitle: "Templates for announcement-driven scheduling and native VRChat recurring series.",
     saveButton: {
       template: "Save Template",
-      seriesCreate: "Create Series",
-      seriesUpdate: "Update Series"
+      seriesCreate: "Create Series"
     },
     announcements: {
       title: "Announcements",
       hint: "Toggle the actions to perform when this schedule posts an event.",
       hintSeries: "Toggle the actions to perform when this series is created or modified."
-    },
-    section: {
-      selection: "Schedule Selection",
-      scheduleHeading: "Schedule"
     },
     modeBlurb: {
       template: "Templates autofill repeated events and post each occurrence individually with optional announcements.",
@@ -46,22 +39,12 @@ export const en = {
         bullet4: "Best for stable, repeating events that don't need announcements."
       }
     },
-    labels: {
-      schedule: "Schedule"
-    },
     filter: {
       label: "Show",
-      all: "All",
-      templates: "Templates",
-      series: "Series"
+      all: "All"
     },
     types: {
-      template: "Templates",
       templateButton: "Template",
-      templateHint: "Reusable autofill for repeated events. Each event posts as a standalone, modifiable occurrence and can announce itself via Discord events, webhooks, and calendar invites. Optional automation and pattern-based scheduling.",
-      series: "Series",
-      seriesButton: "Series",
-      seriesHint: "Native VRChat recurring series. The server pre-generates all occurrences from a recurrence rule. No app or scheduling required, but no announcements either."
     },
     empty: {
       all: "No schedules for this group.",
@@ -69,30 +52,16 @@ export const en = {
       series: "No series for this group."
     },
     new: {
-      pickType: "What kind of schedule?",
-      pickTypeHint: "Choose how this schedule will produce events."
-    },
-    errors: {
-      noGroup: "Select a group first."
     }
   },
   series: {
     section: {
-      identity: "Series Identification",
-      eventDetails: "Event Details",
-      recurrence: "Recurrence",
-      ready: "Ready to save?",
-      readyHint: "VRChat will pre-generate all occurrences server-side. You can modify individual occurrences later from the Modify Events tab."
     },
     labels: {
-      label: "Series Label (for your reference)",
-      labelPlaceholder: "e.g. Weekly Karaoke Night",
-      labelHint: "This label is only shown in EC, not posted to VRChat.",
       startDate: "First Occurrence Date",
       startTime: "Start Time",
       frequency: "Frequency",
       interval: "Repeat every",
-      intervalHint: "e.g. every 1 week, every 2 months",
       daysOfWeek: "Repeats on",
       endCondition: "Ends"
     },
@@ -122,38 +91,53 @@ export const en = {
     },
     end: {
       never: "Never",
-      afterOccurrences: "After",
       afterOccurrencesLabel: "After N occurrences",
-      afterDate: "On date",
       afterDateLabel: "On a specific date",
       occurrencesLabel: "occurrences"
     },
     disclaimer: "A series can only be rescheduled before its first occurrence begins. Once it starts, you must delete it to change the date or time. Events can be scheduled up to one year ahead. Maximum event length is 31 days.",
-    lockedHint: "This series has already started. Date, time, and the repeat rule are locked — but you can still adjust when it ends. To reschedule, delete the series and create a new one.",
+    lockedHint: "This series has already started. Date, time, and the repeat rule are locked — but you can still adjust when it ends. To reschedule, click Unlock — saving will replace this series with a new one.",
+    unlockButton: "Unlock",
+    regenWarning: "Recurrence is unlocked. If you change the recurrence, the current series will be replaced with a new one.",
+    regenWarningWithMods: "Recurrence is unlocked. If you change the recurrence, the current series will be replaced with a new one and you'll be asked how to handle its {count} modified events.",
+    regen: {
+      confirmMessage: "This will replace the current series with a new one. Continue?",
+      confirmAction: "Replace Series",
+      choiceTitle: "Replace series?",
+      choiceMessage: "This series has {count} modified events. The current series will be replaced with a new one.\n\n• Keep modifications: same-day overlaps update the new series; non-overlap events become standalones.\n• Discard modifications: changes to those occurrences are lost.",
+      keep: "Keep Modifications",
+      discard: "Discard Modifications",
+      success: "Series \"{label}\" replaced.",
+      successWithMods: "Series \"{label}\" replaced. {count} modifications queued."
+    },
+    rasterize: {
+      statusText: "{count} pending event(s) waiting to be created.{wait}",
+      retryIn: "Next retry in {wait}.",
+      retryNow: "Retry Now"
+    },
     buttons: {
-      save: "Save Series"
     },
     created: "Series \"{label}\" created.",
     updated: "Series \"{label}\" updated.",
     deleted: "Series \"{label}\" deleted.",
     confirmDelete: "Delete \"{label}\"? This will remove the series and all its occurrences from VRChat.",
     confirmDeleteTitle: "Delete series?",
+    updateRequired: "Update available. Please update before changing series.",
     warnings: {
-      recurrenceUpdate: "Updating the schedule will regenerate all occurrences and discard {count} modified events. Continue?",
-      recurrenceUpdateTitle: "Update will discard modifications",
       confirmUpdate: "Update Series"
     },
     errors: {
-      noGroup: "Select a group first.",
       noLabel: "Series label is required.",
       noTitle: "Event name is required.",
       noStartDate: "First occurrence date and time are required.",
+      startInPast: "First occurrence must be in the future. Update the date before saving.",
       noDaysOfWeek: "Select at least one day of the week.",
       noEndDate: "Set an end date.",
       notFound: "Series not found.",
       createFailed: "Could not create series.",
       updateFailed: "Could not update series.",
       deleteFailed: "Could not delete series.",
+      regenFailed: "Could not regenerate series.",
       noSeries: "No series selected."
     }
   },
@@ -205,11 +189,12 @@ export const en = {
     loadFailed: "Could not load gallery."
   },
   settings: {
-    title: "Settings",
+    featuredVerification: {
+      permissionDenied: "This group is not permitted to create featured events."
+    },
     theme: {
       title: "Theme",
       description: "Customize the appearance of the app. Select a preset or adjust manually.",
-      label: "Color Theme",
       default: "Default (Teal/Green)",
       blue: "Ocean Blue",
       purple: "Purple Haze",
@@ -311,7 +296,6 @@ export const en = {
       testSuccess: "Connected as {botName}",
       testFailed: "Connection failed. Check your bot token.",
       tokenMissing: "Enter a bot token first.",
-      groupLabel: "Group",
       selectGroup: "Select a group...",
       saveButton: "Save",
       saved: "Discord settings saved.",
@@ -406,7 +390,6 @@ export const en = {
     ios: "iOS"
   },
   events: {
-    title: "Create Event",
     steps: {
       group: "Group",
       date: "Date",
@@ -446,15 +429,11 @@ export const en = {
     },
     profileHint: "Templates are optional. Use one for defaults, or create everything manually.",
     loadProfile: "Load Template (optional)",
-    loadProfilePlaceholder: "Select a template",
     clearProfile: "Clear Template",
-    importJsonButton: "Import JSON",
     importSuccess: "Event data imported from JSON.",
     importWrongType: "This appears to be a template JSON. Please use Import Template instead.",
-    exportJsonButton: "Export JSON",
     exportSuccess: "Event data exported to JSON.",
     dateSource: "Date & Time",
-    dateSourceManual: "Manual",
     dateSourcePattern: "From template pattern",
     dateOption: "Select Date",
     patternDateLabel: "{label} - {date}",
@@ -488,25 +467,16 @@ export const en = {
     },
     created: "Event created.",
     failed: "Could not create event.",
-    selectGroupError: "Select a group.",
     selectDateError: "Select a date.",
     updateRequired: "Update available. Please update before creating events.",
-    requiredSingle: "{field} is required.",
-    requiredMultiple: "{fields} are required.",
     noDateOptionsError: "No date options available from template.",
     featuredPermissionRevoked: "This group no longer has permission to create featured events.",
     groupFairPermissionRevoked: "This group no longer has permission to include events in the Group Fair."
   },
   modify: {
-    title: "Modify Events",
     subtitle: "Edit or delete upcoming group events.",
-    groupLabel: "Group",
     showPending: "Show Pending",
     filter: {
-      bySeries: "Filter",
-      all: "All events",
-      standalone: "Standalone only",
-      unknownSeries: "Series"
     },
     filtersButton: "Filters",
     timeRange: {
@@ -522,13 +492,10 @@ export const en = {
       heading: "Show",
       pending: "Pending events",
       standalone: "Standalone events",
-      modified: "Modified occurrences",
-      seriesHeading: "Series",
-      unknownSeries: "Series"
+      modified: "Modified occurrences"
     },
     badge: {
-      modified: "Modified",
-      unknownSeries: "Series"
+      modified: "Modified"
     },
     countEmpty: "Upcoming events unavailable.",
     countGroupFallback: "This group",
@@ -538,8 +505,6 @@ export const en = {
     eventImage: "Event image",
     noImage: "No image",
     untitled: "Untitled event",
-    profileLabel: "Load Template (optional)",
-    profileSelect: "Select a template",
     profileLoad: "Load",
     profileSelectError: "Select a template to load.",
     profileLoadFailed: "Could not load template defaults.",
@@ -552,10 +517,7 @@ export const en = {
     },
     updateRequired: "Update available. Please update before modifying events.",
     selectEventError: "Select an event to edit.",
-    requiredSingle: "{field} is required.",
     selectDateError: "Select a date and time.",
-    durationError: "Duration must be a positive number.",
-    maxLanguages: "Maximum 3 languages allowed.",
     saveFailed: "Could not update event.",
     saved: "Event updated.",
     deleteFailed: "Could not delete event.",
@@ -583,7 +545,6 @@ export const en = {
     postingOptions: "Posting Options"
   },
   profiles: {
-    title: "Manage Templates",
     subtitle: "Create reusable templates per group.",
     steps: {
       select: "Select",
@@ -592,32 +553,20 @@ export const en = {
       audience: "Audience"
     },
     section: {
-      selection: "Schedule Selection",
       basics: "Schedule Basics",
-      schedule: "Schedule",
       audience: "Audience"
-    },
-    labels: {
-      group: "Group",
-      profile: "Schedule"
     },
     buttons: {
       new: "New"
     },
-    importJsonButton: "Import JSON",
     importSuccess: "Template data imported from JSON.",
     importWrongType: "This appears to be an event JSON. Please use Import Event instead.",
-    exportJsonButton: "Export JSON",
     exportSuccess: "Template data exported to JSON.",
     hints: {
       groupAccess: "Choose a group with calendar access.",
       patternsInfo: "Patterns are used to pre-generate upcoming dates."
     },
-    existingProfile: "Existing Schedule",
     existingProfilePlaceholder: "Select a schedule",
-    noProfiles: "No schedules for this group",
-    newButton: "New",
-    saveButton: "Save",
     displayName: "Schedule Name",
     displayNamePlaceholder: "Community Hangout",
     access: "Access",
@@ -628,7 +577,6 @@ export const en = {
     dateModeBoth: "Patterns + manual",
     sendNotificationDefault: "Send Notification by default",
     patterns: {
-      title: "Recurring Patterns",
       addButton: "Add Pattern",
       clearButton: "Clear Patterns",
       noPatterns: "No patterns yet.",
@@ -681,7 +629,6 @@ export const en = {
       minutes: "Minutes",
       monthlyHint: "Post events on this day each month:",
       monthlyDay: "Day of Month",
-      monthlyDayHint: "Days 29-31 will use the last day of shorter months",
       monthlyTime: "Time",
       repeatMode: "Repeat",
       repeatModes: {
@@ -728,14 +675,6 @@ export const en = {
     updated: "Template updated.",
     deleted: "Template deleted.",
     confirmDelete: "Delete template \"{name}\"?",
-    selectGroupError: "Select a group.",
-    selectGroupFirst: "Select a group first.",
-    selectProfileError: "Select a template to edit.",
-    maxLanguages: "Maximum 3 languages allowed.",
-    durationError: "Duration must be a positive number.",
-    required: "{fields} {verb} required.",
-    requiredSingle: "{field} is required.",
-    requiredMultiple: "{fields} are required."
   },
   common: {
     syncing: "Syncing data...",
@@ -755,6 +694,9 @@ export const en = {
     refresh: "Refresh",
     edit: "Edit",
     delete: "Delete",
+    importJson: "Import JSON",
+    exportJson: "Export JSON",
+    selectTemplate: "Select a template",
     rateLimitError: "Rate limited. Please wait and try again later.",
     featuredEvent: "Featured Event",
     groupFairEvent: "Include in Group Fair",
@@ -762,6 +704,22 @@ export const en = {
     noGroupsAccess: "No groups with calendar access",
     selectGroup: "Select Group",
     selectGroupPlaceholder: "Choose a group",
+    errors: {
+      noGroup: "Select a group.",
+      requiredSingle: "{field} is required.",
+      requiredMultiple: "{fields} are required.",
+      maxLanguages: "Maximum 3 languages allowed.",
+      durationError: "Duration must be a positive number."
+    },
+    section: {
+      scheduleSelection: "Schedule Selection"
+    },
+    labels: {
+      schedule: "Schedule",
+      group: "Group",
+      series: "Series",
+      templates: "Templates"
+    },
     accessTypes: {
       public: "Public",
       group: "Group"

@@ -4,8 +4,8 @@ export const es = {
   nav: {
     create: "Crear evento",
     modify: "Modificar eventos",
-    profiles: "Gestionar plantillas",
-    settings: "Configuración"
+    settings: "Configuración",
+    schedules: "Gestionar horarios"
   },
   auth: {
     title: "Iniciar sesión",
@@ -55,11 +55,9 @@ export const es = {
     loadFailed: "No se pudo cargar la galería."
   },
   settings: {
-    title: "Configuración",
     theme: {
       title: "Tema",
       description: "Personaliza la apariencia de la aplicación. Selecciona un preset o ajusta manualmente.",
-      label: "Tema de color",
       default: "Predeterminado (Turquesa/Verde)",
       blue: "Azul océano",
       purple: "Bruma púrpura",
@@ -161,7 +159,6 @@ export const es = {
       testSuccess: "Conectado como {botName}",
       testFailed: "Error de conexión. Verifica el token del bot.",
       tokenMissing: "Ingresa un token de bot primero.",
-      groupLabel: "Grupo",
       selectGroup: "Seleccionar un grupo...",
       saveButton: "Guardar",
       saved: "Configuración de Discord guardada.",
@@ -202,7 +199,8 @@ export const es = {
       webhookMissing: "Ingresa una URL de webhook primero.",
       remindersHint: "Algunas aplicaciones de calendario pueden usar solo el primer recordatorio.",
       saveDirLabel: "Directorio de guardado de calendario",
-      autoSaved: "Archivo de calendario guardado: {filePath}"
+      autoSaved: "Archivo de calendario guardado: {filePath}",
+      inviteTitle: "Invitación de calendario"
     },
     eckit: {
       importButton: "Importar Kit",
@@ -219,7 +217,10 @@ export const es = {
       selectImage: "Seleccionar"
     },
     saveButton: "Guardar configuración",
-    saved: "Configuración guardada."
+    saved: "Configuración guardada.",
+    featuredVerification: {
+      permissionDenied: "Este grupo no tiene permiso para crear eventos destacados."
+    }
   },
   demo: {
     controls: {
@@ -255,7 +256,6 @@ export const es = {
     ios: "iOS"
   },
   events: {
-    title: "Crear evento",
     steps: {
       group: "Grupo",
       date: "Fecha",
@@ -276,10 +276,10 @@ export const es = {
       importJson: "Importar desde JSON",
       dateSource: "Usar",
       dateSourcePattern: "Patrón",
-      dateSourceManual: "Manual",
       patternDates: "Fechas del patrón",
       manualDate: "Fecha manual",
-      manualTime: "Hora manual"
+      manualTime: "Hora manual",
+      dateSourceManual: "Manual"
     },
     hints: {
       profileDefaults: "Elige una plantilla para los valores por defecto, o deja en blanco para crear manualmente.",
@@ -295,15 +295,11 @@ export const es = {
     },
     profileHint: "Las plantillas son opcionales. Usa uno para valores predeterminados o crea todo manualmente.",
     loadProfile: "Cargar plantilla (opcional)",
-    loadProfilePlaceholder: "Seleccionar una plantilla",
     clearProfile: "Limpiar plantilla",
-    importJsonButton: "Importar JSON",
     importSuccess: "Datos del evento importados desde JSON.",
     importWrongType: "Esto parece ser un JSON de plantilla. Usa Importar plantilla en su lugar.",
-    exportJsonButton: "Exportar JSON",
     exportSuccess: "Datos del evento exportados a JSON.",
     dateSource: "Fecha y hora",
-    dateSourceManual: "Manual",
     dateSourcePattern: "Desde la plantilla",
     dateOption: "Seleccionar fecha",
     patternDateLabel: "{label} - {date}",
@@ -337,19 +333,14 @@ export const es = {
     },
     created: "Evento creado.",
     failed: "No se pudo crear el evento.",
-    selectGroupError: "Selecciona un grupo.",
     selectDateError: "Selecciona una fecha.",
     updateRequired: "Actualización disponible. Actualiza antes de crear eventos.",
-    requiredSingle: "{field} es obligatorio.",
-    requiredMultiple: "{fields} son obligatorios.",
     noDateOptionsError: "No hay fechas disponibles desde la plantilla.",
     featuredPermissionRevoked: "Este grupo ya no tiene permiso para crear eventos destacados.",
     groupFairPermissionRevoked: "Este grupo ya no tiene permiso para incluir eventos en la Feria de Grupos."
   },
   modify: {
-    title: "Modificar eventos",
     subtitle: "Edita o elimina eventos próximos del grupo.",
-    groupLabel: "Grupo",
     showPending: "Mostrar pendientes",
     countEmpty: "Eventos próximos no disponibles.",
     countGroupFallback: "Este grupo",
@@ -359,8 +350,6 @@ export const es = {
     eventImage: "Imagen del evento",
     noImage: "Sin imagen",
     untitled: "Evento sin título",
-    profileLabel: "Cargar plantilla (opcional)",
-    profileSelect: "Selecciona una plantilla",
     profileLoad: "Cargar",
     profileSelectError: "Selecciona una plantilla para cargar.",
     profileLoadFailed: "No se pudieron cargar los valores de la plantilla.",
@@ -373,10 +362,7 @@ export const es = {
     },
     updateRequired: "Actualización disponible. Actualiza antes de modificar eventos.",
     selectEventError: "Selecciona un evento para editar.",
-    requiredSingle: "{field} es obligatorio.",
     selectDateError: "Selecciona fecha y hora.",
-    durationError: "La duración debe ser un número positivo.",
-    maxLanguages: "Máximo 3 idiomas permitidos.",
     saveFailed: "No se pudo actualizar el evento.",
     saved: "Evento actualizado.",
     deleteFailed: "No se pudo eliminar el evento.",
@@ -401,10 +387,28 @@ export const es = {
       editSaved: "Evento pendiente actualizado.",
       editFailed: "No se pudo actualizar el evento pendiente."
     },
-    postingOptions: "Opciones de publicación"
+    postingOptions: "Opciones de publicación",
+    badge: {
+      modified: "Modificado"
+    },
+    filters: {
+      heading: "Mostrar",
+      modified: "Ocurrencias modificadas",
+      pending: "Eventos pendientes",
+      standalone: "Eventos independientes"
+    },
+    filtersButton: "Filtros",
+    timeRange: {
+      "1month": "1 mes",
+      "1week": "1 semana",
+      "1year": "1 año",
+      "2weeks": "2 semanas",
+      "3months": "3 meses",
+      "6months": "6 meses",
+      label: "Rango de tiempo"
+    }
   },
   profiles: {
-    title: "Gestionar plantillas",
     subtitle: "Crea plantillas reutilizables por grupo.",
     steps: {
       select: "Selección",
@@ -413,32 +417,22 @@ export const es = {
       audience: "Audiencia"
     },
     section: {
-      selection: "Selección de plantilla",
       basics: "Datos básicos de la plantilla",
-      schedule: "Horario",
       audience: "Audiencia"
     },
     labels: {
-      group: "Grupo",
-      profile: "Plantilla"
     },
     buttons: {
       new: "Nuevo"
     },
-    importJsonButton: "Importar JSON",
     importSuccess: "Datos de la plantilla importados desde JSON.",
     importWrongType: "Esto parece ser un JSON de evento. Usa Importar evento en su lugar.",
-    exportJsonButton: "Exportar JSON",
     exportSuccess: "Datos de la plantilla exportados a JSON.",
     hints: {
       groupAccess: "Elige un grupo con acceso al calendario.",
       patternsInfo: "Los patrones se usan para generar fechas próximas."
     },
-    existingProfile: "Plantilla existente",
     existingProfilePlaceholder: "Seleccionar una plantilla",
-    noProfiles: "No hay plantillas para este grupo",
-    newButton: "Nueva plantilla",
-    saveButton: "Guardar plantilla",
     displayName: "Nombre de la plantilla",
     displayNamePlaceholder: "Plantilla de reunión comunitaria",
     access: "Acceso",
@@ -449,7 +443,6 @@ export const es = {
     dateModeBoth: "Patrones + manual",
     sendNotificationDefault: "Enviar notificación por defecto",
     patterns: {
-      title: "Patrones recurrentes",
       addButton: "Agregar patrón",
       clearButton: "Borrar patrones",
       noPatterns: "Aún no hay patrones.",
@@ -502,7 +495,6 @@ export const es = {
       minutes: "Minutos",
       monthlyHint: "Publicar eventos en este día cada mes:",
       monthlyDay: "Día del mes",
-      monthlyDayHint: "Los días 29-31 usarán el último día de meses más cortos",
       monthlyTime: "Hora",
       repeatMode: "Repetir",
       repeatModes: {
@@ -549,14 +541,6 @@ export const es = {
     updated: "Plantilla actualizada.",
     deleted: "Plantilla eliminada.",
     confirmDelete: "¿Eliminar la plantilla \"{name}\"?",
-    selectGroupError: "Selecciona un grupo.",
-    selectGroupFirst: "Selecciona un grupo primero.",
-    selectProfileError: "Selecciona una plantilla para editar.",
-    maxLanguages: "Máximo 3 idiomas permitidos.",
-    durationError: "La duración debe ser un número positivo.",
-    required: "{fields} {verb} requerido.",
-    requiredSingle: "{field} es obligatorio.",
-    requiredMultiple: "{fields} son obligatorios."
   },
   common: {
     syncing: "Sincronizando datos...",
@@ -632,7 +616,26 @@ export const es = {
       platforms: "Plataformas",
       manualDate: "Fecha",
       manualTime: "Hora"
-    }
+    },
+    errors: {
+      durationError: "La duración debe ser un número positivo.",
+      maxLanguages: "Máximo 3 idiomas permitidos.",
+      noGroup: "Selecciona un grupo.",
+      requiredMultiple: "{fields} son obligatorios.",
+      requiredSingle: "{field} es obligatorio."
+    },
+    exportJson: "Exportar JSON",
+    importJson: "Importar JSON",
+    labels: {
+      group: "Grupo",
+      schedule: "Horario",
+      series: "Serie",
+      templates: "Plantillas"
+    },
+    section: {
+      scheduleSelection: "Selección de programación"
+    },
+    selectTemplate: "Seleccionar una plantilla"
   },
   wizard: {
     back: "Atrás",
@@ -643,5 +646,133 @@ export const es = {
     message: "Ya existe un evento \"{title}\" programado en este horario.",
     changeTime: "Reseleccionar hora",
     continue: "Crear de todas formas"
+  },
+  schedules: {
+    announcements: {
+      hint: "Activa las acciones a realizar cuando esta plantilla publique un evento.",
+      hintSeries: "Activa las acciones a realizar cuando esta serie se cree o modifique.",
+      title: "Anuncios"
+    },
+    empty: {
+      all: "No hay programaciones para este grupo.",
+      series: "No hay series para este grupo.",
+      templates: "No hay plantillas para este grupo."
+    },
+    filter: {
+      all: "Todo",
+      label: "Mostrar"
+    },
+    info: {
+      series: {
+        bullet1: "VRChat pre-genera todas las ocurrencias en el servidor a partir de una regla de recurrencia.",
+        bullet2: "Configura y olvídate — no se necesita aplicación después de crearla.",
+        bullet3: "Limitaciones: no hay anuncios por evento; la regla de recurrencia no se puede cambiar sin regenerar todas las ocurrencias (las modificaciones se pierden).",
+        bullet4: "Ideal para eventos estables y repetitivos que no necesitan anuncios.",
+        title: "Series"
+      },
+      template: {
+        bullet1: "Cada evento se publica como una entrada de calendario independiente — modificable por ocurrencia.",
+        bullet2: "Anuncia opcionalmente cada evento mediante eventos programados de Discord, webhooks e invitaciones de calendario .ics.",
+        bullet3: "Combina con la automatización y la programación basada en patrones de EC para publicar sin intervención.",
+        bullet4: "Requiere que la aplicación esté en ejecución para la publicación automática.",
+        title: "Plantillas"
+      }
+    },
+    modeBlurb: {
+      moreInfo: "(más información)",
+      series: "Una serie es el planificador recurrente nativo de VRChat. El servidor pre-genera todas las ocurrencias. Sin anuncios.",
+      template: "Las plantillas rellenan automáticamente los eventos repetidos y publican cada ocurrencia de forma individual con anuncios opcionales."
+    },
+    saveButton: {
+      seriesCreate: "Crear serie",
+      template: "Guardar plantilla"
+    },
+    subtitle: "Plantillas para programación con anuncios y series recurrentes nativas de VRChat.",
+    types: {
+      templateButton: "Plantilla"
+    }
+  },
+  series: {
+    confirmDelete: "¿Eliminar «{label}»? Esto quitará la serie y todas sus ocurrencias de VRChat.",
+    confirmDeleteTitle: "¿Eliminar serie?",
+    created: "Serie «{label}» creada.",
+    days: {
+      fr: "Vie",
+      mo: "Lun",
+      sa: "Sáb",
+      su: "Dom",
+      th: "Jue",
+      tu: "Mar",
+      we: "Mié"
+    },
+    deleted: "Serie «{label}» eliminada.",
+    disclaimer: "Una serie solo puede reprogramarse antes de que comience su primera ocurrencia. Una vez iniciada, debes eliminarla para cambiar la fecha o la hora. Los eventos pueden programarse hasta un año por adelantado. La duración máxima de un evento es de 31 días.",
+    end: {
+      afterDateLabel: "En una fecha específica",
+      afterOccurrencesLabel: "Tras N ocurrencias",
+      never: "Nunca",
+      occurrencesLabel: "ocurrencias"
+    },
+    errors: {
+      createFailed: "No se pudo crear la serie.",
+      deleteFailed: "No se pudo eliminar la serie.",
+      noDaysOfWeek: "Selecciona al menos un día de la semana.",
+      noEndDate: "Define una fecha de finalización.",
+      noLabel: "La etiqueta de la serie es obligatoria.",
+      noSeries: "No hay serie seleccionada.",
+      noStartDate: "La fecha y hora de la primera ocurrencia son obligatorias.",
+      noTitle: "El nombre del evento es obligatorio.",
+      notFound: "Serie no encontrada.",
+      regenFailed: "No se pudo regenerar la serie.",
+      startInPast: "La primera ocurrencia debe ser en el futuro. Actualiza la fecha antes de guardar.",
+      updateFailed: "No se pudo actualizar la serie."
+    },
+    frequency: {
+      custom: "Personalizado",
+      daily: "Diariamente",
+      monthly: "Mensualmente",
+      weekdays: "Días laborables",
+      weekends: "Fines de semana",
+      weekly: "Semanalmente",
+      yearly: "Anualmente"
+    },
+    labels: {
+      daysOfWeek: "Se repite los",
+      endCondition: "Termina",
+      frequency: "Frecuencia",
+      interval: "Repetir cada",
+      startDate: "Fecha de la primera ocurrencia",
+      startTime: "Hora de inicio"
+    },
+    lockedHint: "Esta serie ya ha comenzado. La fecha, la hora y la regla de repetición están bloqueadas — pero todavía puedes ajustar cuándo termina. Para reprogramar, haz clic en Desbloquear — al guardar se reemplazará esta serie por una nueva.",
+    rasterize: {
+      retryIn: "Reintento en {wait}.",
+      retryNow: "Reintentar ahora",
+      statusText: "{count} evento(s) en espera de creación.{wait}"
+    },
+    regen: {
+      choiceMessage: "Esta serie tiene {count} evento(s) modificado(s). La serie actual se reemplazará por una nueva.\n\n• Conservar modificaciones: los solapamientos del mismo día actualizan la nueva serie; los eventos sin solapamiento se vuelven independientes.\n• Descartar modificaciones: los cambios en esas ocurrencias se pierden.",
+      choiceTitle: "¿Reemplazar serie?",
+      confirmAction: "Reemplazar serie",
+      confirmMessage: "Esto reemplazará la serie actual por una nueva. ¿Continuar?",
+      discard: "Descartar modificaciones",
+      keep: "Conservar modificaciones",
+      success: "Serie «{label}» reemplazada.",
+      successWithMods: "Serie «{label}» reemplazada. {count} modificación(es) en cola."
+    },
+    regenWarning: "La recurrencia está desbloqueada. Si cambias la recurrencia, la serie actual se reemplazará por una nueva.",
+    regenWarningWithMods: "La recurrencia está desbloqueada. Si cambias la recurrencia, la serie actual se reemplazará por una nueva y se te preguntará cómo manejar sus {count} eventos modificados.",
+    unit: {
+      days: "días",
+      months: "meses",
+      weeks: "semanas",
+      years: "años"
+    },
+    unlockButton: "Desbloquear",
+    updateRequired: "Actualización disponible. Actualiza antes de modificar series.",
+    updated: "Serie «{label}» actualizada.",
+    warnings: {
+      confirmUpdate: "Actualizar serie"
+    }
   }
 };

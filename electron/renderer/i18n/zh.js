@@ -4,8 +4,8 @@ export const zh = {
   nav: {
     create: "创建活动",
     modify: "编辑活动",
-    profiles: "管理模板",
-    settings: "设置"
+    settings: "设置",
+    schedules: "管理日程"
   },
   auth: {
     title: "登录",
@@ -55,11 +55,9 @@ export const zh = {
     loadFailed: "无法加载图库。"
   },
   settings: {
-    title: "设置",
     theme: {
       title: "主题",
       description: "自定义应用外观。选择预设主题或手动调整。",
-      label: "颜色主题",
       default: "默认（青绿色）",
       blue: "海洋蓝",
       purple: "紫色迷雾",
@@ -161,7 +159,6 @@ export const zh = {
       testSuccess: "已连接为 {botName}",
       testFailed: "连接失败，请检查机器人令牌。",
       tokenMissing: "请先输入机器人令牌。",
-      groupLabel: "群组",
       selectGroup: "选择群组...",
       saveButton: "保存",
       saved: "Discord 设置已保存。",
@@ -202,7 +199,8 @@ export const zh = {
       webhookMissing: "请先输入Webhook URL。",
       remindersHint: "某些日历应用可能只使用第一个提醒。",
       saveDirLabel: "日历保存目录",
-      autoSaved: "日历文件已保存：{filePath}"
+      autoSaved: "日历文件已保存：{filePath}",
+      inviteTitle: "日历邀请"
     },
     eckit: {
       importButton: "导入套件",
@@ -219,7 +217,10 @@ export const zh = {
       selectImage: "选择"
     },
     saveButton: "保存设置",
-    saved: "设置已保存。"
+    saved: "设置已保存。",
+    featuredVerification: {
+      permissionDenied: "此群组无权创建精选活动。"
+    }
   },
   demo: {
     controls: {
@@ -255,7 +256,6 @@ export const zh = {
     ios: "iOS"
   },
   events: {
-    title: "创建活动",
     steps: {
       group: "群组",
       date: "日期",
@@ -276,10 +276,10 @@ export const zh = {
       importJson: "从 JSON 导入",
       dateSource: "使用",
       dateSourcePattern: "模式",
-      dateSourceManual: "手动",
       patternDates: "模式日期",
       manualDate: "手动日期",
-      manualTime: "手动时间"
+      manualTime: "手动时间",
+      dateSourceManual: "手动"
     },
     hints: {
       profileDefaults: "选择模板以填充默认值，或留空手动创建。",
@@ -295,15 +295,11 @@ export const zh = {
     },
     profileHint: "模板为可选项，可用于填充默认值，也可完全手动创建。",
     loadProfile: "加载模板（可选）",
-    loadProfilePlaceholder: "选择一个模板",
     clearProfile: "清除模板",
-    importJsonButton: "导入 JSON",
     importSuccess: "已从 JSON 导入活动数据。",
     importWrongType: "这似乎是模板 JSON。请改用导入模板。",
-    exportJsonButton: "导出 JSON",
     exportSuccess: "已将活动数据导出为 JSON。",
     dateSource: "日期与时间",
-    dateSourceManual: "手动",
     dateSourcePattern: "来自模板模式",
     dateOption: "选择日期",
     patternDateLabel: "{label} - {date}",
@@ -337,19 +333,14 @@ export const zh = {
     },
     created: "活动已创建。",
     failed: "无法创建活动。",
-    selectGroupError: "请选择群组。",
     selectDateError: "请选择日期。",
     updateRequired: "有可用更新。请先更新再创建活动。",
-    requiredSingle: "{field} 为必填。",
-    requiredMultiple: "{fields} 为必填。",
     noDateOptionsError: "模板中没有可用日期选项。",
     featuredPermissionRevoked: "该群组不再有创建精选活动的权限。",
     groupFairPermissionRevoked: "该群组不再有将活动包含在群组集市中的权限。"
   },
   modify: {
-    title: "编辑活动",
     subtitle: "编辑或删除群组即将到来的活动。",
-    groupLabel: "群组",
     showPending: "显示待处理",
     countEmpty: "无法获取即将到来的活动。",
     countGroupFallback: "该群组",
@@ -359,8 +350,6 @@ export const zh = {
     eventImage: "活动图片",
     noImage: "无图片",
     untitled: "未命名活动",
-    profileLabel: "加载模板（可选）",
-    profileSelect: "选择一个模板",
     profileLoad: "加载",
     profileSelectError: "请选择要加载的模板。",
     profileLoadFailed: "无法加载模板默认值。",
@@ -373,10 +362,7 @@ export const zh = {
     },
     updateRequired: "有可用更新。请先更新再修改活动。",
     selectEventError: "请选择要编辑的活动。",
-    requiredSingle: "{field} 为必填。",
     selectDateError: "请选择日期和时间。",
-    durationError: "时长必须为正数。",
-    maxLanguages: "最多可选择 3 种语言。",
     saveFailed: "无法更新活动。",
     saved: "活动已更新。",
     deleteFailed: "无法删除活动。",
@@ -401,10 +387,28 @@ export const zh = {
       editSaved: "待发布活动已更新。",
       editFailed: "无法更新待发布活动。"
     },
-    postingOptions: "发布选项"
+    postingOptions: "发布选项",
+    badge: {
+      modified: "已修改"
+    },
+    filters: {
+      heading: "显示",
+      modified: "已修改的活动",
+      pending: "待处理活动",
+      standalone: "独立活动"
+    },
+    filtersButton: "筛选",
+    timeRange: {
+      "1month": "1 个月",
+      "1week": "1 周",
+      "1year": "1 年",
+      "2weeks": "2 周",
+      "3months": "3 个月",
+      "6months": "6 个月",
+      label: "时间范围"
+    }
   },
   profiles: {
-    title: "管理模板",
     subtitle: "为每个群组创建可复用的模板。",
     steps: {
       select: "选择",
@@ -413,32 +417,22 @@ export const zh = {
       audience: "受众"
     },
     section: {
-      selection: "模板选择",
       basics: "模板基础",
-      schedule: "计划",
       audience: "受众"
     },
     labels: {
-      group: "群组",
-      profile: "模板"
     },
     buttons: {
       new: "新建"
     },
-    importJsonButton: "导入 JSON",
     importSuccess: "已从 JSON 导入模板数据。",
     importWrongType: "这似乎是活动 JSON。请改用导入活动。",
-    exportJsonButton: "导出 JSON",
     exportSuccess: "已将模板数据导出为 JSON。",
     hints: {
       groupAccess: "选择具有日历权限的群组。",
       patternsInfo: "模式用于预生成即将到来的日期。"
     },
-    existingProfile: "已有模板",
     existingProfilePlaceholder: "选择一个模板",
-    noProfiles: "此群组暂无模板",
-    newButton: "新建模板",
-    saveButton: "保存模板",
     displayName: "模板名称",
     displayNamePlaceholder: "社区聚会模板",
     access: "访问权限",
@@ -449,7 +443,6 @@ export const zh = {
     dateModeBoth: "模式 + 手动",
     sendNotificationDefault: "默认发送通知",
     patterns: {
-      title: "重复模式",
       addButton: "添加模式",
       clearButton: "清除模式",
       noPatterns: "暂无模式。",
@@ -502,7 +495,6 @@ export const zh = {
       minutes: "分钟",
       monthlyHint: "每月在此日期发布活动：",
       monthlyDay: "月份日期",
-      monthlyDayHint: "29-31 日将使用较短月份的最后一天",
       monthlyTime: "时间",
       repeatMode: "重复",
       repeatModes: {
@@ -549,14 +541,6 @@ export const zh = {
     updated: "模板已更新。",
     deleted: "模板已删除。",
     confirmDelete: "删除模板「{name}」？",
-    selectGroupError: "请选择群组。",
-    selectGroupFirst: "请先选择群组。",
-    selectProfileError: "请选择要编辑的模板。",
-    maxLanguages: "最多选择 3 种语言。",
-    durationError: "时长必须为正数。",
-    required: "{fields} 为必填。",
-    requiredSingle: "{field} 为必填。",
-    requiredMultiple: "{fields} 为必填。"
   },
   common: {
     syncing: "正在同步数据...",
@@ -632,7 +616,26 @@ export const zh = {
       platforms: "平台",
       manualDate: "日期",
       manualTime: "时间"
-    }
+    },
+    errors: {
+      durationError: "时长必须为正数。",
+      maxLanguages: "最多可选择 3 种语言。",
+      noGroup: "请选择群组。",
+      requiredMultiple: "{fields} 为必填。",
+      requiredSingle: "{field} 为必填。"
+    },
+    exportJson: "导出 JSON",
+    importJson: "导入 JSON",
+    labels: {
+      group: "群组",
+      schedule: "日程",
+      series: "系列",
+      templates: "模板"
+    },
+    section: {
+      scheduleSelection: "日程选择"
+    },
+    selectTemplate: "选择一个模板"
   },
   wizard: {
     back: "返回",
@@ -643,5 +646,133 @@ export const zh = {
     message: "活动「{title}」已在此时间安排。",
     changeTime: "重新选择时间",
     continue: "仍然创建"
+  },
+  schedules: {
+    announcements: {
+      hint: "切换此模板发布活动时要执行的操作。",
+      hintSeries: "切换此系列创建或修改时要执行的操作。",
+      title: "公告"
+    },
+    empty: {
+      all: "此群组没有日程。",
+      series: "此群组没有系列。",
+      templates: "此群组没有模板。"
+    },
+    filter: {
+      all: "全部",
+      label: "显示"
+    },
+    info: {
+      series: {
+        bullet1: "VRChat 根据重复规则在服务器端预先生成所有发生次数。",
+        bullet2: "一次设置即可 —— 创建后无需应用程序。",
+        bullet3: "限制：无法逐个活动公告；更改重复规则会重新生成所有发生次数（修改会丢失）。",
+        bullet4: "适合不需要公告的稳定重复活动。",
+        title: "系列"
+      },
+      template: {
+        bullet1: "每个活动作为独立的日历条目发布——可逐次修改。",
+        bullet2: "可选择性地通过 Discord 预定活动、Webhook 和 .ics 日历邀请来公告每个活动。",
+        bullet3: "结合 EC 的自动化和基于模式的调度，实现免操作发布。",
+        bullet4: "自动发布需要应用保持运行。",
+        title: "模板"
+      }
+    },
+    modeBlurb: {
+      moreInfo: "（详细信息）",
+      series: "系列是 VRChat 原生的重复活动调度器。服务器会预先生成所有发生次数。无公告。",
+      template: "模板自动填充重复活动，并逐次单独发布，可选附带公告。"
+    },
+    saveButton: {
+      seriesCreate: "创建系列",
+      template: "保存模板"
+    },
+    subtitle: "用于公告驱动调度的模板，以及 VRChat 原生重复系列。",
+    types: {
+      templateButton: "模板"
+    }
+  },
+  series: {
+    confirmDelete: "删除「{label}」？这将从 VRChat 移除该系列及其所有发生。",
+    confirmDeleteTitle: "删除系列？",
+    created: "已创建系列「{label}」。",
+    days: {
+      fr: "周五",
+      mo: "周一",
+      sa: "周六",
+      su: "周日",
+      th: "周四",
+      tu: "周二",
+      we: "周三"
+    },
+    deleted: "已删除系列「{label}」。",
+    disclaimer: "系列只能在第一次发生开始之前重新调度。一旦开始，必须删除才能更改日期或时间。活动最多可提前一年安排。单个活动最长 31 天。",
+    end: {
+      afterDateLabel: "指定日期",
+      afterOccurrencesLabel: "N 次发生后",
+      never: "永不",
+      occurrencesLabel: "次"
+    },
+    errors: {
+      createFailed: "无法创建系列。",
+      deleteFailed: "无法删除系列。",
+      noDaysOfWeek: "至少选择一个星期几。",
+      noEndDate: "请设置结束日期。",
+      noLabel: "系列标签必填。",
+      noSeries: "未选择系列。",
+      noStartDate: "首次发生的日期和时间必填。",
+      noTitle: "活动名称必填。",
+      notFound: "未找到系列。",
+      regenFailed: "无法重新生成系列。",
+      startInPast: "首次发生必须在未来。保存前请更新日期。",
+      updateFailed: "无法更新系列。"
+    },
+    frequency: {
+      custom: "自定义",
+      daily: "每天",
+      monthly: "每月",
+      weekdays: "工作日",
+      weekends: "周末",
+      weekly: "每周",
+      yearly: "每年"
+    },
+    labels: {
+      daysOfWeek: "重复在",
+      endCondition: "结束",
+      frequency: "频率",
+      interval: "每隔",
+      startDate: "首次发生日期",
+      startTime: "开始时间"
+    },
+    lockedHint: "此系列已开始。日期、时间和重复规则已锁定——但你仍可调整结束时间。如需重新安排，请点击解锁——保存后会用新系列替换此系列。",
+    rasterize: {
+      retryIn: "下次重试在 {wait} 后。",
+      retryNow: "立即重试",
+      statusText: "{count} 个待创建的活动。{wait}"
+    },
+    regen: {
+      choiceMessage: "此系列有 {count} 个已修改活动。当前系列将被新系列替换。\n\n• 保留修改：同日重叠会更新到新系列；无重叠的活动变为独立活动。\n• 放弃修改：对这些发生的更改将丢失。",
+      choiceTitle: "替换系列？",
+      confirmAction: "替换系列",
+      confirmMessage: "这将用新系列替换当前系列。继续？",
+      discard: "放弃修改",
+      keep: "保留修改",
+      success: "已替换系列「{label}」。",
+      successWithMods: "已替换系列「{label}」。{count} 个修改已排队。"
+    },
+    regenWarning: "重复规则已解锁。如果更改重复规则，当前系列将被新系列替换。",
+    regenWarningWithMods: "重复规则已解锁。如果更改重复规则，当前系列将被新系列替换，且会询问如何处理其 {count} 个已修改活动。",
+    unit: {
+      days: "天",
+      months: "个月",
+      weeks: "周",
+      years: "年"
+    },
+    unlockButton: "解锁",
+    updateRequired: "有可用更新。请在更改系列前更新。",
+    updated: "已更新系列「{label}」。",
+    warnings: {
+      confirmUpdate: "更新系列"
+    }
   }
 };

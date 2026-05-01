@@ -4,8 +4,8 @@ export const ja = {
   nav: {
     create: "イベント作成",
     modify: "イベント編集",
-    profiles: "テンプレート管理",
-    settings: "設定"
+    settings: "設定",
+    schedules: "スケジュール管理"
   },
   auth: {
     title: "アクセス",
@@ -55,11 +55,9 @@ export const ja = {
     loadFailed: "ギャラリーを読み込めませんでした。"
   },
   settings: {
-    title: "設定",
     theme: {
       title: "テーマ",
       description: "アプリの外観をカスタマイズします。プリセットを選ぶか手動で調整してください。",
-      label: "カラーテーマ",
       default: "デフォルト (ティール/グリーン)",
       blue: "オーシャンブルー",
       purple: "パープルヘイズ",
@@ -161,7 +159,6 @@ export const ja = {
       testSuccess: "{botName} として接続しました",
       testFailed: "接続に失敗しました。Botトークンを確認してください。",
       tokenMissing: "先にBotトークンを入力してください。",
-      groupLabel: "グループ",
       selectGroup: "グループを選択...",
       saveButton: "保存",
       saved: "Discord設定を保存しました。",
@@ -202,7 +199,8 @@ export const ja = {
       webhookMissing: "まずWebhook URLを入力してください。",
       remindersHint: "一部のカレンダーアプリは最初のリマインダーのみを使用する場合があります。",
       saveDirLabel: "カレンダー保存ディレクトリ",
-      autoSaved: "カレンダーファイルを保存しました: {filePath}"
+      autoSaved: "カレンダーファイルを保存しました: {filePath}",
+      inviteTitle: "カレンダー招待"
     },
     eckit: {
       importButton: "キットをインポート",
@@ -219,7 +217,10 @@ export const ja = {
       selectImage: "選択"
     },
     saveButton: "設定を保存",
-    saved: "設定を保存しました。"
+    saved: "設定を保存しました。",
+    featuredVerification: {
+      permissionDenied: "このグループは注目イベントを作成する権限がありません。"
+    }
   },
   demo: {
     controls: {
@@ -255,7 +256,6 @@ export const ja = {
     ios: "iOS"
   },
   events: {
-    title: "イベント作成",
     steps: {
       group: "グループ",
       date: "日付",
@@ -276,10 +276,10 @@ export const ja = {
       importJson: "JSON からインポート",
       dateSource: "使用",
       dateSourcePattern: "パターン",
-      dateSourceManual: "手動",
       patternDates: "パターン日付",
       manualDate: "手動日付",
-      manualTime: "手動時刻"
+      manualTime: "手動時刻",
+      dateSourceManual: "手動"
     },
     hints: {
       profileDefaults: "テンプレートを選ぶと既定値を使えます。空欄なら手動で作成します。",
@@ -295,15 +295,11 @@ export const ja = {
     },
     profileHint: "テンプレートは任意です。デフォルト設定または手動設定が選べます。",
     loadProfile: "テンプレートを読み込む (任意)",
-    loadProfilePlaceholder: "テンプレートを選択",
     clearProfile: "テンプレートを削除",
-    importJsonButton: "JSON をインポート",
     importSuccess: "イベントデータを JSON からインポートしました。",
     importWrongType: "これはテンプレートの JSON のようです。代わりにテンプレートのインポートを使用してください。",
-    exportJsonButton: "JSON をエクスポート",
     exportSuccess: "イベントデータを JSON にエクスポートしました。",
     dateSource: "日時",
-    dateSourceManual: "手動",
     dateSourcePattern: "テンプレートのパターンから",
     dateOption: "日付を選択",
     patternDateLabel: "{label} - {date}",
@@ -337,19 +333,14 @@ export const ja = {
     },
     created: "イベントを作成しました。",
     failed: "イベントを作成できませんでした。",
-    selectGroupError: "グループを選択してください。",
     selectDateError: "日付を選択してください。",
     updateRequired: "更新があります。イベントを作成する前に更新してください。",
-    requiredSingle: "{field} は必須です。",
-    requiredMultiple: "{fields} は必須です。",
     noDateOptionsError: "テンプレートから日付候補がありません。",
     featuredPermissionRevoked: "このグループで注目イベントを作成する権限が失われました",
     groupFairPermissionRevoked: "このグル－プでグループフェアイベントを作成する権限が失われました"
   },
   modify: {
-    title: "イベントを編集",
     subtitle: "作成済みのグループのイベントを編集、または削除",
-    groupLabel: "グループ",
     showPending: "保留中を表示",
     countEmpty: "今後のイベント情報を取得できません。",
     countGroupFallback: "このグループ",
@@ -359,8 +350,6 @@ export const ja = {
     eventImage: "イベント画像",
     noImage: "画像なし",
     untitled: "無題のイベント",
-    profileLabel: "テンプレートを読み込む（任意）",
-    profileSelect: "テンプレートを選択",
     profileLoad: "読み込み",
     profileSelectError: "読み込むテンプレートを選択してください。",
     profileLoadFailed: "テンプレートの既定値を読み込めませんでした。",
@@ -373,10 +362,7 @@ export const ja = {
     },
     updateRequired: "更新があります。イベントを編集する前に更新してください。",
     selectEventError: "編集するイベントを選択してください。",
-    requiredSingle: "{field} は必須です。",
     selectDateError: "日付と時刻を選択してください。",
-    durationError: "所要時間は正の数である必要があります。",
-    maxLanguages: "最大3言語まで選択できます。",
     saveFailed: "イベントを更新できませんでした。",
     saved: "イベントを更新しました。",
     deleteFailed: "イベントを削除できませんでした。",
@@ -401,10 +387,28 @@ export const ja = {
       editSaved: "予定イベントが更新されました。",
       editFailed: "予定イベントを更新できませんでした。"
     },
-    postingOptions: "投稿オプション"
+    postingOptions: "投稿オプション",
+    badge: {
+      modified: "変更済み"
+    },
+    filters: {
+      heading: "表示",
+      modified: "変更されたイベント",
+      pending: "保留中のイベント",
+      standalone: "単発イベント"
+    },
+    filtersButton: "フィルター",
+    timeRange: {
+      "1month": "1か月",
+      "1week": "1週間",
+      "1year": "1年",
+      "2weeks": "2週間",
+      "3months": "3か月",
+      "6months": "6か月",
+      label: "期間"
+    }
   },
   profiles: {
-    title: "テンプレート管理",
     subtitle: "グループごとのテンプレートを作成します。",
     steps: {
       select: "選択",
@@ -413,32 +417,22 @@ export const ja = {
       audience: "対象"
     },
     section: {
-      selection: "テンプレート選択",
       basics: "テンプレート基本",
-      schedule: "スケジュール",
       audience: "対象"
     },
     labels: {
-      group: "グループ",
-      profile: "テンプレート"
     },
     buttons: {
       new: "新規"
     },
-    importJsonButton: "JSON をインポート",
     importSuccess: "テンプレートデータを JSON からインポートしました。",
     importWrongType: "これはイベントの JSON のようです。代わりにイベントのインポートを使用してください。",
-    exportJsonButton: "JSON をエクスポート",
     exportSuccess: "テンプレートデータを JSON にエクスポートしました。",
     hints: {
       groupAccess: "カレンダー権限のあるグループを選択してください。",
       patternsInfo: "パターンは今後の日付を事前生成するために使用されます。"
     },
-    existingProfile: "既存テンプレート",
     existingProfilePlaceholder: "テンプレートを選択",
-    noProfiles: "このグループにはテンプレートがありません",
-    newButton: "新規テンプレート",
-    saveButton: "テンプレートを保存",
     displayName: "テンプレート名",
     displayNamePlaceholder: "コミュニティ交流テンプレート",
     access: "アクセス",
@@ -449,7 +443,6 @@ export const ja = {
     dateModeBoth: "パターン + 手動",
     sendNotificationDefault: "デフォルトで通知を送信",
     patterns: {
-      title: "繰り返しパターン",
       addButton: "パターン追加",
       clearButton: "パターンをクリア",
       noPatterns: "パターンがありません。",
@@ -502,7 +495,6 @@ export const ja = {
       minutes: "分",
       monthlyHint: "毎月この日にイベントを投稿：",
       monthlyDay: "日",
-      monthlyDayHint: "29～31日は短い月の最終日を使用します",
       monthlyTime: "時刻",
       repeatMode: "繰り返し",
       repeatModes: {
@@ -549,14 +541,6 @@ export const ja = {
     updated: "テンプレートを更新しました。",
     deleted: "テンプレートを削除しました。",
     confirmDelete: "テンプレート「{name}」を削除しますか？",
-    selectGroupError: "グループを選択してください。",
-    selectGroupFirst: "最初にグループを選択してください。",
-    selectProfileError: "編集するテンプレートを選択してください。",
-    maxLanguages: "言語は最大3つまでです。",
-    durationError: "所要時間は正の数で入力してください。",
-    required: "{fields} は必須です。",
-    requiredSingle: "{field} は必須です。",
-    requiredMultiple: "{fields} は必須です。"
   },
   common: {
     syncing: "同期中...",
@@ -632,7 +616,26 @@ export const ja = {
       platforms: "プラットフォーム",
       manualDate: "日付",
       manualTime: "時刻"
-    }
+    },
+    errors: {
+      durationError: "所要時間は正の数である必要があります。",
+      maxLanguages: "最大3言語まで選択できます。",
+      noGroup: "グループを選択してください。",
+      requiredMultiple: "{fields} は必須です。",
+      requiredSingle: "{field} は必須です。"
+    },
+    exportJson: "JSON をエクスポート",
+    importJson: "JSON をインポート",
+    labels: {
+      group: "グループ",
+      schedule: "スケジュール",
+      series: "シリーズ",
+      templates: "テンプレート"
+    },
+    section: {
+      scheduleSelection: "スケジュール選択"
+    },
+    selectTemplate: "テンプレートを選択"
   },
   wizard: {
     back: "戻る",
@@ -643,5 +646,133 @@ export const ja = {
     message: "イベント「{title}」はすでにこの時間に予定されています。",
     changeTime: "時間を再選択",
     continue: "そのまま作成"
+  },
+  schedules: {
+    announcements: {
+      hint: "このテンプレートがイベントを投稿するときに行う操作を切り替えます。",
+      hintSeries: "このシリーズが作成または変更されたときに行う操作を切り替えます。",
+      title: "アナウンス"
+    },
+    empty: {
+      all: "このグループのスケジュールはありません。",
+      series: "このグループのシリーズはありません。",
+      templates: "このグループのテンプレートはありません。"
+    },
+    filter: {
+      all: "すべて",
+      label: "表示"
+    },
+    info: {
+      series: {
+        bullet1: "VRChat が繰り返しルールに基づき、すべての回をサーバー側で事前生成します。",
+        bullet2: "一度設定すれば後は不要 — 作成後はアプリ不要です。",
+        bullet3: "制限事項：イベントごとのアナウンス不可。繰り返しルールを変更すると全ての回が再生成され、編集内容は失われます。",
+        bullet4: "アナウンスが不要な、安定した繰り返しイベントに最適です。",
+        title: "シリーズ"
+      },
+      template: {
+        bullet1: "各イベントは独立したカレンダー項目として投稿され、回ごとに編集できます。",
+        bullet2: "各イベントを Discord 予定イベント、Webhook、.ics カレンダー招待で任意にアナウンスできます。",
+        bullet3: "EC の自動化とパターンベースのスケジュールと組み合わせれば、手動操作なしで投稿できます。",
+        bullet4: "自動投稿にはアプリが起動している必要があります。",
+        title: "テンプレート"
+      }
+    },
+    modeBlurb: {
+      moreInfo: "（詳細）",
+      series: "シリーズは VRChat ネイティブの繰り返しスケジューラーです。サーバー側で全ての回を事前生成します。アナウンスはありません。",
+      template: "テンプレートは繰り返しイベントを自動入力し、各回を個別に投稿します（アナウンスは任意）。"
+    },
+    saveButton: {
+      seriesCreate: "シリーズを作成",
+      template: "テンプレートを保存"
+    },
+    subtitle: "アナウンス付きのスケジュール用テンプレートと、VRChat ネイティブの繰り返しシリーズ。",
+    types: {
+      templateButton: "テンプレート"
+    }
+  },
+  series: {
+    confirmDelete: "「{label}」を削除しますか？シリーズと全ての回が VRChat から削除されます。",
+    confirmDeleteTitle: "シリーズを削除しますか？",
+    created: "シリーズ「{label}」を作成しました。",
+    days: {
+      fr: "金",
+      mo: "月",
+      sa: "土",
+      su: "日",
+      th: "木",
+      tu: "火",
+      we: "水"
+    },
+    deleted: "シリーズ「{label}」を削除しました。",
+    disclaimer: "シリーズの予定変更は、最初の回が開始する前のみ可能です。開始後は日時を変更するには削除が必要です。イベントは最大1年先まで予約できます。1イベントの最長は31日です。",
+    end: {
+      afterDateLabel: "指定日",
+      afterOccurrencesLabel: "N 回後",
+      never: "なし",
+      occurrencesLabel: "回"
+    },
+    errors: {
+      createFailed: "シリーズを作成できませんでした。",
+      deleteFailed: "シリーズを削除できませんでした。",
+      noDaysOfWeek: "曜日を1つ以上選んでください。",
+      noEndDate: "終了日を指定してください。",
+      noLabel: "シリーズのラベルは必須です。",
+      noSeries: "シリーズが選択されていません。",
+      noStartDate: "初回の日付と時刻は必須です。",
+      noTitle: "イベント名は必須です。",
+      notFound: "シリーズが見つかりません。",
+      regenFailed: "シリーズを再生成できませんでした。",
+      startInPast: "初回は未来である必要があります。保存する前に日付を更新してください。",
+      updateFailed: "シリーズを更新できませんでした。"
+    },
+    frequency: {
+      custom: "カスタム",
+      daily: "毎日",
+      monthly: "毎月",
+      weekdays: "平日",
+      weekends: "週末",
+      weekly: "毎週",
+      yearly: "毎年"
+    },
+    labels: {
+      daysOfWeek: "繰り返す曜日",
+      endCondition: "終了",
+      frequency: "頻度",
+      interval: "繰り返し間隔",
+      startDate: "初回の日付",
+      startTime: "開始時刻"
+    },
+    lockedHint: "このシリーズは既に開始しています。日付・時刻・繰り返しルールはロックされていますが、終了タイミングは調整できます。予定変更するには「ロック解除」をクリック — 保存すると新しいシリーズで置き換えられます。",
+    rasterize: {
+      retryIn: "次の再試行は {wait} 後です。",
+      retryNow: "今すぐ再試行",
+      statusText: "{count} 件のイベントが作成待ちです。{wait}"
+    },
+    regen: {
+      choiceMessage: "このシリーズには {count} 件の変更済みイベントがあります。現在のシリーズは新しいシリーズに置き換えられます。\n\n• 変更を維持：同じ日の重複は新シリーズに反映され、重複しないものは単発イベントになります。\n• 変更を破棄：これらの回への変更は失われます。",
+      choiceTitle: "シリーズを置き換えますか？",
+      confirmAction: "シリーズを置き換え",
+      confirmMessage: "現在のシリーズを新しいシリーズで置き換えます。続行しますか？",
+      discard: "変更を破棄",
+      keep: "変更を維持",
+      success: "シリーズ「{label}」を置き換えました。",
+      successWithMods: "シリーズ「{label}」を置き換えました。{count} 件の変更がキューに入っています。"
+    },
+    regenWarning: "繰り返しのロックが解除されています。繰り返しを変更すると、現在のシリーズは新しいシリーズに置き換えられます。",
+    regenWarningWithMods: "繰り返しのロックが解除されています。繰り返しを変更すると、現在のシリーズは新しいシリーズに置き換えられ、変更済みの {count} 件のイベントの扱いを尋ねられます。",
+    unit: {
+      days: "日",
+      months: "か月",
+      weeks: "週間",
+      years: "年"
+    },
+    unlockButton: "ロック解除",
+    updateRequired: "アップデートがあります。シリーズを変更する前に更新してください。",
+    updated: "シリーズ「{label}」を更新しました。",
+    warnings: {
+      confirmUpdate: "シリーズを更新"
+    }
   }
 };
