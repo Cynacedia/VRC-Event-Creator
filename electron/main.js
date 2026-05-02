@@ -1291,6 +1291,13 @@ function createWindow(options = {}) {
     }
   });
 
+  // Defense in depth: refuse any window-open requests from the renderer.
+  // The app doesn't open new windows; if a future change needs to, this
+  // hook is the right place to allow-list specific URLs.
+  mainWindow.webContents.setWindowOpenHandler(() => {
+    return { action: "deny" };
+  });
+
   mainWindow.loadFile(path.join(__dirname, "renderer", "index.html"));
 
   if (startHidden && settings?.minimizeToTray) {
@@ -1881,11 +1888,30 @@ ipcMain.handle("app:installUpdate", () => {
   autoUpdater.quitAndInstall(true, true);
 });
 
-ipcMain.handle("app:openExternal", (_, url) => {
-  if (!url || typeof url !== "string") {
+// Allowed URL schemes for shell.openExternal. Anything else (especially
+// file:, javascript:, data:, plus arbitrary custom schemes that could
+// trigger OS handlers) is refused. File-path inputs (calendar save dir
+// "Open" button) get routed to shell.openPath instead, which is the
+// proper API for that and doesn't honor URL schemes at all.
+const ALLOWED_OPEN_EXTERNAL_SCHEMES = /^(https?|mailto):/i;
+
+ipcMain.handle("app:openExternal", (_, target) => {
+  if (!target || typeof target !== "string") {
     return false;
   }
-  shell.openExternal(url);
+  // If it parses as a URL with an explicit scheme, the scheme must be allow-listed
+  if (/^[a-z][a-z0-9+.-]*:/i.test(target)) {
+    if (!ALLOWED_OPEN_EXTERNAL_SCHEMES.test(target)) {
+      const scheme = target.slice(0, target.indexOf(":")).toLowerCase();
+      debugLog("security", "Blocked openExternal with scheme:", scheme);
+      return false;
+    }
+    shell.openExternal(target);
+    return true;
+  }
+  // No scheme → treat as a local path and route to the appropriate API.
+  // shell.openPath returns "" on success, error string on failure.
+  shell.openPath(target);
   return true;
 });
 
