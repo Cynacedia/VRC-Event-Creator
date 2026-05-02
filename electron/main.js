@@ -18,6 +18,7 @@ const galleryCacheModule = require("./core/gallery-cache");
 const themeStoreModule = require("./core/theme-store");
 const eckit = require("./core/eckit");
 const { normalizeSettings } = require("./core/normalize-settings");
+const { sanitizeFilename, pathIsWithin } = require("./core/filename-sanitizer");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -399,9 +400,9 @@ function generateIcsForEvent(groupId, profileKey, eventData, startsAtUtc, endsAt
   });
 
   // Build filename: "Event Name - [YYYY-MM-DD].ics"
-  const safeTitle = (eventData.title || "event").replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+  const safeTitle = sanitizeFilename(eventData.title || "event", { fallback: "event", maxLength: 50 });
   const dateTag = new Date(startsAtUtc).toISOString().slice(0, 10);
-  const filename = `${safeTitle} - ${dateTag}.ics`;
+  const filename = sanitizeFilename(`${safeTitle} - ${dateTag}`, { extension: ".ics", maxLength: 80 });
 
   return { icsContent, filename };
 }
@@ -593,10 +594,15 @@ function tryIcsAutoSave(groupId, profileKey, eventData, startsAtUtc, endsAtUtc) 
   }
   try {
     // Save into group subfolder: {saveDir}/{GroupName}/{filename}
-    const safeGroupName = (groupData.groupName || "Unknown Group").replace(/[^a-zA-Z0-9_ -]/g, "").trim() || "Group";
+    const safeGroupName = sanitizeFilename(groupData.groupName || "Unknown Group", { fallback: "Group", maxLength: 80 });
     const groupDir = path.join(settings.calendarSaveDir, safeGroupName);
     fs.mkdirSync(groupDir, { recursive: true });
     const savePath = path.join(groupDir, filename);
+    // Belt-and-suspenders: refuse to write outside the configured save dir
+    if (!pathIsWithin(settings.calendarSaveDir, savePath)) {
+      debugLog("calendar", "ICS auto-save blocked: path escape attempt", savePath);
+      return;
+    }
     fs.writeFileSync(savePath, icsContent, "utf8");
     debugLog("calendar", "ICS auto-saved:", savePath);
     if (mainWindow) {
@@ -723,8 +729,8 @@ function trySeriesAnnouncements(groupId, seriesData, startsAtUtc, endsAtUtc, ann
       reminders: [],
       rrule
     });
-    const safeTitle = (tpl.title || label).replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
-    icsFilename = `${safeTitle} - Series.ics`;
+    const safeTitle = sanitizeFilename(tpl.title || label, { fallback: "Series", maxLength: 50 });
+    icsFilename = sanitizeFilename(`${safeTitle} - Series`, { extension: ".ics", maxLength: 80 });
 
     // Auto-save the .ics to disk
     try {
@@ -733,10 +739,15 @@ function trySeriesAnnouncements(groupId, seriesData, startsAtUtc, endsAtUtc, ann
         settings.calendarSaveDir = path.join(docsDir, "VRC Event Creator .ics");
         saveSettings(settings);
       }
-      const safeGroupName = (groupData.groupName || "Unknown Group").replace(/[^a-zA-Z0-9_ -]/g, "").trim() || "Group";
+      const safeGroupName = sanitizeFilename(groupData.groupName || "Unknown Group", { fallback: "Group", maxLength: 80 });
       const groupDir = path.join(settings.calendarSaveDir, safeGroupName);
       fs.mkdirSync(groupDir, { recursive: true });
       const savePath = path.join(groupDir, icsFilename);
+      // Belt-and-suspenders: refuse to write outside the configured save dir
+      if (!pathIsWithin(settings.calendarSaveDir, savePath)) {
+        debugLog("series", "Series ICS save blocked: path escape attempt", savePath);
+        return;
+      }
       fs.writeFileSync(savePath, icsContent, "utf8");
       debugLog("series", "Series ICS saved:", savePath);
       if (mainWindow) {
@@ -2014,7 +2025,7 @@ ipcMain.handle("calendar:generateAndSave", async (_, { eventData, startsAtUtc, e
     sequence: 0,
     reminders: (eventData.calendarRemindersEnabled && Array.isArray(eventData.calendarReminders)) ? eventData.calendarReminders : []
   });
-  const safeTitle = (eventData.title || "event").replace(/[^a-zA-Z0-9_ -]/g, "").trim().slice(0, 50);
+  const safeTitle = sanitizeFilename(eventData.title || "event", { fallback: "event", maxLength: 50 });
   const dateTag = new Date(startsAtUtc).toISOString().slice(0, 10);
   if (!mainWindow) return { ok: false, error: "No window." };
   const result = await dialog.showSaveDialog(mainWindow, {
