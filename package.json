@@ -25,6 +25,7 @@
   "devDependencies": {
     "electron": "^39.2.7",
     "electron-builder": "^24.13.3",
+    "happy-dom": "^20.9.0",
     "vitest": "^4.1.5"
   },
   "build": {
