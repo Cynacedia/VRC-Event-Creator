@@ -17,6 +17,7 @@ const debugModule = require("./core/debug-log");
 const galleryCacheModule = require("./core/gallery-cache");
 const themeStoreModule = require("./core/theme-store");
 const eckit = require("./core/eckit");
+const { normalizeSettings } = require("./core/normalize-settings");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -180,55 +181,6 @@ function initializePaths() {
   themeStoreModule.seedThemePresets();
   themeStoreModule.migrateThemeStorePresets(rawThemeStore);
   vrchat = createClient();
-}
-
-function normalizeCalendarReminders(raw) {
-  if (!Array.isArray(raw) || raw.length === 0) {
-    return [{ value: 30, unit: "minutes" }];
-  }
-  const validUnits = ["minutes", "hours", "days"];
-  const normalized = raw
-    .filter(r => r && typeof r === "object" && typeof r.value === "number" && validUnits.includes(r.unit))
-    .map(r => ({
-      value: Math.max(1, Math.min(r.unit === "days" ? 7 : r.unit === "hours" ? 168 : 10080, Math.floor(r.value))),
-      unit: r.unit
-    }));
-  return normalized.length ? normalized : [{ value: 30, unit: "minutes" }];
-}
-
-function normalizeSettings(raw) {
-  // Only preserve the specific settings fields we define - ignore any other fields
-  const validRanges = [7, 14, 30, 90, 180, 365];
-  if (!raw || typeof raw !== "object") {
-    return {
-      warnConflicts: false,
-      minimizeToTray: false,
-      trayPromptShown: false,
-      enableAdvanced: false,
-      enableImportExport: false,
-      autoUploadImages: false,
-      startOnStartup: false,
-      discordEnabled: false,
-      calendarEnabled: false,
-      calendarSaveDir: "",
-      calendarReminders: [{ value: 30, unit: "minutes" }],
-      modifyTimeRangeDays: 90
-    };
-  }
-  return {
-    warnConflicts: typeof raw.warnConflicts === "boolean" ? raw.warnConflicts : false,
-    minimizeToTray: typeof raw.minimizeToTray === "boolean" ? raw.minimizeToTray : false,
-    trayPromptShown: typeof raw.trayPromptShown === "boolean" ? raw.trayPromptShown : false,
-    enableAdvanced: typeof raw.enableAdvanced === "boolean" ? raw.enableAdvanced : false,
-    enableImportExport: typeof raw.enableImportExport === "boolean" ? raw.enableImportExport : false,
-    autoUploadImages: typeof raw.autoUploadImages === "boolean" ? raw.autoUploadImages : false,
-    startOnStartup: typeof raw.startOnStartup === "boolean" ? raw.startOnStartup : false,
-    discordEnabled: typeof raw.discordEnabled === "boolean" ? raw.discordEnabled : false,
-    calendarEnabled: typeof raw.calendarEnabled === "boolean" ? raw.calendarEnabled : false,
-    calendarSaveDir: typeof raw.calendarSaveDir === "string" ? raw.calendarSaveDir : "",
-    calendarReminders: normalizeCalendarReminders(raw.calendarReminders),
-    modifyTimeRangeDays: validRanges.includes(raw.modifyTimeRangeDays) ? raw.modifyTimeRangeDays : 90
-  };
 }
 
 function loadSettings() {
