@@ -6,6 +6,48 @@
 
 const WEBHOOK_URL_PATTERN = /^https:\/\/(discord\.com|discordapp\.com)\/api\/webhooks\//;
 
+// Discord rejects webhook usernames that contain these substrings — server-
+// side enforcement returns a 400. We pre-screen on the client to (a) keep
+// the post going (fall back to the default name) instead of failing, and
+// (b) prevent impersonation of system actors regardless of any future
+// Discord-side relaxation.
+const FORBIDDEN_NAME_SUBSTRINGS = [
+  /discord/i,
+  /clyde/i,
+  /@everyone/i,
+  /@here/i,
+];
+const WEBHOOK_NAME_MIN_LENGTH = 1;
+const WEBHOOK_NAME_MAX_LENGTH = 80;
+
+/**
+ * Validate + clean a webhook display name. Returns the trimmed name on
+ * success or `null` if the name is invalid/forbidden/empty — the caller
+ * should fall back to a default in that case.
+ *
+ * Rejection causes:
+ *   - Non-string input
+ *   - Empty / whitespace-only after trimming
+ *   - Outside Discord's 1-80 character window after trimming
+ *   - Contains "discord" / "clyde" / "@everyone" / "@here" (case-insensitive)
+ *
+ * Always strips control characters (0x00-0x1F) before length checking.
+ *
+ * @param {string} name
+ * @returns {string|null} Cleaned name, or null if rejected
+ */
+function sanitizeWebhookName(name) {
+  if (typeof name !== "string") return null;
+  // Strip control chars + collapse whitespace
+  const cleaned = name.replace(/[\x00-\x1F]/g, "").trim();
+  if (cleaned.length < WEBHOOK_NAME_MIN_LENGTH) return null;
+  if (cleaned.length > WEBHOOK_NAME_MAX_LENGTH) return null;
+  for (const pattern of FORBIDDEN_NAME_SUBSTRINGS) {
+    if (pattern.test(cleaned)) return null;
+  }
+  return cleaned;
+}
+
 /**
  * Send a message to a Discord webhook with optional ICS, image, and icon attachments.
  * @param {object} options
@@ -29,8 +71,13 @@ async function sendWebhook({ webhookUrl, icsContent, filename, content, embed, i
 
   const boundary = `----WebhookBoundary${Date.now()}${Math.random().toString(36).slice(2)}`;
 
+  // Validate the optional webhook display-name override; a forbidden /
+  // malformed name would otherwise get rejected by Discord with a 400.
+  // Falling back to the default keeps the post going.
+  const safeWebhookName = sanitizeWebhookName(webhookName) || "VRC Event Creator";
+
   const payload = {
-    username: webhookName || "VRC Event Creator",
+    username: safeWebhookName,
     ...(content ? { content } : {}),
     ...(embed ? { embeds: [embed] } : {}),
     ...(avatarUrl ? { avatar_url: avatarUrl } : {})
@@ -179,5 +226,6 @@ function formatWebhookError(status, errorData) {
 
 module.exports = {
   sendWebhook,
-  testWebhook
+  testWebhook,
+  sanitizeWebhookName
 };
