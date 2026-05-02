@@ -6,7 +6,8 @@
     "start:gui": "electron .",
     "dist:gui": "electron-builder --win",
     "dist:gui:all": "electron-builder",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "Cynacedia",
@@ -23,7 +24,8 @@
   },
   "devDependencies": {
     "electron": "^39.2.7",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "vitest": "^4.1.5"
   },
   "build": {
     "appId": "com.vrceventmaker.app",
@@ -49,7 +51,18 @@
       "perMachine": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "installerLanguages": ["en_US", "de_DE", "fr_FR", "es_ES", "ja_JP", "ko_KR", "pt_BR", "ru_RU", "zh_CN", "nl_NL"]
+      "installerLanguages": [
+        "en_US",
+        "de_DE",
+        "fr_FR",
+        "es_ES",
+        "ja_JP",
+        "ko_KR",
+        "pt_BR",
+        "ru_RU",
+        "zh_CN",
+        "nl_NL"
+      ]
     },
     "linux": {
       "target": "AppImage",
