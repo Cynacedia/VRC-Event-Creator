@@ -19,6 +19,7 @@ const themeStoreModule = require("./core/theme-store");
 const eckit = require("./core/eckit");
 const { normalizeSettings } = require("./core/normalize-settings");
 const { sanitizeFilename, pathIsWithin } = require("./core/filename-sanitizer");
+const { validateEventImport, validateProfileImport } = require("./core/import-validator");
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
@@ -2183,10 +2184,14 @@ ipcMain.handle("events:importJson", async () => {
   } catch (err) {
     return { ok: false, error: { code: "FILE_INVALID", message: "Could not parse JSON file." } };
   }
-  if (!raw || typeof raw !== "object") {
-    return { ok: false, error: { code: "FILE_INVALID", message: "Invalid JSON structure." } };
+  // Schema-validate the imported event: drops unknown fields, type-coerces
+  // each known field, rejects __proto__/constructor/prototype attacks.
+  const validated = validateEventImport(raw);
+  if (!validated.ok) {
+    debugLog("import", "Event import rejected:", validated.error);
+    return { ok: false, error: { code: "FILE_INVALID", message: validated.error } };
   }
-  return { ok: true, data: raw };
+  return { ok: true, data: validated.data };
 });
 
 ipcMain.handle("events:exportJson", async (_, data) => {
@@ -2228,10 +2233,15 @@ ipcMain.handle("profiles:importJson", async () => {
   } catch (err) {
     return { ok: false, error: { code: "FILE_INVALID", message: "Could not parse JSON file." } };
   }
-  if (!raw || typeof raw !== "object") {
-    return { ok: false, error: { code: "FILE_INVALID", message: "Invalid JSON structure." } };
+  // Schema-validate the imported profile: drops unknown fields, type-coerces
+  // each known field, rejects __proto__/constructor/prototype attacks,
+  // and strips dangerous keys nested inside automation.
+  const validated = validateProfileImport(raw);
+  if (!validated.ok) {
+    debugLog("import", "Profile import rejected:", validated.error);
+    return { ok: false, error: { code: "FILE_INVALID", message: validated.error } };
   }
-  return { ok: true, data: raw };
+  return { ok: true, data: validated.data };
 });
 
 ipcMain.handle("profiles:exportJson", async (_, data) => {
