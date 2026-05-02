@@ -3,6 +3,7 @@ import { showToast, renderSelect, showConfirmModal } from "./ui.js";
 import { buildTimezones, ensureTimezoneOption, sanitizeText, formatDuration, parseDurationInput, formatDurationPreview } from "./utils.js";
 import { EVENT_NAME_LIMIT, EVENT_DESCRIPTION_LIMIT } from "./config.js";
 import { t } from "./i18n/index.js";
+import { buildRecurrence, computeStartEndUtc } from "./series-recurrence.js";
 
 let _seriesApi = null;
 
@@ -193,64 +194,52 @@ export function readSeriesFromWizard() {
     sendCreationNotification: Boolean(dom.profileSendNotification?.checked)
   };
 
-  // Map UI frequency selection to API recurrence object.
+  // Read raw wizard inputs; the recurrence assembly itself is in the extracted
+  // pure module (./series-recurrence.js) so it can be unit-tested without the
+  // DOM. DOM reads + interval clamping stay here in the renderer.
   // Daily / Weekly / Monthly / Yearly are simple (interval=1).
   // Weekdays = weekly with Mon-Fri; Weekends = weekly with Sat-Sun.
   // Custom unlocks the unit dropdown + day-of-week checkboxes.
   const uiFreq = dom.seriesFrequency?.value || "weekly";
   const timezone = dom.seriesTimezone?.value || "UTC";
-  let recurrence;
-  if (uiFreq === "weekdays") {
-    recurrence = { frequency: "weekly", interval: 1, timezone, daysOfWeek: ["MO", "TU", "WE", "TH", "FR"] };
-  } else if (uiFreq === "weekends") {
-    recurrence = { frequency: "weekly", interval: 1, timezone, daysOfWeek: ["SA", "SU"] };
-  } else if (uiFreq === "custom") {
-    const unit = dom.seriesIntervalUnit?.value || "weekly";
-    const interval = Math.max(1, Math.min(366, parseInt(dom.seriesInterval?.value || "1", 10) || 1));
-    recurrence = { frequency: unit, interval, timezone };
-    if (unit === "weekly") {
-      const daysOfWeek = [];
+  let customIntervalUnit;
+  let customInterval;
+  let customDaysOfWeek;
+  if (uiFreq === "custom") {
+    customIntervalUnit = dom.seriesIntervalUnit?.value || "weekly";
+    customInterval = Math.max(1, Math.min(366, parseInt(dom.seriesInterval?.value || "1", 10) || 1));
+    if (customIntervalUnit === "weekly") {
+      customDaysOfWeek = [];
       document.querySelectorAll('#series-days-of-week-field input[type="checkbox"]:checked').forEach(cb => {
-        daysOfWeek.push(cb.dataset.day);
+        customDaysOfWeek.push(cb.dataset.day);
       });
-      if (daysOfWeek.length) recurrence.daysOfWeek = daysOfWeek;
     }
-  } else {
-    // daily / weekly / monthly / yearly
-    recurrence = { frequency: uiFreq, interval: 1, timezone };
   }
 
   // End condition
   const endType = dom.seriesEndType?.value || "never";
+  let endDate;
+  let endCount;
   if (endType === "afterDate") {
-    const dateVal = dom.seriesEndDate?.value || "";
-    if (dateVal) recurrence.end = { type: "afterDate", date: `${dateVal}T23:59:00` };
+    endDate = dom.seriesEndDate?.value || "";
   } else if (endType === "afterOccurrences") {
-    const count = Math.max(1, Math.min(366, parseInt(dom.seriesEndCount?.value || "10", 10) || 10));
-    recurrence.end = { type: "afterOccurrences", count };
+    endCount = Math.max(1, Math.min(366, parseInt(dom.seriesEndCount?.value || "10", 10) || 10));
   }
-  // "never" → no end key
+
+  const recurrence = buildRecurrence({
+    uiFreq, timezone,
+    customIntervalUnit, customInterval, customDaysOfWeek,
+    endType, endDate, endCount,
+  });
 
   // Build startsAt and endsAt — require BOTH date and time. Silently defaulting
   // the time was a real footgun: an empty field used to fall back to 20:00 and
   // the series got created at 8pm without telling the user.
-  const startDate = dom.seriesStartDate?.value || "";
-  const startTime = dom.seriesStartTime?.value || "";
-  let startsAtUtc = null;
-  let endsAtUtc = null;
-  if (startDate && startTime) {
-    const localStr = `${startDate}T${startTime}:00`;
-    try {
-      const localDate = new Date(localStr);
-      if (!Number.isNaN(localDate.getTime())) {
-        startsAtUtc = localDate.toISOString();
-        const durationMs = (eventTemplate.duration || 120) * 60 * 1000;
-        endsAtUtc = new Date(localDate.getTime() + durationMs).toISOString();
-      }
-    } catch (err) {
-      // ignore
-    }
-  }
+  const { startsAtUtc, endsAtUtc } = computeStartEndUtc({
+    startDate: dom.seriesStartDate?.value || "",
+    startTime: dom.seriesStartTime?.value || "",
+    durationMinutes: eventTemplate.duration,
+  });
 
   // Read the announcements card flags (in step 4)
   const announcements = {
