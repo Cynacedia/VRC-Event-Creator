@@ -1288,6 +1288,7 @@ function createWindow(options = {}) {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
       devTools: IS_DEV
     }
   });
