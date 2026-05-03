@@ -23,7 +23,13 @@ const { validateEventImport, validateProfileImport } = require("./core/import-va
 
 const STABLE_USERDATA_NAME = "VRCEventCreator";
 const STABLE_USERDATA_PATH = path.join(app.getPath("appData"), STABLE_USERDATA_NAME);
-app.setPath("userData", STABLE_USERDATA_PATH);
+// Honor an explicit --user-data-dir CLI override (set by E2E test harness or
+// any user who really wants it). Without this guard, the setPath below would
+// silently overwrite that override and route every launch back to the
+// installed app's real data directory — making isolated test runs impossible.
+if (!process.argv.some(a => a.startsWith("--user-data-dir=")) && !process.env.VRCEC_E2E) {
+  app.setPath("userData", STABLE_USERDATA_PATH);
+}
 
 // Disable GPU cache to suppress warnings
 app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
