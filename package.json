@@ -20,7 +20,7 @@
     "electron-updater": "^6.3.9",
     "keyv-file": "^5.3.3",
     "luxon": "^3.7.2",
-    "vrchat": "^2.20.5"
+    "vrchat": "^2.21.7"
   },
   "devDependencies": {
     "electron": "^41.5.0",
