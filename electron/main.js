@@ -1128,6 +1128,17 @@ function removeRasterizeEntry(id) {
 }
 
 function createClient() {
+  // E2E test mode: swap in the stub VRChat client. The stub lives under
+  // .dev/tests/stubs/ (gitignored — test infrastructure, not shipped). It
+  // reads a fixture from <userDataDir>/e2e-fixture.json on construction and
+  // serves canned responses. Production launches never hit this branch; the
+  // require is only resolved when VRCEC_E2E is explicitly set.
+  if (process.env.VRCEC_E2E) {
+    const stubPath = path.join(__dirname, "..", ".dev", "tests", "stubs", "vrchat-stub.js");
+    // eslint-disable-next-line global-require, import/no-dynamic-require
+    const { VRChat: Stub } = require(stubPath);
+    return new Stub({}, { userDataDir: app.getPath("userData") });
+  }
   return new VRChat({
     application: {
       name: "VRCEventHelper",
