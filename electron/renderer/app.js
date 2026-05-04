@@ -228,10 +228,12 @@ import {
   }
 
   async function refreshData(options = {}) {
-    const { preserveSelection = false } = options;
+    const { preserveSelection = false, force = false } = options;
     try {
       setFootMeta(t("common.syncing"));
-      state.groups = await api.getGroups();
+      // Resync passes force=true to bypass the per-group permission cache
+      // in main, so VRChat-side role changes surface without an app restart.
+      state.groups = await api.getGroups(force ? { force: true } : undefined);
       state.profiles = await api.getProfiles();
       state.kitGroupIds = await api.eckitGetKitGroupIds().catch(() => []);
       // Load series for currently-selected groups
@@ -274,7 +276,7 @@ import {
       dom.statusPill.disabled = true;
       dom.statusPill.setAttribute("aria-disabled", "true");
     }
-    const ok = await refreshData({ preserveSelection: true });
+    const ok = await refreshData({ preserveSelection: true, force: true });
     void checkForUpdates();
     if (ok) {
       showToast("Synced successfully.");
@@ -1634,6 +1636,11 @@ import {
           showScheduleMode("template", { lock: true });
           setRecurrenceFieldsLocked(false);
           handleProfileSelection(api);
+          // Same reason as the Edit button handler above: render helpers live
+          // in this closure, applyProfileToForm doesn't trigger them.
+          renderProfileLanguageList();
+          renderProfilePlatformList();
+          renderPatternList();
           setProfileEditConfirmed(true);
         } else {
           state.schedules.selectedType = null;
@@ -1702,6 +1709,16 @@ import {
         showScheduleMode("template", { lock: true });
         const r = handleProfileEdit();
         if (!r.success && r.message) showToast(r.message, true);
+        // applyProfileToForm (in profiles.js) repopulates state.profile.{patterns,
+        // languages,platforms} from the saved profile — but the DOM render
+        // helpers live in this file's closure and aren't reachable from
+        // profiles.js. Re-render here so step 3 reflects the loaded state.
+        if (r.success) {
+          renderProfileLanguageList();
+          renderProfilePlatformList();
+          renderPatternList();
+          void renderProfileRoleRestrictions(api);
+        }
       });
     dom.profileDelete.addEventListener("click", async () => {
       const selected = dom.profileExisting?.value || "";

@@ -8,7 +8,7 @@ contextBridge.exposeInMainWorld("vrcEvent", {
     ipcRenderer.on("auth:twofactor", () => callback());
   },
   submitTwoFactor: code => ipcRenderer.invoke("auth:twofactor:submit", code),
-  getGroups: () => ipcRenderer.invoke("groups:list"),
+  getGroups: (options) => ipcRenderer.invoke("groups:list", options),
   getGroupRoles: payload => ipcRenderer.invoke("groups:roles", payload),
   checkFeatureFlags: groupId => ipcRenderer.invoke("groups:checkFeatureFlags", groupId),
   getProfiles: () => ipcRenderer.invoke("profiles:list"),

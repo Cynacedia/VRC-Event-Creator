@@ -2304,7 +2304,16 @@ ipcMain.handle("auth:twofactor:submit", async (_, code) => {
   return false;
 });
 
-ipcMain.handle("groups:list", async () => {
+ipcMain.handle("groups:list", async (_, options) => {
+  // When `force: true` is passed (Resync invokes it this way), drop the
+  // per-group caches so we re-query VRChat for current permissions /
+  // privacy / tags. Without this, server-side role changes don't surface
+  // until logout or app restart — the caches outlive everything else.
+  if (options?.force) {
+    groupPermissionCache.clear();
+    groupPrivacyCache.clear();
+    groupTagsCache.clear();
+  }
   debugApiCall("getUserGroups", {});
   const user = await ensureUser();
   const groupsResponse = await requestGet(
