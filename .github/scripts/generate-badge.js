@@ -28,10 +28,13 @@ function fetchReleases() {
 async function main() {
   const releases = await fetchReleases();
 
-  // Count only .exe and .AppImage downloads
+  // Count only .exe and .AppImage downloads from v1.0.0 and later releases.
+  // Pre-1.0 (v0.9.x) downloads are excluded — they're noise from the early
+  // dev period and don't reflect interest in the released app.
   let totalDownloads = 0;
 
   for (const release of releases) {
+    if (!/^v[1-9]/.test(release.tag_name)) continue;
     for (const asset of release.assets || []) {
       if (asset.name.endsWith('.exe') || asset.name.endsWith('.AppImage')) {
         totalDownloads += asset.download_count;
