@@ -1824,11 +1824,19 @@ async function performRefresh(api, options = {}) {
   renderModifyEventGrid();
 
   try {
-    // Fetch both real events and pending events in parallel
-    const [events, pendingResult] = await Promise.all([
+    // Fetch series, real events, and pending events in parallel. Series load
+    // is required so populateSeriesFilterOptions can resolve human labels —
+    // without it, the filter shows fallback "Series (cal_xxxxxxxx)" IDs.
+    // This also covers single-group users (no group switch ever fires) and
+    // refresh-button presses where the group hasn't changed.
+    const [seriesResult, events, pendingResult] = await Promise.all([
+      modifyApi.seriesList ? modifyApi.seriesList({ groupId }).catch(() => null) : Promise.resolve(null),
       modifyApi.listGroupEvents({ groupId, upcomingOnly: true }),
       modifyApi.getPendingEvents ? modifyApi.getPendingEvents({ groupId }) : Promise.resolve({ events: [], missedCount: 0 })
     ]);
+    if (seriesResult) {
+      state.series[groupId] = seriesResult;
+    }
 
     let filteredEvents = Array.isArray(events) ? events : [];
 
@@ -1933,13 +1941,9 @@ export function initModifyEvents(api) {
     state.modify.optimisticEvents.clear();
     // Reset filters when changing groups (filters are scoped per session per group)
     resetModifyFilters();
-    // Load series metadata for the new group so badge labels appear correctly
-    const newGroupId = dom.modifyGroup.value;
-    if (newGroupId && modifyApi?.seriesList) {
-      try {
-        state.series[newGroupId] = await modifyApi.seriesList({ groupId: newGroupId });
-      } catch (err) { /* ignore */ }
-    }
+    // Series load now happens inside refreshModifyEvents so it covers
+    // refresh-button presses + single-group users too. No duplicate fetch
+    // needed here.
     void refreshModifyEvents(modifyApi);
   });
   // Time range dropdown — persists across restarts via settings
