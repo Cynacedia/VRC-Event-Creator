@@ -3295,7 +3295,7 @@ input[type="color"]::-moz-color-swatch {
   gap: 4px;
   padding: 2px 6px;
   font-size: var(--text-11);
-  background: var(--accent-soft);
+  background: var(--surface-strong);
   color: var(--accent);
   border: 1px solid var(--accent);
   border-radius: 4px;
